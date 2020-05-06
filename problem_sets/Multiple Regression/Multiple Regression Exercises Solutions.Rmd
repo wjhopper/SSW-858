@@ -1,0 +1,293 @@
+
+---
+title: 'Problem Set 07: Multiple Regression Solutions'
+author: "Will Hopper"
+output:
+  html_document:
+    css: "https://wjhopper.github.io/sds201_labs/assets/css/lab.css"
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: false
+    toc_depth: 2
+    df_print: paged
+    self_contained: true
+editor_options: 
+  chunk_output_type: console
+---
+
+In this problem set we will continue our work with the [FiveThirtyEight hate crimes data set](https://fivethirtyeight.com/features/higher-rates-of-hate-crimes-are-tied-to-income-inequality/). This time, we'll model these data using multiple explanatory variable within the same model, and try out different model architectures (i.e., parallel slopes and interaction models).
+
+First load the necessary packages:
+
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(moderndive)
+```
+
+Next, load the data set from the internet:
+
+```{r}
+hate_crimes <- read.csv("https://wjhopper.github.io/sds201_labs/data/hate_crimes.csv", stringsAsFactors = FALSE)
+```
+
+Just to remind you, the data set has 51 observations from the 11 following variables:
+
+- `state`: State name, includes District of Columbia (i.e., Washington D.C.)
+- `percent_hs_degree`: Proportion of adults 25 and older with a high-school degree (2009)
+- `share_non_citizen`: Proportion of the population that are not U.S. citizens
+- `share_white_poverty`: Proportion of white residents who are living in poverty
+- `gini_index`: GINI inequality index (higher = greater inequality)
+- `share_non_white`: Proportion of the population that is not white
+- `percent_trump`: Proportion of 2016 U.S. presidential voters who voted for Donald Trump
+- `hate_crime_rate`: Hate crimes per 100,000 people between Nov. 9 & Nov. 18, 2016 according to Southern Poverty Law Center 
+- `median_house_inc`: Median household income, divided into "high" and "low" categories
+- `unemployment`: Unemployment rate divided into "high" and "low" categories
+- `urbanization`: Proportion of the population living in metropolitan areas, divided into high" and "low" categories
+
+
+Be sure to explore the data using the `skim` or `glimpse` function, or the RStudio data viewer (just remember, don't print out the whole data set in your submission!).
+
+# An Additive Regression Model
+
+For the exercises in this section, model the relationship between the hate crime rate (`hate_crime_rate`) as the **outcome**, and both the GINI inequality index (`gini_index`) and the median household income category (`median_house_inc`) as  **explanatory** variables, using a **parallel slopes** multiple regression model.
+
+## Exercise
+Visualize the relationship between the hate crime rate, the GINI inequality index, and the median household income category. Your visualization should include regression lines that represent the predictions of the **parallel slopes** multiple regression model. Describe the relationship between these three variables.
+
+### Solution
+```{r}
+ggplot(hate_crimes, aes(x=gini_index, y=hate_crime_rate, color=median_house_inc)) +
+  geom_point() +
+  geom_parallel_slopes(se=FALSE)
+```
+
+The higher income states have more hate crimes on average than lower income states (which we saw in Problem Set 6 as well), and they also appear to have slightly higher scores on the GINI inequality index as well (the blue points are clustered slightly to the right of the pinkish orange points).
+
+The hate crime rate increases as the GINI index increases, indicating inequality and hate crimes have a moderately strong positive relationship. Under the parallel slope model, this relationship is the same for both high and low income states. This doesn't appear to be an unreasonable model of the data, though there are two noticeable misfits between the observations and the regression line for relatively low GINI index states with low incomes.
+
+## Exercise
+Fit the parallel slopes regression model visualized in the previous question, and report the regression table.
+
+### Solution.
+
+**If the variables are entered into the regression as `median_house_inc + gini_index`**
+```{r}
+hcr_by_income_plus_gini_model <- lm(hate_crime_rate ~ median_house_inc + gini_index, data = hate_crimes)
+get_regression_table(hcr_by_income_plus_gini_model)
+```
+
+**If the variables are entered into the regression as `gini_index + median_house_inc`**
+```{r}
+hcr_by_gini_plus_income_model <- lm(hate_crime_rate ~ gini_index + median_house_inc, data = hate_crimes)
+get_regression_table(hcr_by_gini_plus_income_model)
+```
+
+## Exercise
+Based on this regression model, what is:
+
+1. The value of the $b_0$ parameter?
+2. The value of the $b_1$ parameter?
+3. The value of the $b_2$ parameter?
+4. The y intercept of the baseline income group?
+5. The y intercept of the "high" income group?
+6. The difference between the y intercept of the "low" income group, and the "high" income group?
+7. The difference between hate crime rate of the "low" income group and the "high" income group when the GINI index is .44?
+8. The predicted increase in hate crime rate for a one percentage point increase in the GINI index for a "high" income state?
+9. The predicted increase in hate crime rate for a one percentage point increase in the GINI index for a "low" income state?
+
+*HINT:* Some of the items in this list are identical. In other words, some of these items refer to the same quantities in the regression table.
+
+### Solution
+
+**Assuming the variables were entered into the regression as `median_house_inc + gini_index` in Exercise 2**
+
+1. -1.8 (the first line in table, labeled "intercept".)
+2. -0.195 (the second line in table, labeled "median_house_inclow".)
+3. 4.84 (the third line in table, labeled "gini_index".)
+4. -1.8 (the first line in table, labeled "intercept", because this is always the intercept for the baseline group.)
+5. -1.8 (also the first line in table, labeled "intercept", because since the "h" in "high" comes before the "l" in "low", the high income group is the baseline group.)
+6. -0.195 (the second line in table, labeled "median_house_inclow", because we know categorical effects in a regression are always represented as differences from baseline.)
+7. -0.195 (also the second line in table, labeled "median_house_inclow", because we know this is the difference from baseline. Since the regression lines are parallel, they will have the same difference no matter whether the GINI index is 0, .44, or 1!)
+8. 4.84 (the third line in table, labeled "gini_index".)
+9. 4.84 (also the third line in table, labeled "gini_index", because the rate of change is constrained to be the same under the parallel slopes model).
+
+**Assuming the variables were entered into the regression as `gini_index + median_house_inc` in Exercise 2**
+
+1. -1.8 (the first line in table, labeled "intercept".)
+2. 4.84 (the second line in table, labeled "gini_index".)
+3. -0.195 (the third line in table, labeled "median_house_inclow".)
+4. -1.8 (the first line in table, labeled "intercept", because this is always the intercept for the baseline group.)
+5. -1.8 (also the first line in table, labeled "intercept", because since the "h" in "high" comes before the "l" in "low", the high income group is the baseline group.)
+6. -0.195 (the third line in table, labeled "median_house_inclow", because we know categorical effects in a regression are always represented as differences from baseline.)
+7. -0.195 (also the third line in table, labeled "median_house_inclow", because we know this is the difference from baseline. Since the regression lines are parallel, they will have the same difference no matter whether the GINI index is 0, .44, or 1!)
+8. 4.84 (the second line in table, labeled "gini_index".)
+9. 4.84 (also the second line in table, labeled "gini_index", because the rate of change is constrained to be the same under the parallel slopes model).
+
+## Exercise
+Based on this model, what hate crime rate would you expect to occur in a "high" income state with a GINI index of .5? What hate crime rate would you expect to occur in a "low" income state with a GINI index of .5?
+
+**HINT**: You may find it helpful to write out the regression model in GLM notation as a first step.
+
+### Solution
+
+#### GINI = .5, "high" state
+y-hat = -1.8 + -0.195 * 1_low(x_1) + 4.84 * x_2
+
+y-hat = -1.8 + -0.195 * 1_low("high") + 4.84 * .5
+
+y-hat = -1.8 + -0.195 * 0 + 4.84 * .5
+
+y-hat = .62
+
+This model predicts the hate crime rate would be .62 hate crimes per 100,000 people in a "high" income state
+
+
+#### GINI = .5, "low" state
+y-hat = -1.8 + -0.195 * 1_low(x_1) + 4.84 * x_2
+
+y-hat = -1.8 + -0.195 * 1_low("low") + 4.84 * .5
+
+y-hat = -1.8 + -0.195 * 1 + 4.84 * .5
+
+y-hat = -1.995 + 4.84 * .5
+
+y-hat = .425
+
+This model predicts the hate crime rate would be about .425 hate crimes per 100,000 people in a "low" income state
+
+## Exercise
+The state of Colorado belonged to the "high" median income group, had a GINI index of 0.457 in 2016, and a hate crime rate of .39 per 100,000 people. 
+
+Back in Exercise 5 of Problem Set 6, we found that when we predicted the hate crime rate in Colorado with just the GINI index alone, our bivariate regression model had a residual error of 0.088. How much more accurate is this multiple regression model for predicting the hate crime rate in Colorado?
+
+### Solution
+Plug Colorado's GINI index value and income category into the regression equation, and find the difference between the predicted and observed hate crime rates.
+
+y-hat = -1.8 + -0.195 * 1_low(x_1) + 4.84 * x_2
+
+y-hat = -1.8 + -0.195 * 1_low("high") + 4.84 * 0.457
+
+y-hat = -1.8 + -0.195 * 0 + 4.84 * 0.457
+
+y-hat = .411
+
+Residual error = y - y_hat
+
+.39 - .411 = -0.021
+
+The residual error for the state of Colorado was -.021 under this multiple regression model - the model slightly over predicted the observed hate crime rate. But in terms of absolute error, this multiple regression model was about 4 times as accurate than the bivariate model we used in last week's Exercise 5!
+
+
+# An Interactive Regression Model
+For the exercises in this section, model the relationship between the hate crime rate (`hate_crime_rate`) as the **outcome**, and both the GINI inequality index (`gini_index`) and the median household income category (`median_house_inc`) as  **explanatory** variables, using a multiple regression model that allows for an **interaction**.
+
+## Exercise
+Visualize the relationship between the hate crime rate, the GINI inequality index, and the median household income category. Your visualization should include regression lines that represent the predictions of the **interactive** multiple regression model. What, if anything, important has changed from the parallel slopes model?
+
+### Solution
+```{r}
+ggplot(hate_crimes, aes(x=gini_index, y=hate_crime_rate, color=median_house_inc)) +
+    geom_point() +
+    geom_smooth(se=FALSE, method = "lm")
+```
+
+The biggest change is the regression line for the low income states - it now has a negative slope instead of a positive slope!
+
+## Exercise
+Fit the interaction model visualized in the previous question, and report the regression table.
+
+### Solution.
+
+**If the variables are entered into the regression as `median_house_inc * gini_index`**
+```{r}
+hcr_by_income_times_gini_model <- lm(hate_crime_rate ~ median_house_inc * gini_index, data = hate_crimes)
+get_regression_table(hcr_by_income_times_gini_model)
+```
+
+**If the variables are entered into the regression as `gini_index * median_house_inc`**
+```{r}
+hcr_by_gini_times_income_model <- lm(hate_crime_rate ~ gini_index * median_house_inc, data = hate_crimes)
+get_regression_table(hcr_by_gini_times_income_model)
+```
+
+
+## Exercise
+Based on this regression model, what is:
+
+1. The value of the $b_0$ parameter?
+2. The value of the $b_1$ parameter?
+3. The value of the $b_2$ parameter?
+4. The value of the $b_3$ parameter?
+5. The predicted hate crime rate for the baseline group when the GINI index is 0?
+6. The y intercept of the "low" income group?
+7. The predicted increase in hate crime rate for a one percentage point increase in the GINI index for a "high" income state?
+8. The predicted increase in hate crime rate for a one percentage point increase in the GINI index for a "low" income state?
+
+### Solution.
+
+**Assuming the variables were entered into the regression as `median_house_inc * gini_index` in Exercise 7**
+
+1. -3.05 (the line labeled "intercept")
+2. 4.31 (the line labeled "median_house_inclow")
+3. 7.61 (the line labeled "gini_index")
+4. -9.87 (the line labeled "median_house_inclow:gini_index")
+5. -3.05 (this is the definition of the y intercept for the baseline group, which is always the line labeled "intercept")
+6. 1.26 (need to add the offset for the low income group, 4.31, to the intercept for the baseline group, -3.05)
+7. 7.61 (This is the slope for the baseline group, given by the line labeled "gini_index")
+8. -2.26 (need to add the slope offset for the low income group, -9.97, to the slope for the baseline group, 7.61)
+
+**Assuming the variables were entered into the regression as `gini_index *median_house_inc` in Exercise 7**
+
+1. -3.05 (the line labeled "intercept")
+2. 7.61 (the line labeled "gini_index")
+3. 4.31 (the line labeled "median_house_inclow")
+4. -9.87 (the line labeled "gini_index:median_house_inclow")
+5. -3.05 (this is the definition of the y intercept for the baseline group, which is always the line labeled "intercept")
+6. 1.26 (need to add the offset for the low income group, 4.31, to the intercept for the baseline group, -3.05)
+7. 7.61 (This is the slope for the baseline group, given by the line labeled "gini_index")
+8. -2.26 (need to add the slope offset for the low income group, -9.97, to the slope for the baseline group, 7.61)
+
+
+## Exercise
+Based on this model, what hate crime rate would you expect to occur in a "low" income state with a GINI index of .5?
+
+**HINT**: You may find it helpful to write out the regression model in GLM notation as a first step.
+
+### Solution
+
+**Assuming the variables were entered into the regression as `median_house_inc * gini_index` in Exercise 6. The final answer will be the same regardless, but the equations along the way will be slightly different, e.g., the x1 and x2 variables might be swapped**
+
+y-hat = -3.05 + (-4.31 * 1_low(x_1)) + (7.61 * x_2) + (-9.87 * 1_low(x_1) * x_2)
+
+y-hat = -3.05 + (4.31 * 1_low("low")) + (7.61 * .5 )+ (-9.87 * 1_low("low) * .5)
+
+y-hat = -3.05 + (4.31 * 1) + (7.61 * .5) - (9.87 * 1 * .5)
+
+y-hat = (-3.05 + 4.31) + (7.61 - 9.87) * .5
+
+y-hat = 1.26 +  -2.26 * .5
+
+y-hat = .13
+
+This model predicts the hate crime rate would be about .13 hate crimes per 100,000 people in a "low" income state
+
+# Model Comparison
+
+## Exercise
+Compute the proportion of variance in hate crimes accounted for by both the parallel slopes model, and by the interaction model. Based on these values, and the visualizations you created in Exercises 2 and 7, which model do you prefer: the parallel slopes model, or the interaction model. Why?
+
+### Solution
+
+#### Parallel Slopes Models
+```{r}
+get_regression_summaries(hcr_by_income_plus_gini_model)
+```
+
+#### Parallel Slopes Models
+```{r}
+get_regression_summaries(hcr_by_income_times_gini_model)
+```
+
+The $R^2$ value increases from  .255 under the additive model to .383 under the interaction model, which is a noticeable jump. And in the visualization, we can see the slope of the regression line switches from positive to negative under the interaction model. Because the big change in slope helps to achieve a noticeably smaller residual error (as measured by $R^2$), I would prefer the interaction model in this case.

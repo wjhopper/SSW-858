@@ -1,0 +1,153 @@
+
+---
+title: 'Problem Set 02: Data Visualization'
+author: "Your Name Here!"
+output:
+  html_document:
+    theme: lumen
+    toc: yes
+    toc_float: yes
+    toc_level: 2
+    df_print: kable
+    css: "../../assets/css/lab.css"
+    self_contained: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE, message = FALSE}
+library(ggplot2)
+```
+
+
+<div id="license">
+**Use the `ggplot2` package to create all the figures for this problem set.**
+</div>
+
+
+### The Data
+
+For this problem set, you'll continue working with the `ncbirths` data set. Just like in the lab 2  slides, you can import this data into R using the following code:
+
+```{r,eval=FALSE}
+ncbirths <- read.csv("https://wjhopper.github.io/sds201_labs/data/ncbirths.csv",
+                     stringsAsFactors = FALSE)
+```
+
+### Reminders and Suggestions
+
+Remember, "running code means" telling R "do this". You tell R to do something by passing it through the console. You can run existing code many ways:
+
+- Re-typing code out directly in the console (most laborious method)
+- Copying and pasting existing code into the console and hitting enter (easier method)
+- Click on the green triangle in the code chunk (easiest method 1)
+- Highlight the code and hit `Control-Enter` on PC or `Command-Return` on a Mac (easiest method 2).
+
+You can also execute all your R code chunks when you press the "Knit" button, but this execution happens separately and apart from your console, and your results will only show up in the HTML output document.
+
+In this problem set, I recommend that you test and "prototype" your code by running it "interactively" in your console, using the methods mention above. When you've got things working the way you want, then "knit" your HTML file and continue on to the next problem
+
+## Exercise
+Explore the data using the `str` function e.g., `str(ncbirths)`. 
+
+a. Explain what you can learn from the output of this function.
+b. How can you tell which variables are likely categorical, and which are likely to be numeric, based on the output of the `str` function.
+c. Does R seem to consider the `smoker` variable categorical or numerical?
+
+### Solution
+```{r exercise1}
+ncbirths <- read.csv("https://wjhopper.github.io/sds201_labs/data/ncbirths.csv",
+                     stringsAsFactors = FALSE)
+str(ncbirths)
+```
+
+a. You can learn the number of rows (observations) and columns (variables) in the data set. You can also learn the names of each variable, what "type" of data it is, and see the first few values.
+b. Most of the categorical variables are labeled `chr`, and most of the numeric variables are labeled `int` or `num`.
+c. No, `smoker` is incorrectly treated as a discrete (integer) numeric variable because of its 0 and 1 values.
+
+## Exercise
+Construct a histogram of the `weeks` variable where each bin represents one week. Be sure your solution includes both your code and the figure.
+
+### Solution
+```{r}
+library(ggplot2)
+ggplot(data = ncbirths,
+       mapping = aes(x = weeks)
+       ) +
+  geom_histogram(binwidth = 1)
+```
+
+## Exercise
+The y-axis of figure you created in the previous problem should be labeled "count". What is specifically being counted in this figure? In other words, what does the y-axis values represent?
+
+### Solution
+They represent the number of pregnancies observed in each one week bin. In other words, the number of pregnancies for each value of `week`.
+
+## Exercise
+Based on your histogram, what do you think is the most likely pregnancy duration?
+
+**HINT:** If you're having trouble matching columns to x-axis positions because the columns are "touching" and blending together visually, try adding `color="white"` to your code.
+
+### Solution
+```{r exercise4}
+ggplot(data = ncbirths,
+       mapping = aes(x = weeks)
+       ) +
+  geom_histogram(binwidth = 1, color = "white")
+```
+
+It looks like 39 weeks is the most likely pregnancy duration, because there are the most observations in the week 39 bin.
+
+## Exercise
+What would the problem be with setting a bin width of 80 for this histogram? What would the problem with setting a bin width of 0.5 be for this histogram?
+
+**Hint:** If you're not sure, try creating histograms with binwidths of 100 and 0.5, and see what the problems are.
+
+### Solution
+With a binwidth of 100, there is just one bin, and all the pregnancies fall into it. So, there is just a big rectangle, and we learn nothing about the distribution of pregnancy durations.
+
+With a binwidth of 0.5, we waste space. That's because the `weeks` variable was measured using integers only, and thus no observation will ever fall in the .5 bins. Our histogram ends up having a misleading "sawtooth" pattern.
+
+## Exercise
+Now, create a new histogram with the `premie` variable mapped to the `fill` aesthetic of the plot (remember, the `fill` aesthetic controls what color the bars of the histogram are filled in with). Keep the bins set to one week.
+
+Based on this histogram, what can you learn about how the the `premie`, and `full-term` categories are constructed. How can you tell this from the plot?
+
+### Solution
+```{r exercise6}
+week_hist <- ggplot(data = ncbirths,
+                    mapping = aes(x = weeks, fill = premie)
+                    ) +
+  geom_histogram(binwidth = 1, color = "white")
+week_hist
+```
+
+It looks like the cutoff for "full-term" is 37 weeks and above. You can tell because the colors for "premie" and "full-term" completely separate after the bin for 37 weeks.
+
+## Exercise
+Now, create a new histogram with one panel for "younger moms", and one panel for "mature moms". Keep the fill aesthetic mapped to `premie`, and the bins set to one week.
+
+What can we learn about the size of these two groups from this plot?
+
+### Solution
+```{r exercise7}
+week_hist + facet_wrap(~mature)
+```
+
+There are many more "younger moms" than "mature moms". We can tell because the bars (i.e., the counts) are much higher for the histogram in the "younger mom" panel.
+
+## Exercise
+Create a boxplot with the "younger mom" and "mature mom" categories represented along the x-axis, and pregnancy duration in weeks represented along the y axis.
+
+Do the distributions of pregnancy durations look similar, or dissimilar, based on these plots. Why or why not?
+
+### Solution
+```{r exercise8}
+ggplot(data = ncbirths,
+       mapping = aes(x = mature, y=weeks)
+       ) +
+  geom_boxplot()
+```
+
+These distributions looks very similar. The "younger mom" group is *slightly* more negatively skewed (i.e., a longer tail towards 0) than the "mature mom" group, but I wouldn't make much of this at all, especially given the differences in group sizes.
+

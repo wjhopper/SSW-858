@@ -1,0 +1,189 @@
+
+---
+title: 'Problem Set 09: Confidence Intervals Solutions'
+author: "Will Hopper"
+output:
+  html_document:
+    css: "https://wjhopper.github.io/sds201_labs/assets/css/lab.css"
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: false
+    toc_depth: 2
+    df_print: paged
+    self_contained: true
+editor_options: 
+  chunk_output_type: console
+---
+
+In this problem set, we'll practice constructing and interpreting confidence intervals using data on textbook prices. These data were collected during the Fall 2018 semester at UCLA, to compare prices at the campus bookstore to prices on Amazon.com
+
+Importantly, these data represent a *sample* of textbook prices for courses at UCLA, because not all courses from the Fall 2018 are included in the data set. Thus, all of our statistics will be sample statistics that *estimate* true population parameters. 
+
+As always, begin by loading the necessary packages, and the data. Don't forget to explore the data using `glimpse`, `skim`, or just in the R Studio data viewer.
+
+```{r, message=FALSE}
+library(skimr)
+library(ggplot2)
+library(moderndive)
+library(infer)
+library(dplyr)
+
+textbooks <- read.csv("https://wjhopper.github.io/sds201_labs/data/ucla_textbooks_f18.csv")
+```
+
+# Data Exploration
+
+## Exercise
+Report the sample mean and sample variance of new textbook prices at the campus bookstore and on Amazon.com. Compare the statistics you find for the campus bookstore to those on Amazon.com.
+
+### Solution
+```{r}
+textbooks <- filter(textbooks, !is.na(bookstore_new), !is.na(amazon_new))
+
+textbook_summaries <- summarise(textbooks,
+                                bookstore_avg = mean(bookstore_new),
+                                bookstore_var = var(bookstore_new),
+                                amazon_avg = mean(amazon_new),
+                                amazon_var = var(amazon_new)
+                                )
+textbook_summaries
+```
+
+Bookstore prices are slightly higher (~65 dollars vs. ~62 dollars), and slightly more variable than on Amazon.com.
+
+# Bootstrap Confidence Intervals
+For exercises in this section, feel free use the `infer` package workflow described in [ModernDive Chapter 8.4](https://moderndive-bert.netlify.app/8-confidence-intervals.html#infer-workflow), or do things the "old fashioned" way (e.g., using `dplyr`, `ggplot` and `rep_sample_n` directly).
+
+**Note:** Just like last week's problem set, don't forget to seed your computer's Random Number Generator using the `set.seed()` function before doing any computations that require random sampling! That way, you'll get the same sample every time you run that code chunk or knit your document. To help remind you, I'll include a "suggested seed" for every exercise where random sampling is necessary.
+
+## Exercise
+Construct a bootstrap sampling distribution of the average price for new textbooks at the campus bookstore using 1,000 bootstrap replicates. Visualize the bootstrap distribution using a histogram, and describe the distribution you see.
+
+**Suggested Seed: `set.seed(54321)`**
+
+### Solution
+
+### Using the `infer` package workflow
+```{r}
+set.seed(54321)
+
+bootstrap_dist <- textbooks %>%
+  specify(response = bookstore_new) %>%
+  generate(reps = 1000, type = "bootstrap")  %>% 
+  calculate(stat = "mean")
+
+visualise(bootstrap_dist)
+```
+
+The sampling distribution has a mean of around 65 dollars, and is normally distributed with a fairly large variance. Average prices below 50 dollars and above about 83 dollars are extremely rare.
+
+### Using the "manual" workflow (not run)
+```{r, eval=FALSE}
+set.seed(54321)
+
+bootstrap_dist <- textbooks %>%
+  select(bookstore_new) %>%
+  rep_sample_n(size = nrow(textbooks), reps = 1000, replace=TRUE) %>%
+  group_by(replicate) %>%
+  summarise(bookstore_avg = mean(bookstore_new))
+
+ggplot(bootstrap_dist, aes(x=bookstore_avg)) +
+  geom_histogram(bins=15, color="white") +
+  ggtitle("Bootstrap Distribution")
+```
+
+## Exercise
+Find the 95% confidence interval of the bootstrap distribution. What does this interval tell you? Be as precise as possible in your answer.
+
+### Solution
+### Using the `infer` package workflow
+```{r}
+get_confidence_interval(bootstrap_dist, level = 0.95, type = "percentile")
+```
+
+The 95% confidence interval bounds the central 95% of the sampling distribution. The sampling distribution, and thus this confidence interval, was estimated based on bootstrapping single sample Thus, it tells us the estimated range in which we expect 95% of other average textbook prices at UCLA to fall in (e.g., average prices from future semesters, or average prices for another set of classes).
+
+### Using the "manual" workflow (not run)
+```{r eval=FALSE}
+summarise(bootstrap_dist,
+          lower = quantile(bookstore_avg, .025),
+          upper = quantile(bookstore_avg, .975)
+          )
+```
+
+# Single-sample Confidence Intervals
+
+## Exercise
+Estimate the **90%** confidence interval for new textbook prices at the campus bookstore data based on just the original sample (i.e., using the `textbooks` data frame without bootstrapping).
+
+**Hints** The central limit theorem will be useful, as will the quantile conversion formula from [ModernDive 8.3.2](https://moderndive-bert.netlify.app/8-confidence-intervals.html#se-method).
+
+### Solution
+Use the sample mean to estimate $\mu$ and the sample variance to estimate $\sigma^2$, then apply the central limit theorem to estimate $\mu_\bar{x}$ and $\sigma^2_{\bar{x}}$.
+```{r}
+N <- nrow(textbooks)
+
+mu_hat <- mean(textbooks$bookstore_new)
+mu_hat_x_bar <- mu_hat
+
+sigma2_hat <- var(textbooks$bookstore_new)
+sigma2_hat_x_bar <- sigma2_hat/N
+```
+
+Then use the `qnorm` function to fine the upper and lower cutoffs that bound 95% of the standard normal distribution (i.e., the .025 and .975 quantiles), and apply the quantile conversion formula:
+
+```{r}
+std_norm_lower <- qnorm(.05)
+std_norm_upper <- qnorm(.95)
+
+upper <- mu_hat_x_bar + std_norm_upper*sqrt(sigma2_hat_x_bar)
+print(c("upper boundary"=upper))
+
+lower <- mu_hat_x_bar + std_norm_lower*sqrt(sigma2_hat_x_bar)
+print(c("lower boundary"=lower))
+```
+
+## Exercise
+Why is the interval created in Exercise 4 narrower than the one created in Exercise 3?
+
+### Solution
+Because the interval created in Exercise 4 was a *90%*, not a *95%* confidence interval. A 90% interval will always be narrower than a 95% interval, because it captures less of the distribution intentionally.
+
+
+## Exercise
+Re-sample 100 more data sets from the original `textbooks` data set, but don't combine them together to create a bootstrap sampling distribution. Instead, find the mean and variance of the new textbook prices at the campus bookstore in each one, and create a 90% confidence interval for each re-sampled data set (using the same method you used in Exercise #4).
+
+Assume that the true average price of a new textbook at the campus bookstore, across the entire population of new textbooks at UCLA campus bookstore, was the same as the average price you calculated in Exercise 1.
+
+How many of your 100 confidence interval do you expect to capture the mean of the population? How many actually did?
+
+**Suggested Seed: set.seed(42)**
+
+### Solution
+
+```{r}
+set.seed(42)
+assume_mu <- mean(textbook_summaries$bookstore_avg)
+
+std_norm_lower <- qnorm(.05)
+std_norm_upper <- qnorm(.95)
+N <- nrow(textbooks)
+
+confidence_intervals <-
+  select(textbooks, bookstore_new) %>%
+  rep_sample_n(size = nrow(textbooks), reps = 100, replace=TRUE) %>%
+  group_by(replicate) %>%
+  summarise(bookstore_avg = mean(bookstore_new),
+            bookstore_var = var(bookstore_new)) %>%
+  mutate(upper = bookstore_avg + std_norm_upper*sqrt(bookstore_var/N),
+         lower = bookstore_avg + std_norm_lower*sqrt(bookstore_var/N)
+         )
+
+mutate(confidence_intervals, in_interval = (lower < assume_mu) & (assume_mu < upper)) %>%
+  summarise(N_in_interval = sum(in_interval))
+```
+
+I expected 90 of them to contain the population mean, because we would expect 90% of all 90% confidence interval to contain the true population mean. However, my random sample of confidence intervals captured the population mean 93 times out of 100.
+
+

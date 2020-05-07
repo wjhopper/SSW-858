@@ -1,4 +1,4 @@
 *solution* filter=git-crypt diff=git-crypt
 
-_labs/*/*/*/*.svg filter=g_surface_id
+_lectures/*/*/*/*.svg filter=g_surface_id
 _problem_sets/*/*/*.svg filter=g_surface_id

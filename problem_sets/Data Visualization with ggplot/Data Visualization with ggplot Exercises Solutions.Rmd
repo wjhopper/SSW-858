@@ -1,15 +1,16 @@
 
 ---
-title: 'Problem Set 02: Data Visualization'
-author: "Your Name Here!"
+title: 'Problem Set 02 Solutions: Data Visualization'
+author: "Will Hopper"
 output:
   html_document:
+    css: "https://wjhopper.github.io/sds201_labs/assets/css/lab.css"
     theme: lumen
     toc: yes
-    toc_float: yes
-    toc_level: 2
-    df_print: kable
-    css: "../../assets/css/lab.css"
+    toc_float:
+      collapsed: false
+    toc_depth: 2
+    df_print: paged
     self_contained: true
 editor_options: 
   chunk_output_type: console
@@ -19,8 +20,7 @@ editor_options:
 library(ggplot2)
 ```
 
-
-<div id="license">
+<div class="attention">
 **Use the `ggplot2` package to create all the figures for this problem set.**
 </div>
 

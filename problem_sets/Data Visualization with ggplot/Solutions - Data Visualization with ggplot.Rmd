@@ -4,7 +4,7 @@ title: 'Problem Set 02 Solutions: Data Visualization'
 author: "Will Hopper"
 output:
   html_document:
-    css: "https://wjhopper.github.io/sds201_labs/assets/css/lab.css"
+    css: "https://wjhopper.github.io/SDS-201/assets/css/lab.css"
     theme: lumen
     toc: yes
     toc_float:
@@ -30,7 +30,7 @@ library(ggplot2)
 For this problem set, you'll continue working with the `ncbirths` data set. Just like in the lab 2  slides, you can import this data into R using the following code:
 
 ```{r,eval=FALSE}
-ncbirths <- read.csv("https://wjhopper.github.io/sds201_labs/data/ncbirths.csv",
+ncbirths <- read.csv("https://wjhopper.github.io/SDS-201/data/ncbirths.csv",
                      stringsAsFactors = FALSE)
 ```
 
@@ -56,7 +56,7 @@ c. Does R seem to consider the `smoker` variable categorical or numerical?
 
 ### Solution
 ```{r exercise1}
-ncbirths <- read.csv("https://wjhopper.github.io/sds201_labs/data/ncbirths.csv",
+ncbirths <- read.csv("https://wjhopper.github.io/SDS-201/data/ncbirths.csv",
                      stringsAsFactors = FALSE)
 str(ncbirths)
 ```

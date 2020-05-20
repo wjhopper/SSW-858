@@ -19,10 +19,10 @@ author: "Herp"
 description: >- # this means to ignore newlines until "baseurl:"
   Lab slides and accompanying files for the SDS 201 labs taught by Will Hopper.
 
-baseurl: "/SDS-201" # the subpath of your site, e.g. /blog
+baseurl: "/SSW-858" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  wjhopper
-repository: wjhopper/SDS-201
+repository: wjhopper/SSW-858
 
 # Build settings
 markdown: kramdown
@@ -74,5 +74,5 @@ exclude:
    - LICENCSE.md
    - renv/
    - renv.lock
-   - SDS-201.Rproj
+   - SSW-858.Rproj
    - R/

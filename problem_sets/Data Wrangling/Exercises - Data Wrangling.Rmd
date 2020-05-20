@@ -1,6 +1,6 @@
 
 ---
-title: 'Problem Set 03: Data Types & Manipulation'
+title: 'Problem Set 03: Data Wrangling'
 author: "Your Name Here!"
 output:
   html_document:
@@ -16,6 +16,18 @@ editor_options:
   chunk_output_type: console
 ---
 
+```{r}
+knitr::opts_chunk$set(max.print=11)
+```
+
+In this problem set, we will practice some of the key data manipulation tasks using the tools from "base" R and the `dplyr` package.
+
+### Libraries
+```{r warning = F, message = F}
+library(ggplot2)
+library(dplyr)
+```
+
 <div class="attention">
 For all exercises, make sure your R code prints out your final results!!
 </div>
@@ -25,6 +37,7 @@ For all exercises, make sure your R code prints out your final results!!
 Try to create a vector that holds all the 4 basic data types. Does this work? What type or types of data are stored in the resulting vector?
 
 ### Solution
+
 
 ## Exercise
 Find the grand sum of the all the elements in the two following vectors (using R, of course).
@@ -47,7 +60,10 @@ months <- c("January", "February", "March", "April", "May", "June", "July",
 Using indexing, 
 
 1. Select just the months of `"February"` and `"March"` from this vector
-2. Select every third month of the year from this vector
+2. Select every third month of the year from this vector, beggining with January.
+
+### Solution
+
 
 ## Exercise
 
@@ -58,6 +74,9 @@ dummy <- 17:23
 dummy[5:7]
 ```
 
+### Solution
+
+
 ## Exercise
 A local grocery store sells several varieties of fruit: grapes for $4, kiwis for $2.00, mangoes for $3.00, and apples for 99 cents. Each fruit also has a "sell by" date: the grapes must be sold by February 19th, the kiwis must be sold by February 20th, the mangoes must be sold by February 18th, and the apples must be sold by February 28th. 
 
@@ -65,53 +84,43 @@ In R, create a "tidy" data frame that represents each fruit for sale, its price,
 
 ### Solution
 
+
 ## Exercise
 From your fruit data frame, select only rows where the price is $2.00 or more.
 
-### Solution
+## The `txhousing` data
+For the remainder of the problems, you will be working with the `txhousing` data set, which is included in the `ggplot2` package and will be loaded when you use `library(ggplot2)`. Once you've loaded the package, take a peek at the dataset below, taking note of the data types of each variable:
 
-***
-
-For the rest of the problem set, you'll be working with the famous [iris](https://en.wikipedia.org/wiki/Iris_flower_data_set) data set. The data set set gives the measurements in centimeters of the sepal (a.k.a. the inner petals) length and width and petal length and width, respectively, for 50 flowers from each of 3 species of iris. The species are Iris setosa, Iris versicolor, and Iris virginica.
-
-![](https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Iris_versicolor_3.jpg/440px-Iris_versicolor_3.jpg)
-
-The data set comes built-in with R, and you can load it into your environment by using the `data` function.
-
-```{r iris}
-data(iris)
+```{r R.options=list(tibble.width=85)}
+glimpse(txhousing)
 ```
 
+This data set has **monthly** observations of the housing market in 46 regions of Texas from the years 2000 through 2015. The `city`, `year`, `month` and `date` variables identify the city, month, year, and exact date of the observation, and the measured variables are for each observation are:
+
+- `sales`: Number of sales
+- `volume`: Total value of sales
+- `median`: Median sale price
+- `listings`: Total number of homes listed for sale
+- `inventory`: A "Months inventory", a.k.a, the amount of time it would take to sell all current listings at current pace of sales.
+
+<div class="attention">
+For each problem below, always print out the final data frame that gives you the answer to the question.
+</div>
+
+
 ## Exercise
-What is the interquartile range for the petal length distribution (across all species)? Report your answer to 2 decimal places
+Remove any rows of the `txhousing` data set with missing values in the `sales` variable, and overwrite the original data frame. Then use the `anyNA()` function on the `sales` variable, e.g., `anyNA(txhousing$sales)`. If you were successful, this should print out `FALSE`.
 
 ### Solution
 
-## Exercise
 
-Select only the first five rows and first two columns from the iris data set (no need to save the output, only print it).
+## Exercise
+Make a data set called `dallas` that includes data only from the city of Dallas in the years 2000 through 2010. If you did this correctly, running the command `distinct(dallas, city, year)` should print data frame with 11 rows.
 
 ### Solution
 
-## Exercise
-Select only the rows of the iris data set where the iris species is setosa or versicolor (no need to save the output, only print it).
-
-### Solution
 
 ## Exercise
-What species have a sepal width less than 2.1? Show how you found the answer with R code.
-
-### Solution
-
-## Exercise
-Consider the following boxplot showing the distribution of petal widths for each species of iris.
-
-```{r boxplot, echo=FALSE}
-library(ggplot2)
-ggplot(data = iris, mapping = aes(x=Species, y = Petal.Width)) +
-  geom_boxplot() + coord_flip()
-```
-
-Which species has the most variable petal lengths? Which species has the most skewed distribution of petal lengths?
+Find the median number of homes sold per month in each city for each year.
 
 ### Solution

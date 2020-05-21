@@ -1,6 +1,6 @@
 
 ---
-title: 'Problem Set 03: Data Wrangling'
+title: 'Problem Set: Data Wrangling'
 author: "Your Name Here!"
 output:
   html_document:

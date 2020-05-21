@@ -1,6 +1,6 @@
 
 ---
-title: 'Problem Set 02: Data Visualization'
+title: 'Problem Set: Data Visualization'
 author: "Your Name Here!"
 output:
   html_document:

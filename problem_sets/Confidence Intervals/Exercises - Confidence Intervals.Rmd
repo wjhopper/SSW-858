@@ -1,6 +1,6 @@
 
 ---
-title: 'Problem Set 09: Confidence Intervals'
+title: 'Problem Set: Confidence Intervals'
 author: "Will Hopper"
 output:
   html_document:

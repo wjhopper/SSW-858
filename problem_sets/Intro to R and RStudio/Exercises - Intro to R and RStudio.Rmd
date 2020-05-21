@@ -1,6 +1,6 @@
 
 ---
-title: "Lab 1 Exercises: Intro to R and RStudio"
+title: "Problem Set: Intro to R and RStudio"
 author: "Your Name Here!"
 output:
   html_document:
@@ -15,11 +15,6 @@ output:
 editor_options: 
   chunk_output_type: console
 ---
-
-
-```{r include = F}
-library(knitr) 
-```
 
 Please put all answers (both code chunks and text answers) below the "Solution" header for each exercise. 
 

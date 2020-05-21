@@ -1,7 +1,7 @@
 ---
-title: 'Problem Set 6: Multiple Regression'
+title: 'Problem Set 5: Multiple Regression'
 author: Will Hopper
 ---
 
-* [Problem Set 6 Exercises]({{site.baseurl}}/problem_sets/PS6-Multiple-Regression.html) 
-* [Problem Set 6 Template]({{site.baseurl}}/problem_sets/PS6 - Multiple Regression.Rmd) 
+* [Problem Set 5 Exercises]({{site.baseurl}}/problem_sets/PS5-Multiple-Regression.html) 
+* [Problem Set 5 Template]({{site.baseurl}}/problem_sets/PS5 - Multiple Regression.Rmd) 

@@ -1,7 +1,7 @@
 ---
-title: 'Problem Set 7: Sampling Distributions'
+title: 'Problem Set 6: Sampling Distributions'
 author: Will Hopper
 ---
 
-* [Problem Set 7 Exercises]({{site.baseurl}}/problem_sets/PS7-Sampling-Distributions.html) 
-* [Problem Set 7 Template]({{site.baseurl}}/problem_sets/PS7 - Sampling Distributions.Rmd) 
+* [Problem Set 6 Exercises]({{site.baseurl}}/problem_sets/PS6-Sampling-Distributions.html) 
+* [Problem Set 6 Template]({{site.baseurl}}/problem_sets/PS6 - Sampling Distributions.Rmd) 

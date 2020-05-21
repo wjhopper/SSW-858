@@ -1,7 +1,7 @@
 ---
-title: 'Problem Set 8: Confidence Intervals'
+title: 'Problem Set 7: Confidence Intervals'
 author: Will Hopper
 ---
 
-* [Problem Set 8 Exercises]({{site.baseurl}}/problem_sets/PS8-Confidence-Intervals.html) 
-* [Problem Set 8 Template]({{site.baseurl}}/problem_sets/PS8 - Confidence Intervals.Rmd) 
+* [Problem Set 7 Exercises]({{site.baseurl}}/problem_sets/PS7-Confidence-Intervals.html) 
+* [Problem Set 7 Template]({{site.baseurl}}/problem_sets/PS7 - Confidence Intervals.Rmd) 

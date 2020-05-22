@@ -4,7 +4,7 @@ title: 'Problem Set 02: Data Visualization'
 author: "Your Name Here!"
 output:
   html_document:
-    css: "https://wjhopper.github.io/SDS-201/assets/css/lab.css"
+    css: "https://wjhopper.github.io/SSW-858/assets/css/lab.css"
     theme: lumen
     toc: yes
     toc_float:
@@ -18,6 +18,7 @@ editor_options:
 
 ```{r, include = FALSE, message = FALSE}
 library(ggplot2)
+library(dplyr)
 ```
 
 <div id="license">
@@ -26,10 +27,10 @@ library(ggplot2)
 
 ### The Data
 
-For this problem set, you'll continue working with the `ncbirths` data set. Just like in the lab 2  slides, you can import this data into R using the following code:
+For this problem set, you'll continue working with the `ncbirths` data set. Just as we've done in lecture, you can import this data into R using the following code:
 
 ```{r}
-ncbirths <- read.csv("https://wjhopper.github.io/SDS-201/data/ncbirths.csv",
+ncbirths <- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
                      stringsAsFactors = FALSE)
 ```
 
@@ -47,10 +48,10 @@ You can also execute all your R code chunks when you press the "Knit" button, bu
 In this problem set, I recommend that you test and "prototype" your code by running it "interactively" in your console, using the methods mention above. When you've got things working the way you want, then "knit" your HTML file and continue on to the next problem
 
 ## Exercise
-Explore the data using the `str` function e.g., `str(ncbirths)`. 
+Explore the data using the `glimpse` function e.g., `glimpse(ncbirths)`. 
 
 a. Explain what you can learn from the output of this function.
-b. How can you tell which variables are likely categorical, and which are likely to be numeric, based on the output of the `str` function.
+b. How can you tell which variables are likely categorical, and which are likely to be numeric, based on the output of the `glimpse` function.
 c. Does R seem to consider the `smoker` variable categorical or numerical?
 
 ### Solution

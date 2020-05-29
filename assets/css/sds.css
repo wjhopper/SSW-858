@@ -1,8 +1,24 @@
-h2 { margin: .25em 0;}
+.title-slide {
+  background-image: url('../logo.png');
+  background-position-y: 90%;
+  background-color: #fff;
+  text-shadow: none;
+}
+
+.title-slide h1 , .title-slide h2, .title-slide h3 {
+  color: #000;
+}
+
+h2, h3, h4 { margin: .25em 0;}
 
 .remark-slide-content {
   padding: .67em 3em;
   font-size: 24px;
+  line-height: 1.5em;
+}
+
+.remark-slide-content h1 {
+  line-height: normal;
 }
 
 .remark-slide-scaler {
@@ -27,14 +43,15 @@ ul ul li {
   margin: .3em;
 }
 
-.noverticalmargin p {
+.noverticalmargin p,
+.noverticalmargin img,
+.noverticalmargin pre {
   margin-bottom: 0;
   margin-top: 0;
 }
-
-.noverticalmargin img {
-  margin-bottom: 0;
-  margin-top: 0;
+.noverticalmargin h3, h4 {
+  margin-bottom: 5px;
+  margin-top: 5px;
 }
 
 .compactlist li {
@@ -55,3 +72,47 @@ ul ul li {
 pre {
   margin: .5em 0;
 }
+
+.smaller-code code {
+  font-size: 16px;
+  line-height: 1.5em;
+}
+
+.grey p, .grey li {
+  color: #e8e8e8;
+}
+
+.flex-list {
+  display: grid;
+  grid-template-columns: repeat(8 , 1fr);
+  grid-gap: 10px;
+  grid-template-areas:  
+    "a a a a a a a a b"
+}
+
+.flex-list #wrap {
+  grid-area: a;
+  align-self: center;
+}
+
+.flex-list p {
+  grid-area: b;
+  justify-self: end;
+}
+
+.key {
+	display: inline-block;
+	margin: 0 .1em;
+	padding: .1em .6em;
+	font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
+	font-size: .9em;
+	line-height: 1.4;
+	color: #242729;
+	text-shadow: 0 1px 0 #fff;
+	background-color: #e4e6e8;
+	border: 1px solid #9fa6ad;
+	border-radius: 3px;
+	box-shadow: 0 1px 1px rgba(12,13,14,0.15),inset 0 1px 0 0 #fff;
+	white-space: nowrap;
+}
+

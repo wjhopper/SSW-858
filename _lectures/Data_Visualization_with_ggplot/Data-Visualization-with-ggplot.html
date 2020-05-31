@@ -4,7 +4,6 @@
     <title>Visualizing Data with ggplot</title>
     <meta charset="utf-8" />
     <meta name="author" content="Will Hopper" />
-    <meta name="date" content="2020-05-21" />
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
     <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
@@ -15,7 +14,6 @@ class: center, middle, inverse, title-slide
 
 # Visualizing Data with ggplot
 ### Will Hopper
-### May 21, 2020
 
 ---
 
@@ -28,7 +26,20 @@ The `ggplot2` package provides a library of plotting and graphics tools that imp
 
 Wilkinson's "Grammar of Graphics" is both a technical description of the structures used to produce quantitative visualizations, as well as a new language to describe the visual features of quantitative visualizations.
 
-In many ways, it formalizes what you intuitively know about plots and graphs already, but had no specific words for.
+In many ways, it formalizes what you know about plots and graphs intuitively, but probably didn't have specific words for.
+
+
+???
+
+Hello Statisticians! In today's video, I'm going to be introducing you to the ggplot2 R package, which we'll be using throughout the class to create visualizations of our data. ggplot2 is certainly an odd name for an R package, but those those two G's have some important significance.
+
+The `ggplot2` package provides a library of plotting and graphics tools that implements the the data visualization theory known as the grammar of graphics "Grammar of Graphics" developed by Leland Wilkinson. 
+
+Wilkinson's "Grammar of Graphics" is both a technical description of the structures used to produce quantitative visualizations, as well as a new language to describe the visual features of quantitative visualizations. In many ways, it formalizes what you know about plots and graphs intuitively, but probably didn't have specific words for.
+
+Since the ggplot2 package is specifically organized around this theory, we're going to first spend some time explaining the key elements in this theory, since all of these elements will show up in the R code we write to produce a plot. So, bear with me while we dive into the big ideas underpinning the ggplot2 graphics. I hope by the end of this class, you'll appreciate the value of having a visualization tool that is rooted in the best way to describe any visualization, instead of a visualization tool that tries to create plots with the shortest code possible.
+
+--
 
 Before going any further, let's make sure the `ggplot2` package is installed and loaded in R
 
@@ -37,6 +48,15 @@ Before going any further, let's make sure the `ggplot2` package is installed and
 install.packages("ggplot2") # only need to do this once
 library(ggplot) # need to do this every time you open RStudio
 ```
+
+???
+
+Before going any further, let's make sure the `ggplot2` package is installed and loaded in R by using the install.packages and library functions. 
+
+
+**Go to R**
+
+Don't forget the 2 at the end of the package name each time!
 
 ---
 
@@ -51,6 +71,15 @@ The `ggplot` system of plotting distinguishes between four main sets of features
     - The perceptual features of the data displayed in a plot
 - Scales
     - The aspects of a plot that allow you to measure the aesthetics
+
+???
+
+OK, now that we've got the ggplot2 package set up, let's start digging into the grammar of graphics theory, and work our way towards writing some code to make plots.
+
+...
+
+I'll explain and give examples of each component, starting with the data component.
+
 ---
 
 ## Data
@@ -60,6 +89,11 @@ The `ggplot` system of plotting distinguishes between four main sets of features
 - A `data.frame` is like a table of data arranged in "tidy" form
     - Rows are all observations from one unit
     - Columns are all measurements of one variable
+
+???
+
+If we don't have a data frame, we can't make a plot using ggplot
+
 ---
 
 ## Aesthetics
@@ -72,7 +106,9 @@ Aesthetics are the "simple" features possessed by data when they are displayed v
 - The size of a datum is one of its aesthetics
 - The shape of a datum is one of its aesthetics
 
-In any visualization, aesthetics may or may not be used to carry information 
+--
+
+In any visualization, aesthetics may or may not be used to carry information about the data set
 
   - E.g., the color of each datum may be the same, or colors may differ in order to convey that there are different groups of data.
 
@@ -80,11 +116,13 @@ In any visualization, aesthetics may or may not be used to carry information
 
 ## Geoms
 
-Geoms are the geometric objects chosen to instantiate the data visually, like points, lines, bars, or text.
+Geoms are the geometric objects chosen to instantiate the data visually. Example of geoms are points, lines, bars, or text.
 
 Choosing the right geom can bring clarity to your visualization
 
   - The same observations could be visualized with circles, or lines, or rectangular bars, or with all 3!
+
+--
 
 Different geoms have different aesthetics
   
@@ -96,311 +134,310 @@ Different geoms have different aesthetics
 ## Scales
 Scales are the features of a plot that allow you to measure the aesthetics (i.e., map them back from colors and shapes to the variable and values of the dataset)
 
-  - The ticks and labels on the x axis might allow you to match axis position with a specific timepoint
+  - The ticks and labels on the x axis might allow you to match axis position with a specific date
   - The colors and labels in a legend allow you to match colors to a specific group
-  
-The general term "scales" is chosen over the more common term "legend" because these features of the plot are used to measure and map many different aesthetics, discrete or continuous.
+
+--
+
+The general term "scales" is chosen over the more common term "legend" because it includes features of the plot that are used for measuring aesthetics, but are not part of a separate legend (e.g., the ticks marks along the x axis)
+
+???
+
+A synonym for scales might be "legends", but in ggplot, the more general term "scales" is chosen over the more common term "legend" because it allows you to talk about features of the plot that are used for measuring aesthetics the same way a legend does, but are not actually part of a distinct, separate legend, such as the ticks marks along the x axis.
+---
+
+### The Big 3: Data, Aesthetics, and Geoms
+
+Every time you create a new ggplot, you **must** supply the data, you **must** specify the aesthetics to use, and you **must** specify the geometric objects to draw.
+
+Scales come for free (but you can still customize the defaults)
+
+???
+
+In terms of constructing a plot, three of these components must be supplied by the person constructing them, and the fourth one is usually created automatically. Every time you create a new ggplot, you **must** supply the data, you **must** specify the aesthetics to use, and you **must** specify the geometric objects to draw.
+
+If you do all of this correctly, the scales of the plot come free, which is a way of saying that they are added automatically. Even still, you are able to customize the scale to your liking.
 
 ---
 
-## ggplot is dataset-driven plotting
-The ggplot tool set is specifically oriented around creating a plot from your *dataset*, rather than from individual vectors.
+## Aesthetics Mappings Rule Everything Around Me
+The main aim of the `ggplot` tool set is to take the relational structure  you've already defined in your data frame (each row = 1 observation; each column = one measured variable) and translate it into a visualization via *aesthetic mappings*.
 
-In my view, this is the best conceptual model to have: all plots begin with data, and data are never a set of values without a context. 
+When you specify an aesthetic mapping, you are telling ggplot "this variable in my data set should control this aspect of my plot"
+  - e.g., "Variable A should determine where the data falls along the x axis"
 
-This is the main reason we choose data frames as the structure to hold our data in R. Data frames allows us to efficiently organize our data by the unique observations we've made, and each variable we've made observations of.
+???
 
-So the main aim of the `ggplot` tool set is to take the relational structure you've already defined in your data frame and translate it into a visualization via *aesthetic mappings*.
+The most important piece of the grammar of graphics theory is the idea of an aesthetic mapping. Every time you create a ggplot, you explicitly specify the aesthetic mapping that you want to use. This mapping will allow you to translate the relational structure you've already defined in your data frame (where each row = 1 observation and each column = one variable) into a visualization by connecting a column of your data frame to an aesthetic in your plot.
+
+Basically, when you specify an aesthetic mapping, you are telling ggplot "this variable in my data set should control this aspect of my plot". For example, your aesthetic mapping might say something like "Variable A should determine where the data falls along the x axis"
+
+--
+
+ggplot2 can be difficult to use if you fight against this principle instead of leaning into it
+
+This means that sometimes, the best way accomplish a task in ggplot means organizing your data in such a way that aesthetic mappings naturally create the plot you want.
 
 ---
 
-## Mapping variables to aesthetics
+## A First Example
+Let's practice using all these ideas with a data set from a fictional experiment on time perception. 
+
+.pull-left[
+- `subject` = participant ID number
+- `trial` = trial ID number
+- `instructed` = how many second the participant was told to wait
+- `actual` = how long the participant actually waited
+- `group` = what group the participant was in (long wait in the lobby, or short wait)
+]
+
+.pull-right[
+
+```r
+Time
+```
+
+```
+##   subject trial instructed actual group
+## 1       1     1          5   4.75  long
+## 2       1     2          2   2.11  long
+## 3       1     3          1   0.94  long
+## 4       2     1          2   1.50 short
+## 5       2     2          5   5.63 short
+## 6       2     3          3   3.31 short
+```
+]
+
+???
+
+Imagine an experiment where human participants have to press a button when they see a cross appear in the center of a computer monitor. But, they are instructed to wait a certain amount of time before pressing the button. For example, sometimes they would be told to wait 3 seconds before pressing the button, or 2 seconds, or 5 seconds. Before the experiment starts though, the participants have to wait in a lobby, and unbeknownst to the participants, the experimenters purposefully left some participants waiting in the lobby longer than others. The goal of the experiment was to see if having a long wait to start the experiment would affect how long people waited to press the button.
+
+The data from two participants is shown in the `Time` data frame. The each column in the data frame reflects information measured on each trial, and each row reflects an individual trial.
+
+
+---
+
+## Creating a plot
 Making a plot with `ggplot2` always begins with a call to the `ggplot` function, which takes 2 arguments:
 
   - `data`: The name of the data frame which holds the information you'd like to plot
-  - `mapping:` The list of aesthetic mappings to use for the plot
+  - `mapping:` A list of pairs that connects variables in your data frame to the aesthetics of the plot
+    - The list of mapping pairs is created with the special function `aes`
 
----
+???
 
-## Mapping variables to aesthetics
-The `mapping` argument requires a special list of values created by the function `aes`. The `aes` function constructs this list when you provide it special key/value pairs 
+Let's use ggplot to make a scatter plot, which shows the relationship between two numeric variables by displaying each observation as a single point on the plot, with the x axis position determined by the value of one of the variables, and the y axis position determined by the value of the other variable. In this experiment, one thing we're interested in the difference between how long participant were told to wait, and how long they actually waited. If participants were perfect, and able to wait the exact amount of time they were told on each trial, all the points in the scatter plot should fall on a straight line, because the actual wait time and the instructed wait time would be equal, meaning the x and y positions for each point would be identical.
 
-  - The "keys" are unquoted names of plot aesthetics (`x`, `y`, `color`, `shape`, `linetype`, etc.)
-  - The "values" are unquoted names of variables (i.e., column names) in your data frame
+No matter what kind of plot we're going to make, we always begin the code for making our plot by using the ggplot2 function, and providing two arguments.  The first one is the data argument, where we tell ggplot the name of the data frame where it can find all of the observations we want to plot. 
 
----
+The second argument is list of aesthetic mapping pairs that connects variables in your data frame to the aesthetics of the plot. This list is created using a second function, the `aes` function. Let's write out the code we would use to start making a scatterplot of the instructed wait times and the actual wait times.
 
-## Getting Started
-Let's get into some code! We'll be creating visualizations of the `ncbirths` data set, so let's start by importing that data set into R.
+--
 
-
-```r
-ncbirths &lt;- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
-                     stringsAsFactors = FALSE)
-head(ncbirths, n = 4) # Take a peek at the data
-```
-
-
-```
-##   fage mage      mature weeks    premie visits gained weight    sex smoker
-## 1   22   20 younger mom    32    premie      5     40   2.69   male      1
-## 2   32   32 younger mom    38 full term     10     42   8.88   male      0
-## 3   34   33 younger mom    38 full term     18      6   7.06 female      0
-## 4   NA   18 younger mom    42 full term     15     27   7.44   male      0
-```
-
----
-
-## A First Plot
-Let's begin by visualizing the distribution of infant birth weights using a histogram. Remember, a histogram shows the number of (or proportion of) values that fall within specific intervals, called **bins**.
-
-The range of values your variable has is represented along the x-axis in a histogram, so we'll need to map the variable representing the birth weights (called `weights`) to the `x` aesthetic.
-
+So to start off a scatterplot of instructed wait time vs. actual wait times, we would write:
 
 ```r
-ggplot(data = ncbirths,
-       mapping = aes(x = weight)
-       )
+ggplot(data = Time, mapping = aes(x=instructed, y=actual))
 ```
 
-All ggplot figures are made beginning with the `ggplot` function. Inside the parenthesis, I told it: 
 
-1. The data to use for plotting (`data=ncbirths`)
-2. The aesthetic mapping to use (`mapping = aes(x = weight)`)
+???
 
----
+So to start off a scatterplot of instructed wait time vs. actual wait times, we would write...
 
-## A First (Blank) Plot
+Let's go to R and actually do this. **GO TO R, START R MARKDOWN**
 
-```r
-ggplot(data = ncbirths,
-       mapping = aes(x = weight)
-       )
-```
+Inside the parenthesis of the ggplot plot function I told it the data to use for plotting by writing data = Time, and I told it the aesthetic mappings to use by writing mapping = aes(x=instructed, y=actual).
 
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/frist_two-1.svg" style="display: block; margin: auto;" /&gt;
+**RUN THE CODE, WHICH WILL MAKE A BLANK PLOT**
 
-Wait, where's the data?
-
+OK, something happened, but, it's not quite a scatter plot. It looks like we have the outline of a plot, but no data is shown in it. What's the deal?
 ---
 
 ## We need a geom!
-Our plot is blank because we didn't add any geometric objects to represent the data!
+
+.pull-left[
+Uh, oh, our plot is blank because we didn't add any geometric objects to represent the data!
 
 In ggplot, we add a geom objects to represent the data by adding a new "layer" containing those geom objects onto the plot.
+]
 
-We do this, we need two things: we need a function to create the geometric object layer, and function to add it to the plot.
+.pull-right[
+&lt;img src="Data-Visualization-with-ggplot_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Well, a few slides back, I mentioned that there were three things we always needed to supply when making a plot. We need to specify the data, aesthetic mapping, and the geometric objects to draw the data with. Well, I bet you can see which one we forgot - the geometric objects?
+
+So, why did I purposely leave off this necessary component? Because the geoms are added to a plot in a different way than how we specified the data and aesthetic mappings. In ggplot2, geometric objects are drawn by adding a second layer to the "base" layer which we've drawn.
 
 ---
 
 ## We need a geom!
-As pointed out earlier, ggplot supports creating many different geometric objects, and there is a different function to create the layer for each one. 
+To add this new layer, we need two things: a function to create the geometric object layer, and function to add it to the plot.
+
+--
+
+As mentioned earlier, ggplot supports many different geometric objects, and there is a different function to create the layer for each one. 
 
 The names of the these functions follow a common pattern: `geom_`, followed by the name of the geometric object.
 
   - `geom_point`, `geom_line`, `geom_bar`, `geom_boxplot`, etc.
 
-For histograms, `ggplot` provides a specialized geom, named `geom_histogram`
+Since we want to make a scatterplot, and a scatterplot displays each individual observation as a separate point, then we need to use the `geom_point()` function.
 
+--
 
-To add this geom to the plot, we literally add it - using the `+` symbol!
-
----
-
-## Completing our histogram
-Let's finish our histogram now, with the following code:
-
-
-```r
-ggplot(data = ncbirths,
-       mapping = aes(x = weight)
-       ) +
-  geom_histogram()
-```
-
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/histogram-1.svg" style="display: block; margin: auto;" /&gt;
+And, to add this geom to the plot, we literally add it - using the `+` symbol!
 
 ---
 
-## Customizing our histogram
-Let's customize our histogram by widening the bins, changing the border color (the `color` argument) and the interior color (the `fill` argument)
+## Completing our scatterplot
 
-.noverticalmargin[
+.pull-left[
 
-```r
-ggplot(data = ncbirths, mapping = aes(x = weight)) +
-  geom_histogram(binwidth = .5, color = "white", fill = "steelblue")
-```
+Let's add the points to our scatterplot now, with the following code:
 
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/histogram2-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;pre&gt;&lt;code class="r hljs remark-code"&gt;&lt;div class="remark-code-line"&gt;ggplot(data = Time,&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;       mapping = aes(x=instructed,&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;                     y=actual)&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;       )&lt;span class="remark-code-line-highlighted"&gt; +&lt;/span&gt;&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;&lt;span class="remark-code-line-highlighted"&gt;  geom_point()&lt;/span&gt;&lt;/div&gt;
+&lt;/code&gt;
+&lt;/pre&gt;
 
-Note that none of these arguments went inside the aesthetic mapping argument as they do not specifically represent mappings of variables.
+]
+
+???
+
+You don't need to break everything onto it's own line for this code to work, I'm just doing that to make everything fit nicely on the slide. But, you also don't want to have lines of code that are super super long, as they can be very hard to read. As with most things, balance is best.
+
+--
+
+.pull-right[
+&lt;img src="Data-Visualization-with-ggplot_files/figure-html/scatter-1.svg" style="display: block; margin: auto;" /&gt;
 ]
 
 ---
 
-## ggplots are first-class
-Note that we do *not* necessarily have to create the entire plot at once. ggplots can be saved as R objects, instead of being drawn in the plot window, simply by using the assignment operator.
+## Connecting code to plot via data
+
+.pull-left[
 
 
 ```r
-weight_hist &lt;- ggplot(data = ncbirths, mapping = aes(x = weight))
-weight_hist &lt;- weight_hist + geom_histogram(binwidth = .5)
-weight_hist
-```
-
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/firstclass-1.svg" style="display: block; margin: auto;" /&gt;
-
----
-
-## Faceting to create panels
-It's common practice to compare distributions of two related groups by plotting their data side-by-side across multiple panels.
-
-&gt; *Think of panels as sub-plots within your larger visualization.*
-
-For example, we may want to compare the birth weights of babies born to smokers to the birth weights of babies born to non-smokers, by plotting two side-by-side histograms.
-
-When using `ggplot`, the term **facet** is synonymous with sub-plot or panel.
-
----
-
-## Faceting to create panels
-
-Within `ggplot`, there are two functions for "faceting" your data: `facet_grid`, and `facet_wrap`
-
-&gt; *Faceting = breaking your observations into sub-groups, and displaying each sub-group in a different panel*
-
-`facet_grid` is useful for displaying sub-groups in a matrix-like grid, when the number of subgroups is evenly divisible
-
-`facet_wrap` is useful for displaying sub-groups in a "ragged" grid, where there may be fewer plots than there are rows and columns
-
-&gt; *You can think of `facet_wrap` as a more general version of `facet_grid`*
-
----
-## Faceting with facet_wrap
-You add facets to your plot just like you were adding a geom, but with one twist. 
-
-You don't use an aesthetic mapping, but rather a special symbol called the **formula** operator.
-
-
-```r
-weight_hist + facet_wrap(~smoker)
-```
-
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/histogram3-1.svg" style="display: block; margin: auto;" /&gt;
-
-The `~smoker` command can by read as "group all the values in my plot by all the unique values in the smoker variable"
-
----
-
-## Controlling faceting direction
-If you wanted your 3 plots to be arranged vertically instead of side-by-side, you can force ggplot to facet with just a single "column" using the `ncol` argument:
-
-
-```r
-weight_hist + facet_wrap(~smoker, ncol=1)
-```
-
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/histogram4-1.svg" style="display: block; margin: auto;" /&gt;
-
----
-
-## Changing geoms
-Let's switch things up by changing our faceted histogram to a dot plot. In this dot plot, we're going to show **every** observation of the weight variable as a point, instead of binning and counting them. 
-
-The observed weight is going to be represented with the y-axis position, and the smoking/non-smoking status will be indicated along the x-axis.
-
-To make these changes, we need to: 
-
-1. Change our aesthetic mapping to have `weight` mapped to `y` instead of `x`, and `smoker` mapped to `x` instead of faceted.
-
-2. Change geom's, from `geom_histogram` to `geom_point`.
-
----
-
-## Changing geoms
-
-```r
-ggplot(data = ncbirths, mapping = aes(x = smoker, y = weight)) +
+ggplot(data = Time,
+       mapping = aes(x=instructed,
+                     y=actual)
+       ) +
   geom_point()
 ```
 
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/dot-1.svg" style="display: block; margin: auto;" /&gt;
-
-But there are few issues with this plot: the continuous x-axis, and the overlapping points.
-
----
-## Making `smoker` categorical
-
-We can convince R that `smoker` should be a categorical variable by using the `factor` function, and editing the x-axis label
-
 
 ```r
-ggplot(data = ncbirths, mapping = aes(x = factor(smoker), y = weight)) +
-  geom_point() +
-  xlab("Smoker")
+Time
 ```
 
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/dot1-1.svg" style="display: block; margin: auto;" /&gt;
-
-See how the observation where the smoking status was `NA` has been kept instead of dropped.
-
----
-
-## Reducing overplotting
-We can also reduce overlap between the points (called "overplotting") within each smoking group by "jittering" them.
-
-&gt; *Jitter = randomly shifting all points a small distance horizontally and/or vertically*
-
-All we have to is add a little more information to the `geom_point()` function using the `position` argument and the `position_jitter` function:
-
-
-```r
-geom_point(position = position_jitter(width=.15))
+```
+##   subject trial instructed actual group
+## 1       1     1          5   4.75  long
+## 2       1     2          2   2.11  long
+## 3       1     3          1   0.94  long
+## 4       2     1          2   1.50 short
+## 5       2     2          5   5.63 short
+## 6       2     3          3   3.31 short
 ```
 
-The `width` value controls how far you want each point to be randomly "jittered" from side-to-side.
+]
+
+.pull-right[
+&lt;img src="Data-Visualization-with-ggplot_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+---
+## More Aesthetic Mappings: Color
+
+Our scatterplot *does* show the relationship between actual and instructed time, but right now, there's no way to tell which condition the subject was in when the responded.
+
+But we can easily fix that by adding a third aesthetic mapping
+
+We can color each point according to the condition it came from by setting `color = group` inside the `aes` function
 
 ---
 
-## Jittering
-Let's see how it looks when we add it to our dot plot
-
-
-```r
-ggplot(data = ncbirths, mapping = aes(x = factor(smoker), y = weight)) +
-geom_point(position = position_jitter(width=.15)) +
-  xlab("Smoker")
-```
-
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/dot2-1.svg" style="display: block; margin: auto;" /&gt;
-
-Wow, there were a lot more points hiding under there!
-
----
- 
-## Adding color to our aesthetic mapping
-Another way to visually distinguish between sub-groups in your data is to color your geom's according to which group an observation belongs to.
-
-To add a group specific coloring, we need to map the variable in our data set representing that group to the color or fill aesthetic in our plot. 
-
-Here we'll add color to represent male and female babies. Remember that if you want to use different aesthetic mappings for a plot, you'll want to "start over" and make a new plot with the `ggplot` function
-
----
 ## Adding color
+.pull-left[
+&lt;pre&gt;&lt;code class="r hljs remark-code"&gt;&lt;div class="remark-code-line"&gt;ggplot(data = Time,&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;       mapping = aes(x=instructed,&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;                     y=actual,&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;                     &lt;span class="remark-code-line-highlighted"&gt;color=group&lt;/span&gt;)&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;       ) +&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;  geom_point()&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+Note that we got a legend describing each color automatically!
+]
+
+.pull-right[
+&lt;img src="Data-Visualization-with-ggplot_files/figure-html/color-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+## Connecting code to plot via data
+
+.pull-left[
 
 
 ```r
-ggplot(data = ncbirths,
-       mapping = aes(x = factor(smoker), y = weight, color=sex)
+ggplot(data = Time,
+       mapping = aes(x=instructed,
+                     y=actual,
+                     color=group)
        ) +
-  geom_point(position = position_jitter(width=.15)) +
-  xlab("Smoker")
+  geom_point()
 ```
 
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/dot3-1.svg" style="display: block; margin: auto;" /&gt;
 
-Note that we got our color legend automatically!
+```
+##   subject trial instructed actual group
+## 1       1     1          5   4.75  long
+## 2       1     2          2   2.11  long
+## 3       1     3          1   0.94  long
+## 4       2     1          2   1.50 short
+## 5       2     2          5   5.63 short
+## 6       2     3          3   3.31 short
+```
+
+]
+
+.pull-right[
+&lt;img src="Data-Visualization-with-ggplot_files/figure-html/unnamed-chunk-9-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+## Adjusting the point size
+
+.pull-left[
+We can increase (or decrease) the size of the points by specifying a `size` value in the `geom_points` function.
+
+&lt;pre&gt;&lt;code class="r hljs remark-code"&gt;&lt;div class="remark-code-line"&gt;ggplot(data = Time,&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;       mapping = aes(x=instructed,&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;                     y=actual,&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;                     color=group)&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;       ) +&lt;/div&gt;
+&lt;div class="remark-code-line"&gt;  geom_point(&lt;span class="remark-code-line-highlighted"&gt;size=4&lt;/span&gt;) &lt;span class="hljs-comment"&gt;# 4x bigger&lt;/span&gt;&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+We **could** map the size aesthetic to a variable (e.g., have each point be a different size depending on the trial number). Setting the size outside the `aes` function just changes the size for **all** points.
+
+]
+
+.pull-right[
+&lt;img src="Data-Visualization-with-ggplot_files/figure-html/size-1.svg" style="display: block; margin: auto;" /&gt;
+]
 
 ---
 
@@ -647,25 +684,29 @@ colors() # prints the whole list of names!
 ---
 
 ## Manual Colors
-.noverticalmargin[
+.pull-left[
 
 Let's try "wheat4" and "cadetblue2".
 
 
 ```r
-ggplot(data = ncbirths,
-       mapping = aes(x = factor(smoker), y = weight, color=sex)
+ggplot(data = Time,
+       mapping = aes(x=instructed,
+                     y=actual,
+                     color=group)
        ) +
-  geom_point(position = position_jitter(width=.15)) +
-  xlab("Smoker") +
-  scale_color_manual(values=c("wheat4", "cadetblue2"))
+  geom_point(size=4) +
+* scale_color_manual(c("wheat4",
+*                      "cadetblue2")
+*                    )
 ```
-
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/dot4-1.svg" style="display: block; margin: auto;" /&gt;
 
 Yikes!
 ]
 
+.pull-right[
+&lt;img src="Data-Visualization-with-ggplot_files/figure-html/wheat-1.svg" style="display: block; margin: auto;" /&gt;
+]
 ---
 
 ## Pre-built Palettes
@@ -683,19 +724,25 @@ display.brewer.all() # it is a huge plot!
 ---
 
 ## Pre-built Palettes
+
+.pull-left[
 I'm a big fan of the "Set1" palette, and we can use it in our plot with the `scale_color_brewer` function:
 
 
 ```r
-ggplot(data = ncbirths,
-       mapping = aes(x = factor(smoker), y = weight, color=sex)
+ggplot(data = Time,
+       mapping = aes(x=instructed,
+                     y=actual,
+                     color=group)
        ) +
-  geom_point(position = position_jitter(width=.15)) +
-  xlab("Smoker") +
+  geom_point(size=4) +
   scale_color_brewer(palette="Set1")
 ```
+]
 
-&lt;img src="Data-Visualization-with-ggplot_files/figure-html/dot5-1.svg" style="display: block; margin: auto;" /&gt;
+.pull-right[
+&lt;img src="Data-Visualization-with-ggplot_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+]
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

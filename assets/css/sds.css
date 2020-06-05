@@ -116,3 +116,15 @@ pre {
 	white-space: nowrap;
 }
 
+.talllines {
+  line-height: 2.5em;
+}
+
+.talllines .r {
+  line-height: initial;
+}
+
+.smaller-math .mjx-chtml {
+  font-size: 16px;
+}
+}

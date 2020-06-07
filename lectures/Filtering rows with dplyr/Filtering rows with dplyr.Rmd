@@ -1,0 +1,573 @@
+
+---
+title: "Filtering rows with dplyr"
+author: "Will Hopper"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "default-fonts", "../../assets/css/sds.css"]
+editor_options: 
+  chunk_output_type: console
+---
+
+<style>
+.fw-table table th:first-child {
+ min-width: 290px;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set("warning"=FALSE, "message"=FALSE, "fig.align" = 'center', "cache" = TRUE, dev='svg',prompt=FALSE)
+
+hook_source <- knitr::knit_hooks$get('source')
+knitr::knit_hooks$set(source = function(x, options) {
+  x <- stringr::str_replace(x, "^[[:blank:]]?([^*].+?)[[:blank:]]*#<<[[:blank:]]*$", "*\\1")
+  hook_source(x, options)
+})
+```
+
+## What is dplyr?
+  
+The `dplyr` package has become the de-facto standard for common tasks that involve manipulating data frames. Some of its biggest advantages are: 
+  
+  - A streamlined and unified interface for tasks commonly performed together. 
+  - More syntactically and semantically intuitive functions than the tools in "base" R
+
+???
+
+Hello Statisticians! In this video, we're going to take our first look at the dplyr package, which provides a collection of tools that help you effectively manipulate data frames. A data set is rarely, if ever, in the perfect form or condition for the analysis we wish to perform. Even if it were, we often perform multiple analyses of the same data set, each one likely with it's own set of constraints.
+
+This is where the art of data wrangling comes into play, and there is no better tool to have in your data wrangling toolbox than a good understanding of the dplyr package.
+
+The `dplyr` package has become the de-facto standard for common tasks that involve manipulating data frames. Some of its biggest advantages are streamlined and unified interface for tasks commonly performed together, and more syntactically and semantically intuitive functions than the tools in "base" R.
+
+Base R is a term you might hear thrown around a little bit, and all it means are the functions that are included with the 'basic' installation of R you all did on the first day, and without the need for installing any extra packages, like ggplot2 or dplyr.
+  
+
+---
+
+### Functions are verbs in dplyr
+The functions in the `dplyr` are named as data manipulation "verbs"
+
+- "I want to choose some rows, and not others" --> `filter()`
+- "I want to select only some columns" --> `select()`
+- "I want to aggregate the data" --> `summarize()`
+- "I want to divide the data into sub-groups" --> `group_by()`
+- "I want to sort the rows" --> `arrange()`
+- "I want to create a new column" --> `mutate()`
+- "I want to find the unique rows" --> `distinct()`
+
+???
+
+The source of R's big semantic advantage over other similar tools is that the functions in the `dplyr` are named as data manipulation "verbs". For example, if you want to aggregate the data, which is to go from many values to a single value, you'll be needing the summarize function. And, if you wish to divide that data you have up into sub groups, then you'll be needing the group_by function
+
+--
+
+This convention helps build a bridge between your thoughts (i.e., what you want to **do** to the data, like "I want to only use observations from the first subject") into the code that actually does it. 
+
+???
+
+This convention helps build a bridge between your thoughts (i.e., what you want to **do** to the data, like "I want to only use observations from the first subject") into the code that actually does it. 
+
+In this video, we're going to focus on the very first function in this list for today's video, the filter function, one of the central workhorses in the dplyr package.
+
+---
+
+### Getting Started
+Let's install and load the `dplyr` package, and bring back the `Time` data set.
+
+```{r installing,eval=FALSE}
+install.packages('dplyr')
+library(dplyr)
+```
+
+```{r realInstall, echo=FALSE, message=FALSE, warning =FALSE}
+library(dplyr)
+```
+
+???
+
+To get started, let's make we have the dplyr package installed and loaded. If you haven't done so already, you'll want to enter the install.packages("dplyr") command into the console. Once the package and all it's dependencies are finished installing, you'll need to load it into your R session with the library package.
+
+Remember, you'll need to do this every time you open RStudio if you want to use dplyr function in that session, and you'll need to do this in every R Markdown document where you want to use dplyr functions.
+
+--
+
+```{r}
+Time <- data.frame(subject = c(1, 1, 1, 2, 2, 2),
+                   trial = c(1, 2, 3, 1, 2, 3),
+                   instructed = c(5, 2, 1, 2, 5, 3),
+                   actual = c(4.75, 2.11, .94, 1.5, 5.63, 3.31),
+                   group = c("long", "long", "long", "short", "short", "short")
+                   )
+```
+
+???
+
+And finally, since dplyrs entire purpose is manipulating data frames, let's bring in the familiar Time data set again. We've used this in a few examples, but just to refresh your memory, these data are from fictional experiment on time perception where human participants had to press a button when they see a cross appear in the center of a computer monitor but were instructed to wait a certain amount of time before pressing the button. And before the experiment started, the participants had to wait in a lobby, and the experimenters purposefully left some participants waiting in the lobby longer than others without telling them, which is why some participants have a value of "long" for the group variable, and others are in the "short" group.
+
+Now, onto the data manipulation we've all been waiting for.
+
+---
+
+### Rows: To keep, or not to keep...
+Choosing a subset of the rows for analysis is a common data manipulation task, and the `filter()` function from `dplyr` helps you do this
+
+???
+
+Choosing a subset of the rows for analysis is a common data manipulation task, and the `filter()` function from `dplyr` helps you do this
+
+--
+
+You provide the `filter()` function with the data frame, and the criteria for including a row from the data frame input in the output.
+
+For example, you can choose just the rows containing observations from subject 1
+
+```{r}
+filter(Time, subject == 1)
+```
+
+--
+
+In order to understand how to use the filter function, you need to understand a bit about **relational operators** and **logical operators**.
+
+---
+
+class: fw-table
+
+### Relational Operators
+
+|Comparison               |    Operator   | Examples   | Result |
+|:-----------------------:| :-----------: | ---------- | ------ |
+|Less Than                | `<`           | `5 < 10`<br>`5 < 1` | `r 5 < 10`<br>`r 5 < 1` |
+--
+|Less Than or Equal To    | `<=`          | `5 <= 5`<br>`5 <= 1`| `r 5 <= 5`<br>`r 5 <= 1` |
+--
+|Greater Than             | `>`           | `10 > 5`<br>`5 > 5` | `r 10 > 5`<br>`r 5 > 5` |
+--
+|Greater Than or Equal To | `>=`          | `10 >= 10`<br>`10 >= 12` | `r 10 >= 10`<br>`r 10 >= 12` |
+--
+|Equal To                 | `==`          | `5 == 6`<br>`5 == 5` |  `r 5 == 6`<br>`r 5 == 5` |
+--
+|Not equal to             | `!=`          | `5 != 6`<br>`5 != 5` | `r 5 != 6`<br>`r 5 != 5` |
+
+???
+
+Relational operators are like tests you can apply to values in R. They're called relational operators because these tests they carry out are test of the relationship between two values. Another equally good name for these would be comparison operators.
+
+Relational operators give their results as a logical value, a True or False. The results will be a True when the comparison is a true statement, and the result is a False when the comparison is false statement. You can probably figure out what most of R's relational operators are for just by looking at them, because they're the sort of thing you've been seeing in math classes for many years. 
+
+For example, we have the less than operator. When we put it between two numbers, it tells us whether this is a logically true statement, or a false statement. If we put the less than operator between 5 and 10, and run the code, we'll get back a TRUE. But between a 5 and a 1, we'll get a False, because 5 is definitely NOT less than 1.
+
+...
+
+So, now we know what R's relational operators R, and understand how they work with simple examples comparing a single value to another single value. So, what happens when we apply the test from a relational operator to an entire variable in a data frame?
+
+---
+
+### Filtering a variable means filtering row by row
+
+```{r eval=FALSE}
+filter(Time, subject == 1) # observations from the first subject only
+```
+
+| subject| ... | subject == 1 |
+|:------:|:---:|:------------:|
+|       1| ... |
+???
+
+What happens is that R applies the test to each value that column, one value at a time, giving you a `TRUE` or `FALSE` result for every value. So, if your variable has 6 values in it, (meaning your data frame has 6 rows), you'd get back 6 `TRUE` or `FALSE` values.
+
+Let's see how this works in action by examining the filter command we just used a few slides ago in more detail. Remember, with this filter command, we're aiming to keep only the rows corresponding to observation from the first subject. So, here's how the filter function gives us what we want. So we can focus on the important information, I've elided all the other columns in the data frame except the subject column.
+
+When we run the code above, R walks down the data frame row by row, applying the test to every value in the subject variable. In the first row of the data frame, the subject variable has a value of 1. Since our test is looking for equality to the value 1, our test reports `TRUE` for this row. Then, we move on to the second row...
+
+--
+                 `TRUE`  
+|       1| ... | 
+--
+                 `TRUE`  
+|       1| ... |
+--
+                 `TRUE`  
+|       2| ... |
+???
+
+When we get to the fourth row, things change. Now, the subject variable has a value of 2. Now, our test is comparing the number 2 for equality with the number 1, which returns FALSE to no one's surprise. The same thing happens for the value in row 5, and row 6. 
+
+--
+                 `FALSE`  
+|       2| ... | 
+--
+                 `FALSE`  
+|       2| ... | 
+--
+                 `FALSE`
+???
+
+And with that, we're finished testing. So, what does it mean that the first three rows have a TRUE for their test result, and the last 3 rows have a FALSE for their test result?
+
+--
+
+Only rows with `TRUE` will be **included** in output.
+
+???
+
+This is a big deal, because every row with a TRUE for the test result will be included in the output from the filter function, and rows with a `FALSE` will *NOT* be included in the output.
+
+---
+
+### Filtering row by row
+
+
+.center[
+`filter(Time, subject == 1)`
+]
+
+.pull-left[
+```{r}
+Time
+```
+]
+
+???
+
+So, the first three rows had a TRUE, meaning they will be included, and the last three rows will be excluded. **DO CHECKS AND CROSS OUTS**
+
+--
+
+.pull-right[
+```{r}
+filter(Time, subject == 1)
+```
+]
+
+Only rows where `subject` variable matches criteria value make it through the filter!
+
+???
+
+So, when we run the Time data set through this filter command, only the first three rows come out, the rows where the subject value matches our criteria value of 1
+
+---
+
+### Filtering does not modify the original
+
+The `Time` data set is not modified by the `filter` function (i.e., there are no "side effects"). The only place the rows for subject 2 are removed is in the output
+
+```{r}
+filter(Time, subject == 1)
+Time # stays the same!
+```
+
+
+---
+
+### Other Filter examples
+
+.center[
+`filter(Time, instructed < 5)`
+]
+
+.pull-left[
+```{r}
+Time
+```
+]
+
+--
+
+.pull-right[
+```{r}
+filter(Time, instructed < 5)
+```
+]
+
+---
+
+### Other Filter examples
+
+.center[
+`filter(Time, group != "long")`
+]
+
+.pull-left[
+```{r}
+Time
+```
+]
+
+--
+
+.pull-right[
+```{r}
+filter(Time, group != "long")
+```
+]
+
+---
+
+### Filtering using multiple variables
+We can choose rows based on multiple tests applied to multiple variables - we just need a way to combine the results of multiple tests into one final set of criteria
+
+--
+
+This is where **logical operators** come in. Their job is to combine multiple `TRUE` and `FALSE` values into one single answer.
+
+
+--
+
+We have two logical operators at our disposal:
+
+1. the **AND** operator, written `&`
+2. the **OR** operator, written `|`
+
+???
+
+Or is the vertical bar, should be above the Enter key on your keyboard.
+
+---
+
+### Filtering using `&` for **AND**
+
+When using the `&` operator, you should think "a row must meet **BOTH** criteria to be included"
+```{r eval=FALSE}
+filter(Time, trial == 1 & group == "long")
+```
+
+| trial | ... | group | trial == 1 | group == "long" | Meet both? |
+|:-----:|:---:|:-----:|:----------:|:---------------:|:----------:|
+|      1| ... | long  | {{content}}
+--
+                        `TRUE`     | `TRUE`          | <span style="color: Green">&#10003;</span> |
+|      2| ... | long  | {{content}}
+--
+                        `FALSE`    | `TRUE`          | <span style="color: Red">&#10005; </span> |
+|      3| ... | long  | {{content}}
+--
+                        `FALSE`    | `TRUE`          | <span style="color: Red">&#10005; </span> |
+|      1| ... | short  | {{content}}
+--
+                        `TRUE`    | `FALSE`         | <span style="color: Red">&#10005; </span> |
+|      2| ... | short  | {{content}}
+--
+                        `FALSE`    | `FALSE`         | <span style="color: Red">&#10005; </span> |
+|      3| ... | short  | {{content}}
+--
+                        `FALSE`    | `FALSE`         | <span style="color: Red">&#10005; </span> |
+
+---
+
+### Filtering using `&` for **AND**
+
+.center[
+`filter(Time, trial == 1 & group == "long")`
+]
+
+.pull-left[
+```{r}
+Time
+```
+]
+
+--
+
+.pull-right[
+```{r}
+filter(Time, trial==1 & group=="long")
+```
+]
+
+---
+
+### A "shortcut" for `&`
+If you separate your criteria with a comma, the `filter` function will combine them with the `&` operator.
+
+--
+
+.pull-left[
+So, this is the same...
+```{r}
+filter(Time, trial==1 & group=="long")
+```
+]
+
+.pull-right[
+...as this
+```{r}
+filter(Time, trial==1, group=="long")
+```
+]
+
+---
+
+### Filtering using `|` for **OR**
+
+When using the `|` operator, you should think "a row can meet **EITHER** criteria to be included"
+```{r eval=FALSE}
+filter(Time, trial == 1 | group == "long")
+```
+
+| trial | ... | group | trial == 1 | group == "long" | Meet either? |
+|:-----:|:---:|:-----:|:----------:|:---------------:|:------------:|
+|      1| ... | long  | {{content}}
+--
+                        `TRUE`     | `TRUE`          | <span style="color: Green">&#10003;</span> |
+|      2| ... | long  | {{content}}
+--
+                        `FALSE`    | `TRUE`          | <span style="color: Green">&#10003;</span> |
+|      3| ... | long  | {{content}}
+--
+                        `FALSE`    | `TRUE`          | <span style="color: Green">&#10003;</span> |
+|      1| ... | short  | {{content}}
+--
+                        `TRUE`     | `FALSE`         | <span style="color: Green">&#10003;</span> |
+|      2| ... | short  | {{content}}
+--
+                        `FALSE`    | `FALSE`         | <span style="color: Red">&#10005; </span> |
+|      3| ... | short  | {{content}}
+--
+                        `FALSE`    | `FALSE`         | <span style="color: Red">&#10005; </span> |
+
+---
+
+### Filtering using `|` for **OR**
+
+.center[
+`filter(Time, trial == 1 | group == "long")`
+]
+
+.pull-left[
+```{r}
+Time
+```
+]
+
+--
+
+.pull-right[
+```{r}
+filter(Time, trial==1 | group=="long")
+```
+]
+
+???
+
+No shortcut for OR, always have to write it out
+
+---
+
+### Special cases of filtering: %in%
+
+One variable, multiple possible "matches" is a job for the `%in%` operator.
+
+???
+
+Finally, I want to discuss a few special cases of filtering where you wont see the usual relational or logical operators. 
+
+In every situation we've covered at so far, our criteria for each variable consisted of a comparison with one single value. For example, the very first thing we did was filter the data frame to only let the first subject through, by comparing the subject variable to the number 1 and looking for equality. But, what if we wanted a little wider filter, what if we wanted to let more than one single subject through? 
+
+This kind of situation, where you're filtering based on one variable but your variable could match multiple possible values, is a job for the %in% operation.
+
+--
+
+Let's say we wanted to keep rows corresponding to trial 1 or trial 2. Since they're values in the same variable, we don't need to use combine tests with |, we just need to use %in%
+
+.center[
+`filter(Time, trial %in% c(1,2))`
+]
+
+.pull-left[
+```{r}
+Time
+```
+]
+
+???
+
+Let's say we wanted to keep rows corresponding to trial 1 or trial 2. Since they're values in the same variable, we don't need to use combine tests with |, we just need to use %in%. 
+
+--
+
+
+.pull-right[
+```{r}
+filter(Time, trial %in% c(1,2))
+```
+]
+
+---
+
+### Special cases of filtering: is.na()
+
+Let's imagine that subject 1 was so mad about being left in the lobby they quit after trial 1.
+
+```{r echo=FALSE}
+Time <- data.frame(subject = c(1, 1, 1, 2, 2, 2),
+                   trial = c(1, 2, 3, 1, 2, 3),
+                   instructed = c(5, 2, 1, 2, 5, 3),
+                   actual = c(4.75, NA, NA, 1.5, 5.63, 3.31),
+                   group = c("long", "long", "long", "short", "short", "short")
+                   )
+```
+
+```{r}
+Time
+```
+
+---
+
+### Special cases of filtering: is.na()
+The `is.na()` function searches a variable for missing values, and returns a `TRUE` every place it finds one.
+
+```{r echo=FALSE}
+knitr::kable(mutate(Time, is.na(actual)), format = "html")
+```
+
+--
+
+But, this isn't quite what we want; we want to *remove* `NA` values, and filtering using this test would keep *only* the `NA` values - the exact opposite of what we want!!
+
+---
+
+### Special cases of filtering: !is.na()
+The `!` in front causes the logical to "flip" - `TRUE` becomes `FALSE`, and `FALSE` becomes `TRUE`
+```{r echo=FALSE}
+knitr::kable(mutate(Time, !is.na(actual)), format = "html")
+```
+
+Now we have the test we want!
+---
+
+### Special cases of filtering: is.na()
+```{r}
+filter(Time, !is.na(actual))
+```
+
+---
+
+### Recap
+
+- The `filter()` function from `dplyr` helps you choose a subset of rows from the larger data frame
+
+--
+
+- It uses relational operators (`<`, `>`, `<=`, `>=`, `==`, `!=`) to apply tests to variables, and thus specify which rows to keep
+
+--
+
+- We can combine multiple tests using `&` and `|`
+  - `&` means "a row must pass both tests to be included"
+  - `|` means "a row can pass either test to be included"
+  
+--
+
+- If there are multiple possible matches for one variable's value, use `%in%` to test them all
+
+--
+
+- If you want to remove missing values, use `!is.na()`

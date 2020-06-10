@@ -51,6 +51,7 @@ collections:
          - "Data Types and Manipulation"
          - "Distributions"
          - "Filtering rows with dplyr"
+         - "Groupwise Summaries with dplyr"
    problem_sets:
       order:
          - "Intro to R and RStudio"

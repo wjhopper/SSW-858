@@ -571,3 +571,11 @@ filter(Time, !is.na(actual))
 --
 
 - If you want to remove missing values, use `!is.na()`
+
+---
+
+# Filter in Pictures
+
+---
+
+![](img/subject_test.png)

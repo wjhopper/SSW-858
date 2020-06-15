@@ -16,7 +16,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r}
+```{r, echo=FALSE}
 knitr::opts_chunk$set(max.print=11)
 ```
 
@@ -45,33 +45,6 @@ Find the grand sum of the all the elements in the two following vectors (using R
 ```{r grand_sum}
 x <- c(149, 486, 174, 435, 188, 397, 497, 256, 346, 494)
 y <- c(1839, 2709, 2422, 1547, 1686, 2159, 2929, 651, 1358, 756)
-```
-
-### Solution
-
-## Exercise
-Consider the character vector bellow named `months`, which represents every month of the year by name.
-
-```{r example1, prompt=FALSE}
-months <- c("January", "February", "March", "April", "May", "June", "July",
-            "August", "September", "October", "November", "December")
-```
-
-Using indexing, 
-
-1. Select just the months of `"February"` and `"March"` from this vector
-2. Select every third month of the year from this vector, beggining with January.
-
-### Solution
-
-
-## Exercise
-
-Write an expression using logical testing and indexing that, when applied to the vector `dummy`, returns the same output as the numeric indexing example shown below. In other words, a logical test that selects the 5^th^, 6^th^ and 7^th^ elements.
-
-```{r indexingActivity}
-dummy <- 17:23
-dummy[5:7]
 ```
 
 ### Solution

@@ -2858,7 +2858,6 @@ div.tocify {
 </div>
 
 
-<pre class="r"><code>knitr::opts_chunk$set(max.print=11)</code></pre>
 <p>In this problem set, we will practice some of the key data manipulation tasks using the tools from “base” R and the <code>dplyr</code> package.</p>
 <div id="libraries" class="section level3">
 <h3>Libraries</h3>
@@ -2886,37 +2885,13 @@ y &lt;- c(1839, 2709, 2422, 1547, 1686, 2159, 2929, 651, 1358, 756)</code></pre>
 </div>
 <div id="exercise-2" class="section level2">
 <h2>Exercise</h2>
-<p>Consider the character vector bellow named <code>months</code>, which represents every month of the year by name.</p>
-<pre class="r"><code>months &lt;- c(&quot;January&quot;, &quot;February&quot;, &quot;March&quot;, &quot;April&quot;, &quot;May&quot;, &quot;June&quot;, &quot;July&quot;,
-            &quot;August&quot;, &quot;September&quot;, &quot;October&quot;, &quot;November&quot;, &quot;December&quot;)</code></pre>
-<p>Using indexing,</p>
-<ol style="list-style-type: decimal">
-<li>Select just the months of <code>&quot;February&quot;</code> and <code>&quot;March&quot;</code> from this vector</li>
-<li>Select every third month of the year from this vector, beggining with January.</li>
-</ol>
+<p>A local grocery store sells several varieties of fruit: grapes for $4, kiwis for $2.00, mangoes for $3.00, and apples for 99 cents. Each fruit also has a “sell by” date: the grapes must be sold by February 19th, the kiwis must be sold by February 20th, the mangoes must be sold by February 18th, and the apples must be sold by February 28th.</p>
+<p>In R, create a “tidy” data frame that represents each fruit for sale, its price, and its expiration date. Make sure each column in your data frame has an appropriate name, and carefully consider what <strong>data type</strong> you represent each piece of information with.</p>
 <div id="solution-2" class="section level3">
 <h3>Solution</h3>
 </div>
 </div>
 <div id="exercise-3" class="section level2">
-<h2>Exercise</h2>
-<p>Write an expression using logical testing and indexing that, when applied to the vector <code>dummy</code>, returns the same output as the numeric indexing example shown below. In other words, a logical test that selects the 5<sup>th</sup>, 6<sup>th</sup> and 7<sup>th</sup> elements.</p>
-<pre class="r"><code>dummy &lt;- 17:23
-dummy[5:7]</code></pre>
-<pre><code>## [1] 21 22 23</code></pre>
-<div id="solution-3" class="section level3">
-<h3>Solution</h3>
-</div>
-</div>
-<div id="exercise-4" class="section level2">
-<h2>Exercise</h2>
-<p>A local grocery store sells several varieties of fruit: grapes for $4, kiwis for $2.00, mangoes for $3.00, and apples for 99 cents. Each fruit also has a “sell by” date: the grapes must be sold by February 19th, the kiwis must be sold by February 20th, the mangoes must be sold by February 18th, and the apples must be sold by February 28th.</p>
-<p>In R, create a “tidy” data frame that represents each fruit for sale, its price, and its expiration date. Make sure each column in your data frame has an appropriate name, and carefully consider what <strong>data type</strong> you represent each piece of information with.</p>
-<div id="solution-4" class="section level3">
-<h3>Solution</h3>
-</div>
-</div>
-<div id="exercise-5" class="section level2">
 <h2>Exercise</h2>
 <p>From your fruit data frame, select only rows where the price is $2.00 or more.</p>
 </div>
@@ -2947,24 +2922,24 @@ dummy[5:7]</code></pre>
 <p>For each problem below, always print out the final data frame that gives you the answer to the question.</p>
 </div>
 </div>
-<div id="exercise-6" class="section level2">
+<div id="exercise-4" class="section level2">
 <h2>Exercise</h2>
 <p>Remove any rows of the <code>txhousing</code> data set with missing values in the <code>sales</code> variable, and overwrite the original data frame. Then use the <code>anyNA()</code> function on the <code>sales</code> variable, e.g., <code>anyNA(txhousing$sales)</code>. If you were successful, this should print out <code>FALSE</code>.</p>
-<div id="solution-5" class="section level3">
+<div id="solution-3" class="section level3">
 <h3>Solution</h3>
 </div>
 </div>
-<div id="exercise-7" class="section level2">
+<div id="exercise-5" class="section level2">
 <h2>Exercise</h2>
 <p>Make a data set called <code>dallas</code> that includes data only from the city of Dallas in the years 2000 through 2010. If you did this correctly, running the command <code>distinct(dallas, city, year)</code> should print data frame with 11 rows.</p>
-<div id="solution-6" class="section level3">
+<div id="solution-4" class="section level3">
 <h3>Solution</h3>
 </div>
 </div>
-<div id="exercise-8" class="section level2">
+<div id="exercise-6" class="section level2">
 <h2>Exercise</h2>
 <p>Find the median number of homes sold per month in each city for each year.</p>
-<div id="solution-7" class="section level3">
+<div id="solution-5" class="section level3">
 <h3>Solution</h3>
 </div>
 </div>

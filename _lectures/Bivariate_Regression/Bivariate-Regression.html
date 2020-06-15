@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Regression with one numeric explanatory variable</title>
+    <meta charset="utf-8" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Regression with one numeric explanatory variable
+
+---
+
+
+### Adding a numeric explanatory variable
+
+
+
+
+
+MD Chp. 5.1 = Linear regression with numeric outcome variable and numeric explanatory variable
+
+???
+
+In Chapter 5.1 of ModernDive, we finally move beyond the empty model, and add an explanatory variable to our general linear model. This type of model is called a 
+bivariate regression model, because there are two variables: an outcome variable, and an explanatory variable.
+
+--
+
+&lt;img src="Bivariate-Regression_files/figure-html/unnamed-chunk-1-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's explore linear regression by looking at the infant birth weights from the ncbirths data set, as usual. Here I'm showing the birth weights in a dot plot - the weight of each infant is measured along the y axis, and since there is only one variable in the plot, all the observations share the same x axis position, with a bit of jitter added to reduce the clumpiness.
+
+---
+
+### Adding a numeric explanatory variable
+
+Positive relationship: As pregnancy duration increases, birth weight increases
+
+&lt;img src="Bivariate-Regression_files/figure-html/unnamed-chunk-2-1.gif" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+Let's add the duration of the pregnancy in weeks to our visualization, and let's think of weeks as a variable that explain variation in birth weight. Now, instead of explaining variation in birth weight with just our knowledge of birth weights, we're going to explain it with our knowledge of birth weights, pregnancy duration, and the relationship between birth weights and pregnancy duration.
+
+As you can see, incorporating the pregnancy duration greatly reduces uncertainty about birth weight. Our visualization shows a strong positive relationship - if a pregnancy is relatively short, the baby is likely to have a low birth weight. And if a pregnancy is relatively long, the baby is likely to have a high birth weight.
+
+---
+
+### Bivariate linear regression
+
+Big idea: quantify and summarize the relationship *with a line*
+
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+&lt;img src="Bivariate-Regression_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+The big idea in a linear regression with a numeric explanatory variable is that we're going to quantify and summarize the relationship between our outcome and explanatory variables with a line, and use that line to predict our outcome variable. Technically, our empty model of birth weights was also a line, but that line had no slope - it was a line going through the mean birth weight, and made the same prediction no matter what.
+
+But now that we've added pregnancy duration as an explanatory variable, our model has a non-zero slope. What does this mean? It means that for every possible pregnancy duration value, our model will have a "custom" prediction for the infant's birth weight!
+
+---
+
+### Bivariate linear regression: GLM notation
+
+`\(y_i = \hat{y} + e_i\)` where `\(\hat{y} = b_0 + b_1x_i\)`
+
+&lt;img src="Bivariate-Regression_files/figure-html/unnamed-chunk-4-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+Quantitatively, this means finding a slope and intercept value to fully describe the regression line. In GLM notation, the slope is referred to as b1 and the intercept is b0.
+
+The intercept b0 tells you where the model passes through the y axis - in other words, it tells you what your model predicts when the explanatory variable is 0. I've extend the regression line in this figure beyond the shortest observed pregnancy duration, so we can see the intercept of this regression line. In general though, it's a bad idea to extend your regression line far beyond the area of the data, and expect the model to make sense. Here, we see the intercept is a negative number, which is not a sensible prediction for a birth weight. We don't need to worry too much about this though, we just need to remember not extrapolate our model beyond our data.
+
+The slope parameter b1 tells you how your outcome variable is predicted to change with each one-unit change in your explanatory variable - in other words, if you increase the pregnancy duration from, 10 to 11 weeks, the slope parameter b1 tells you how much the infant birth weight is predicted to change by?
+
+---
+
+### Fitting the regression in R
+
+
+```r
+library(moderndive) # for the get_regression_table function
+ncbirths &lt;- read.csv("https://wjhopper.github.io/sds201_labs/data/ncbirths.csv",
+                     stringsAsFactors = FALSE)
+
+
+weeks_model &lt;- lm(weight ~ weeks, data = ncbirths)
+get_regression_table(weeks_model)
+```
+
+???
+
+Let's see how we can fit this regression model, and estimate the b0 and b1 parameters using R.
+
+- First, load modern dive package for the get_regression_table function
+- Read in the data
+- Use lm function. Outcome variable on the left of the ~, explanatory on the right. Always tell R where to look for the variables in our model.
+- Save the linear model object in a variable called `weeks_model`, and inspect the estimated parameters using the get_regression_table function
+
+We can focus on the first two columns, and ignore the rest.
+
+The b0 value is shown on the first line. R doesn't label it as b0 though, it labels it as the 'intercept'. This is because this valus is where the regression model passed through the y axis. 
+
+The b1 value is shown on the second line. But, R doesn't label it as b1, it labels it using the name of the variable the b1 applies to.
+
+The b0 and b1 values are collectively referred to as the *coefficients* of the regression model.
+--
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; std_error &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; p_value &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; lower_ci &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; upper_ci &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; intercept &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -6.095 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.465 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -13.118 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -7.007 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -5.184 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; weeks &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.344 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.012 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28.491 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.321 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.368 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+### Fitting the regression in R
+
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+&lt;img src="Bivariate-Regression_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's take the b0 and b1 values we just estimated, plug them into our regression equation, and match things up between the regression equation and the visualization of the model that we looked at initially.
+
+
+When weeks is 0, the predicted birth weight is negative 6.095.
+
+Since the slope parameter tells you how your outcome variable changes for each one-unit change in your explanatory variable, our model estimates that increasing the duration of the pregnancy by one week is predicted to increase the birth weight by .344 pounds. In other words, the difference in birth weight between a 25 week pregnancy and a 26 week pregnancy is predicted to be .344 pounds.
+---
+
+### Why *this* specific line?
+Why `\(b_1\)` = .344, instead of `\(b_1\)` = .35, or .32? Why does is this line "the best fitting" line?
+
+Let's head over to http://www.rossmanchance.com/applets/RegShuffle.htm again and see
+
+???
+
+The regression line is also referred to as the "line of best fit". But what makes the regression the the "best fitting" line?
+--
+
+As always, it comes down to *minimizing error*. The values `\(b_1 = .344\)` and `\(b_0 = -6.095\)` minimize the sum of squared error between the observations and the predicted value from the regression line!
+
+---
+
+### Generating predictions using the regression model
+
+Need to plug in our beta values, and a value for the `weeks` variable, into a our equations.
+
+???
+Now, lets turn to the mechanics of generating predictions from our regression model. Since our regression model incorporates our knowledge of the pregnancy duration in weeks, we have to plug in a value for the `weeks` variable into a our equations.
+
+--
+
+For example, if we wanted to predict the birth weight for a pregnancy that lasted 38.5 weeks, we would plug 38.5 into our equation as the value of `\(x\)`, along with our estimated `\(b_0\)` and `\(b_1\)`.
+
+--
+
+`$$\hat{y} = b_0 + b_1x\\
+\hat{y} = -6.095 + .344 \cdot 38.5\\
+\hat{y} = 7.149$$`
+
+---
+
+### Generating predictions using the regression model
+
+We can also find the predicted values and residual error values for each observed birth weight that we fit our model to by applying the `get_regression_points` function to the linear model object we saved.
+
+--
+
+
+```r
+get_regression_points(weeks_model)
+```
+
+--
+
+
+```
+## # A tibble: 998 x 5
+##       ID weight weeks weight_hat residual
+##    &lt;int&gt;  &lt;dbl&gt; &lt;int&gt;      &lt;dbl&gt;    &lt;dbl&gt;
+##  1     1   2.69    32       4.92   -2.23 
+##  2     2   8.88    38       6.99    1.89 
+##  3     3   7.06    38       6.99    0.071
+##  4     4   7.44    42       8.37   -0.926
+##  5     5   6.38    40       7.68   -1.30 
+##  6     6   7.5     38       6.99    0.511
+##  7     7   7.63    39       7.33    0.297
+##  8     8   7.13    41       8.02   -0.892
+##  9     9   8.5     40       7.68    0.822
+## 10    10   8.25    37       6.64    1.60 
+## # … with 988 more rows
+```
+
+???
+
+- `weight`, `week` are the data the model was fit to
+- `weight_hat` is the predicted weight based on the regression model
+- `residual` is the error (difference between model and prediction)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

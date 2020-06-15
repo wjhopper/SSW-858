@@ -53,6 +53,7 @@ collections:
          - "Filtering rows with dplyr"
          - "Groupwise Summaries with dplyr"
          - "What does the mean mean?"
+         - "Bivariate Regression"
    problem_sets:
       order:
          - "Intro to R and RStudio"

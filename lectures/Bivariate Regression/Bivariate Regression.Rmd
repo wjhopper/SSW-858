@@ -1,0 +1,236 @@
+---
+title: "Regression with one numeric explanatory variable"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "default-fonts", "../../assets/css/sds.css"]
+editor_options: 
+  chunk_output_type: console
+---
+
+### Adding a numeric explanatory variable
+
+```{r setup, include=FALSE}
+library(moderndive)
+library(ggplot2)
+library(gganimate)
+library(dplyr)
+library(gifski)
+
+options(htmltools.dir.version = FALSE, stringsAsFactors = FALSE)
+knitr::opts_chunk$set(cache=TRUE, fig.align = 'center')
+theme_set(theme_grey(24) + theme(plot.margin = margin(1,1,1,1)))
+
+ncbirths <- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv", stringsAsFactors = FALSE) %>%
+  dplyr::filter(!is.na(weight), !is.na(weeks))
+```
+
+```{r preprocessing, echo=FALSE}
+
+empty <- select(ncbirths, weight) %>%
+  mutate(weeks = rnorm(nrow(.), (min(ncbirths$weeks) + max(ncbirths$weeks))/2, 1))
+
+bivariate <- select(ncbirths, weight, weeks)
+
+both <- bind_rows(empty=empty, bivariate=bivariate, .id='model') %>%
+  mutate(model = factor(model, levels = c("empty", "bivariate")))
+```
+
+MD Chp. 5.1 = Linear regression with numeric outcome variable and numeric explanatory variable
+
+???
+
+In Chapter 5.1 of ModernDive, we finally move beyond the empty model, and add an explanatory variable to our general linear model. This type of model is called a 
+bivariate regression model, because there are two variables: an outcome variable, and an explanatory variable.
+
+--
+
+```{r, echo=FALSE, fig.height=6.25}
+base <- ggplot(empty, aes(x=weeks, y=weight)) +
+  geom_point() +
+  scale_x_continuous(limits = c(min(ncbirths$weeks), max(ncbirths$weeks)))
+
+empty_plot <- base + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+empty_plot
+```
+
+???
+
+Let's explore linear regression by looking at the infant birth weights from the ncbirths data set, as usual. Here I'm showing the birth weights in a dot plot - the weight of each infant is measured along the y axis, and since there is only one variable in the plot, all the observations share the same x axis position, with a bit of jitter added to reduce the clumpiness.
+
+---
+
+### Adding a numeric explanatory variable
+
+Positive relationship: As pregnancy duration increases, birth weight increases
+
+```{r, echo=FALSE, message=FALSE}
+bivariate_plot <- base %+% bivariate
+
+bivariate_animation <- bivariate_plot %+% both +
+  transition_states(model, transition_length = 1, state_length = 1, wrap=FALSE)
+
+animate(bivariate_animation, renderer = gifski_renderer(loop = FALSE))
+```
+
+
+???
+
+Let's add the duration of the pregnancy in weeks to our visualization, and let's think of weeks as a variable that explain variation in birth weight. Now, instead of explaining variation in birth weight with just our knowledge of birth weights, we're going to explain it with our knowledge of birth weights, pregnancy duration, and the relationship between birth weights and pregnancy duration.
+
+As you can see, incorporating the pregnancy duration greatly reduces uncertainty about birth weight. Our visualization shows a strong positive relationship - if a pregnancy is relatively short, the baby is likely to have a low birth weight. And if a pregnancy is relatively long, the baby is likely to have a high birth weight.
+
+---
+
+### Bivariate linear regression
+
+Big idea: quantify and summarize the relationship *with a line*
+
+```{r, echo=FALSE}
+bivariate_plot + geom_smooth(method = "lm", se=FALSE)
+```
+
+
+???
+
+The big idea in a linear regression with a numeric explanatory variable is that we're going to quantify and summarize the relationship between our outcome and explanatory variables with a line, and use that line to predict our outcome variable. Technically, our empty model of birth weights was also a line, but that line had no slope - it was a line going through the mean birth weight, and made the same prediction no matter what.
+
+But now that we've added pregnancy duration as an explanatory variable, our model has a non-zero slope. What does this mean? It means that for every possible pregnancy duration value, our model will have a "custom" prediction for the infant's birth weight!
+
+---
+
+### Bivariate linear regression: GLM notation
+
+$y_i = \hat{y} + e_i$ where $\hat{y} = b_0 + b_1x_i$
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+bivariate_model <- bivariate_plot +
+  scale_x_continuous(limits = c(0,46)) +
+  geom_smooth(method = "lm", se=FALSE, fullrange=TRUE)
+
+bivariate_model +
+  geom_label(x=25, y=-2.5, label = "hat(y) == b[0] + b[1]*x", parse = TRUE, size=12, color="blue")
+```
+
+???
+Quantitatively, this means finding a slope and intercept value to fully describe the regression line. In GLM notation, the slope is referred to as b1 and the intercept is b0.
+
+The intercept b0 tells you where the model passes through the y axis - in other words, it tells you what your model predicts when the explanatory variable is 0. I've extend the regression line in this figure beyond the shortest observed pregnancy duration, so we can see the intercept of this regression line. In general though, it's a bad idea to extend your regression line far beyond the area of the data, and expect the model to make sense. Here, we see the intercept is a negative number, which is not a sensible prediction for a birth weight. We don't need to worry too much about this though, we just need to remember not extrapolate our model beyond our data.
+
+The slope parameter b1 tells you how your outcome variable is predicted to change with each one-unit change in your explanatory variable - in other words, if you increase the pregnancy duration from, 10 to 11 weeks, the slope parameter b1 tells you how much the infant birth weight is predicted to change by?
+
+---
+
+### Fitting the regression in R
+
+```{r eval=FALSE}
+library(moderndive) # for the get_regression_table function
+ncbirths <- read.csv("https://wjhopper.github.io/sds201_labs/data/ncbirths.csv",
+                     stringsAsFactors = FALSE)
+
+
+weeks_model <- lm(weight ~ weeks, data = ncbirths)
+get_regression_table(weeks_model)
+```
+
+???
+
+Let's see how we can fit this regression model, and estimate the b0 and b1 parameters using R.
+
+- First, load modern dive package for the get_regression_table function
+- Read in the data
+- Use lm function. Outcome variable on the left of the ~, explanatory on the right. Always tell R where to look for the variables in our model.
+- Save the linear model object in a variable called `weeks_model`, and inspect the estimated parameters using the get_regression_table function
+
+We can focus on the first two columns, and ignore the rest.
+
+The b0 value is shown on the first line. R doesn't label it as b0 though, it labels it as the 'intercept'. This is because this valus is where the regression model passed through the y axis. 
+
+The b1 value is shown on the second line. But, R doesn't label it as b1, it labels it using the name of the variable the b1 applies to.
+
+The b0 and b1 values are collectively referred to as the *coefficients* of the regression model.
+--
+
+```{r, echo=FALSE}
+weeks_model <- lm(weight ~ weeks, data = ncbirths)
+knitr::kable(get_regression_table(weeks_model), format = "html")
+```
+
+---
+
+### Fitting the regression in R
+
+```{r echo=FALSE}
+bivariate_model +
+  geom_label(x=25, y=-2.5, label = "hat(y) == -6.095 + .344 %*% weeks", parse = TRUE, size=12, color="blue")
+```
+
+???
+
+Let's take the b0 and b1 values we just estimated, plug them into our regression equation, and match things up between the regression equation and the visualization of the model that we looked at initially.
+
+
+When weeks is 0, the predicted birth weight is negative 6.095.
+
+Since the slope parameter tells you how your outcome variable changes for each one-unit change in your explanatory variable, our model estimates that increasing the duration of the pregnancy by one week is predicted to increase the birth weight by .344 pounds. In other words, the difference in birth weight between a 25 week pregnancy and a 26 week pregnancy is predicted to be .344 pounds.
+---
+
+### Why *this* specific line?
+Why $b_1$ = .344, instead of $b_1$ = .35, or .32? Why does is this line "the best fitting" line?
+
+Let's head over to http://www.rossmanchance.com/applets/RegShuffle.htm again and see
+
+???
+
+The regression line is also referred to as the "line of best fit". But what makes the regression the the "best fitting" line?
+--
+
+As always, it comes down to *minimizing error*. The values $b_1 = .344$ and $b_0 = -6.095$ minimize the sum of squared error between the observations and the predicted value from the regression line!
+
+---
+
+### Generating predictions using the regression model
+
+Need to plug in our beta values, and a value for the `weeks` variable, into a our equations.
+
+???
+Now, lets turn to the mechanics of generating predictions from our regression model. Since our regression model incorporates our knowledge of the pregnancy duration in weeks, we have to plug in a value for the `weeks` variable into a our equations.
+
+--
+
+For example, if we wanted to predict the birth weight for a pregnancy that lasted 38.5 weeks, we would plug 38.5 into our equation as the value of $x$, along with our estimated $b_0$ and $b_1$.
+
+--
+
+$$\hat{y} = b_0 + b_1x\\
+\hat{y} = -6.095 + .344 \cdot 38.5\\
+\hat{y} = 7.149$$
+
+---
+
+### Generating predictions using the regression model
+
+We can also find the predicted values and residual error values for each observed birth weight that we fit our model to by applying the `get_regression_points` function to the linear model object we saved.
+
+--
+
+```{r, eval=FALSE}
+get_regression_points(weeks_model)
+```
+
+--
+
+```{r, echo=FALSE}
+get_regression_points(weeks_model)
+```
+
+???
+
+- `weight`, `week` are the data the model was fit to
+- `weight_hat` is the predicted weight based on the regression model
+- `residual` is the error (difference between model and prediction)

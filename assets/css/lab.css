@@ -30,7 +30,7 @@ div[id^='exercise'] > h2::after {
   counter-increment: exercises;
 }
 
-li[data-unique^="exercise"]::after  {
+li[data-unique^="exercise" i]::after  {
     content: " " counter(toc); /* Use the counter as content */
     counter-increment: toc; /* Increment the counter by 1 */
 }

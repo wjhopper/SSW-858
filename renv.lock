@@ -184,12 +184,26 @@
       "Repository": "CRAN",
       "Hash": "b8cff1d1391fd1ad8b65877f4c7f2e53"
     },
+    "gganimate": {
+      "Package": "gganimate",
+      "Version": "1.0.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "4690554300d1ca4e0e89716d252512cc"
+    },
     "ggplot2": {
       "Package": "ggplot2",
       "Version": "3.3.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "911561e07da928345f1ae2d69f97f3ea"
+    },
+    "gifski": {
+      "Package": "gifski",
+      "Version": "0.8.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "ca21682de4210b1c6b59fb010b94cf09"
     },
     "glue": {
       "Package": "glue",
@@ -610,6 +624,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "a8c653ef8ce67683f588e6088ed45572"
+    },
+    "tweenr": {
+      "Package": "tweenr",
+      "Version": "1.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "fc77eb5297507cccfa3349a606061030"
     },
     "utf8": {
       "Package": "utf8",

@@ -1,0 +1,338 @@
+---
+title: "Regression with one categorical explanatory variable"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "default-fonts", "../../assets/css/sds.css"]
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(moderndive)
+library(ggplot2)
+library(gganimate)
+library(dplyr)
+
+
+options(htmltools.dir.version = FALSE, stringsAsFactors = FALSE)
+knitr::opts_chunk$set(cache=TRUE, fig.align = 'center')
+theme_set(theme_grey(24) + theme(plot.margin = margin(1,1,1,1)))
+
+ncbirths <- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv", stringsAsFactors = FALSE) %>%
+  dplyr::filter(!is.na(weight), !is.na(weeks), !is.na(smoker))
+```
+
+```{r preprocessing, echo=FALSE}
+premie_summary <- group_by(ncbirths, premie) %>%
+  summarise(weight = mean(weight)) %>%
+  mutate(premie = factor(premie))
+
+pooled_summary <- summarise(ncbirths, weight = mean(weight)) %>%
+  slice(rep(1, nrow(premie_summary))) %>%
+  mutate(premie=premie_summary$premie)
+  
+both_summary <- bind_rows(bivariate = premie_summary, empty = pooled_summary, .id="model") %>%
+  mutate(model = factor(model, levels=c("empty","bivariate")))
+```
+
+```{r, echo=FALSE}
+set.seed(10)
+empty_plot <- ggplot(pooled_summary, aes(x=premie,y=weight, color=premie)) +
+  geom_point(data=ncbirths, position = position_jitter(width = .25)) +
+  geom_segment(aes(x = as.numeric(premie)-.5, xend = as.numeric(premie)+.5, y=weight, yend=weight,
+                 color=NULL)) +
+  scale_x_discrete(expand = c(0,.5)) +
+  guides(color = FALSE)
+
+set.seed(10)
+bivariate_plot <- empty_plot %+% premie_summary
+
+set.seed(10)
+bivariate_animation <-
+  ggplot(both_summary, aes(x=premie,y=weight, color=premie)) +
+  geom_point(data=ncbirths, position = position_jitter(width = .25)) +
+  geom_segment(aes(x = as.numeric(premie)-.5, xend = as.numeric(premie)+.5, y=weight, yend=weight,
+                 color=NULL)) +
+  scale_x_discrete(expand = c(0,.5)) +
+  guides(color = FALSE) +
+  transition_states(model, transition_length = 1, state_length = .75, wrap=FALSE)
+```
+
+### Categorical explanatory variables
+
+.pull-left[
+```{r echo=FALSE, fig.height=6.25}
+ggplot(data=ncbirths, aes(x=factor(1),y=weight)) +
+  geom_point(position = position_jitter(width=.15)) +
+  scale_x_discrete(expand = c(0,.5)) +
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+```
+]
+
+???
+
+In ModernDive Chapter 5.2, we tackle the topic of using a categorical variable to explain variability in a numeric outcome variable. In other words, we break our data apart into groups, and compare our outcome variable across those groups using a regression model.
+
+--
+
+.pull-right[
+```{r echo=FALSE}
+ggplot(data=ncbirths, aes(x=premie, y=weight, color=premie)) +
+  geom_point(position = position_jitter(width=.15)) +
+  scale_x_discrete(expand = c(0,.5)) +
+  guides(color=FALSE)
+```
+]
+
+???
+
+For example, we can take all 1000 infant birth weights from the ncbirths data set, and break them apart into two groups; the weights observed from full-term births, and the weights observed from premature births. We can already see that the two groups appear to have different central tendencies, with premie births tending to have lower birth weights, and the variability within each group is smaller than the variability when the groups were pooled together.
+
+Because of this, we can be expect to have less error predicting a babies birth weight when we know the full-term or premie status of the pregnancy than when we ignore that information.
+
+---
+### Categorical explanatory variables
+```{r echo=FALSE}
+empty_plot
+```
+
+???
+
+When all the birth weights were pooled together, we previously used the empty model to generate our birth weights predictions - in the absence of additional information, always using the mean birth weight as our model minimized our squared error.
+
+In terms of a linear model, we can think of the empty model as a horizontal line passing through the y axis at the sample mean.
+
+---
+
+### Categorical explanatory variables
+```{r echo=FALSE}
+animate(bivariate_animation, renderer = gifski_renderer(loop = TRUE))
+```
+
+???
+
+But once we bring in the information about observing a premature or full-term birth, our regression model turns into two separate lines - one for each group. These lines pass through the sample mean of each group.
+---
+
+### Regression equation with categorical predictors
+
+???
+Regression models with a categorical explanatory variable have slightly different mathematical form than models with just numeric predictors. Since our regression model now takes the form of a piece wise linear function, our equation needs a way to describe these multiple line segments, and tell us when to jump to the correct line segment for each group. Let's take a look at the form of this model in the case of a categorical predictor with two levels (like premie and full-term):
+
+--
+
+$$\hat{y} = b_0 + b_1 \cdot 1_{A}(x)$$
+
+$b_0$ is the mean of the *baseline* group
+
+$b_1$ is the difference (or, *offset*) between the mean of the baseline group and the next group.
+
+???
+
+The regression model is written here in generic, GLM notation. The model has two terms, so it has as many terms as there are groups. The "jump" between groups is accomplished by writing the model in terms of a constant "baseline" group that gets it's predicted value incorporated into all predictions, and then describing the predicted value of each additional group as a change from the baseline value.
+
+The b0 parameter represents the mean of the *baseline* group, and $b_1$ represents the difference between the mean of the baseline group and the mean of the second group. This difference is usually called an *offset* in the parlance of the general linear model.
+
+--
+
+$1_A(x)$ is an *indicator* function (think of it like an `==` test from R).
+
+$$\mathbb{1}_{A}(x) = \left\{
+\begin{array}{ll}
+1 & \text{if } x \text{ matches } A \\
+0 & \text{otherwise} \end{array}
+\right.$$
+
+???
+
+Importantly, this offset is only applied to predictions for the second group through the use of an *indicator* function. An indicator which are written 1, followed by a single category level in the subscript, and then an input. You can think of an indicator function like an equality test from R using the == operator.
+
+If the input, x in this example, matches the category level (say, category level A in this example), the indicator function becomes a one, and the $b1$ term stays in the equation. If the input does not match the category level, the indicator function become a zero, and the $b1$ term drops out of the equation completely.
+
+
+---
+
+### Regression equation with categorical predictors
+.pull-left[
+<br>
+```{r, echo=FALSE}
+knitr::kable(select(ncbirths, weight, premie)[5:1, ], format = 'html', row.names = FALSE)
+```
+]
+
+.pull-right[
+```{r echo=FALSE}
+bivariate_plot
+```
+]
+
+???
+Let's practice using the indicator function on our categorical variable premie. I'm going to draw in a new column to show what the indicator function would tell us for each row of our input data.
+
+So, I'm going to write out one, subscript premie, parenthesis, x. Next, I'm going to go down the rows and substitute the category levels of the premie variable in for the x, and record what the indicator function would output. 
+
+Since the input from the first row is full-term, this doesn't match the level for this indicator function, which is premie, so the indicator function outputs a zero. That same is true for rows 2, 3, 4. But when we get to the 5th row, the input does match the level for the indicator function, so it outputs a 1.
+
+you might be wondering: How do I know which group is the the baseline level that always applies, and which groups get turned on and off with indicator function? In other words, how did I know to write "premie" in the subscript, and not full-term? Here, I'm following R's convention, which is to sort the category levels in alphabetical order, and use the first one as the baseline level. So since the "f" in full-term comes before the "p" in premie, full-term is the baseline level, and we don't need an indicator function for that category level.
+
+Speaking of R, let see how to fit the regression model, and estimate those b0 and b1 values.
+
+---
+
+### Fitting the categorical regression in R
+
+```{r eval=FALSE}
+library(moderndive) # for the get_regression_table function
+ncbirths <- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
+                     stringsAsFactors = FALSE)
+
+
+weeks_model <- lm(weight ~ premie, data = ncbirths)
+get_regression_table(weeks_model)
+```
+
+???
+
+Thankfully, the procedure is exactly the same as when using a numeric explanatory variable. We read in the data, and use the lm function, putting the outcome variable weight on the left of the tilde, and the premie variable on the right.
+
+--
+
+```{r, echo=FALSE}
+premie_model <- lm(weight ~ premie, data = ncbirths)
+knitr::kable(get_regression_table(premie_model), format = "html", digits = 2)
+```
+
+???
+
+Let's unpack the regression table we get back. Just like before, we only need to pay attention to the "term" and "estimate" columns for now. The "Intercept" term corresponds to b0 from our equation, and the "premiepremie" term corresponds to b1 from our equation. So, we know that b0 is 7.46, and b1 is negative 2.33.
+
+Remember, b0 is the mean of the baseline group, and since our baseline group is the "full-term" pregnancy group, we know the mean birth weight of the "full-term" pregnancy group is 7.46 pounds. However, b1 is not the mean of the second group - b1 is the difference between the mean of the baseline group and mean of the second group. So, we know the difference between the mean of the full-term pregnancy group and the mean of the premie group is 2.33 pounds.
+
+The labeling R uses for each term in the regression table can be a bit confusing. First, it doesn't label the baseline group with it's name - it always calls the baseline group "Intercept". Second, when labeling the other category levels, it combines the name of the variable in the data frame with the category level. So, our second group is labeled "premiepremie" because the column was called premie, and the second group was also called premie.
+
+---
+
+### Fitting the categorical regression in R
+
+$$\hat{y} = 7.46 + -2.33 \cdot 1_{premie}(x)$$
+
+```{r echo=FALSE}
+bivariate_plot
+```
+
+
+???
+
+Let's take the beta values we just estimated, plug them into our regression equation, and match things up between the regression equation and the visualization of the model that we looked at initially.
+
+We know the 7.46 is the mean of the baseline group, so it corresponds to the line through the full-term pregnancy group. Remember, the full-term group is considered the "baseline" by R simply because the f in "full-term" comes before the "p" in "premie. 
+
+The second value, negative 2.33 is difference between the baseline group and the second group, premie births. So, that means the model's prediction for the baseline group is 5.13 - which is the mean birth weight of infants in the premie group, and corresponds to the line going through the "premie" group.
+
+The fact that the regression lines go through the mean for each group shouldn't be too surprising, since we've talked a lot about how the mean is the value that minimizes the sum of square error for all the observations in a group.
+
+---
+
+### Generating predictions using the regression model
+
+What is the predicted birth weight for a full-term baby?
+
+???
+
+Next, lets' talk about how to use the regression equation itself to generate predictions for each group. First, let's use the regression equation to answer the question: what is the predicted birth weight for a full-term baby?
+
+--
+
+$$\hat{y} = b_0 + b_1 \cdot 1_{premie}(x)$$
+
+???
+
+Need to plug in our estimated beta values, and a value for x. When we did this same procedure for a regression with a numeric predictor, we plugged in a number for x. In this situation, we're going to plug in a category level instead of a number.
+
+--
+
+$$\hat{y} = 7.46 + -2.33 \cdot 1_{premie}(\text{full-term})$$
+$1_{premie}(\text{full-term})$ evaluates to 0 ("full-term" does not match "premie"), the equation simplifies to:
+
+$$\hat{y} = 7.46 + -2.33 \cdot 0 \\
+\hat{y} = 7.46$$
+
+???
+
+Here I've filled in our beta values, and plugged in "full-term" for x, since that's the group we're interested in making a prediction for. Because "full-term" does not match "premie", the indicator function evaluates to 0, and the equation simplifies to:
+
+$$\hat{y} = 7.46 + -2.33 \cdot 0 \\
+\hat{y} = 7.46$$
+
+---
+
+### Generating predictions using the regression model
+
+What is the predicted value for a premie baby?
+
+???
+
+We can follow the same procedure to generate the predicted value for a premie baby as well.
+
+--
+
+$$\hat{y} = 7.46 + -2.33 \cdot 1_{premie}(\text{premie})$$
+
+Since $1_{premie}(\text{full-term})$ evaluates to 1 ("premie" matches "premie"), the equation simplifies to:
+
+$$\hat{y} = 7.46 + -2.33 \cdot 1 \\
+\hat{y} = 7.46 -2.33 \\
+\hat{y} = 5.13$$
+
+???
+
+We plug in the same beta values, the category level, evaluate the indicator function, and simplify the equation. Since "premie" matches "premie", the indicator function returns a 1, and b1 stays in the equation, making the final value 5.13. Thus, the model predicts the birth weight of a premie baby to be 5.13 pounds.
+
+---
+
+### Generating predictions using the regression model
+
+Just like we did with a numeric predictor variable, we can also find the predicted values and residual error values for each observed birth weight in the data set applying the `get_regression_points` function to the linear model object we saved.
+
+--
+
+```{r, eval=FALSE}
+get_regression_points(premie_model)
+```
+
+
+```{r, echo=FALSE}
+get_regression_points(premie_model)[1:5,]
+```
+
+???
+
+- `weight`, `premie` are the data the model was fit to
+- `weight_hat` is the predicted weight based on the regression model. The same values gets predicted and over again, because the prediction is a constant value!
+- `residual` is the error (difference between actual observation and model prediction)
+
+---
+
+### Don't forget about numbers-as-categories!
+
+If you have a categorical variable represented with numbers (like how `smoker` is represented using a 1, and non-smoker with a 0), you need to convert it to a factor before fitting your regression model!
+
+```{r}
+ncbirths <- mutate(ncbirths, smoker = factor(smoker,
+                                             levels = c(0,1),
+                                             labels = c("non-smoker","smoker")
+                                             )
+                   )
+```
+
+???
+
+Lastly, a reminder about categorical variables masquerading a numeric variables. If you have a categorical variable represented with numbers (like how `smoker` is represented using a 1, and non-smoker with a 0), you'll need to convert it to a factor variable before fitting your regression model!
+
+All right, that's all for today's video statisticians, and I'll see you in the next one!

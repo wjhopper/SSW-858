@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Regression with one categorical explanatory variable</title>
+    <meta charset="utf-8" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Regression with one categorical explanatory variable
+
+---
+
+
+
+
+
+
+
+
+### Categorical explanatory variables
+
+.pull-left[
+&lt;img src="Categorical-Regression_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+In ModernDive Chapter 5.2, we tackle the topic of using a categorical variable to explain variability in a numeric outcome variable. In other words, we break our data apart into groups, and compare our outcome variable across those groups using a regression model.
+
+--
+
+.pull-right[
+&lt;img src="Categorical-Regression_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+For example, we can take all 1000 infant birth weights from the ncbirths data set, and break them apart into two groups; the weights observed from full-term births, and the weights observed from premature births. We can already see that the two groups appear to have different central tendencies, with premie births tending to have lower birth weights, and the variability within each group is smaller than the variability when the groups were pooled together.
+
+Because of this, we can be expect to have less error predicting a babies birth weight when we know the full-term or premie status of the pregnancy than when we ignore that information.
+
+---
+### Categorical explanatory variables
+&lt;img src="Categorical-Regression_files/figure-html/unnamed-chunk-4-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+When all the birth weights were pooled together, we previously used the empty model to generate our birth weights predictions - in the absence of additional information, always using the mean birth weight as our model minimized our squared error.
+
+In terms of a linear model, we can think of the empty model as a horizontal line passing through the y axis at the sample mean.
+
+---
+
+### Categorical explanatory variables
+&lt;img src="Categorical-Regression_files/figure-html/unnamed-chunk-5-1.gif" style="display: block; margin: auto;" /&gt;
+
+???
+
+But once we bring in the information about observing a premature or full-term birth, our regression model turns into two separate lines - one for each group. These lines pass through the sample mean of each group.
+---
+
+### Regression equation with categorical predictors
+
+???
+Regression models with a categorical explanatory variable have slightly different mathematical form than models with just numeric predictors. Since our regression model now takes the form of a piece wise linear function, our equation needs a way to describe these multiple line segments, and tell us when to jump to the correct line segment for each group. Let's take a look at the form of this model in the case of a categorical predictor with two levels (like premie and full-term):
+
+--
+
+`$$\hat{y} = b_0 + b_1 \cdot 1_{A}(x)$$`
+
+`\(b_0\)` is the mean of the *baseline* group
+
+`\(b_1\)` is the difference (or, *offset*) between the mean of the baseline group and the next group.
+
+???
+
+The regression model is written here in generic, GLM notation. The model has two terms, so it has as many terms as there are groups. The "jump" between groups is accomplished by writing the model in terms of a constant "baseline" group that gets it's predicted value incorporated into all predictions, and then describing the predicted value of each additional group as a change from the baseline value.
+
+The b0 parameter represents the mean of the *baseline* group, and `\(b_1\)` represents the difference between the mean of the baseline group and the mean of the second group. This difference is usually called an *offset* in the parlance of the general linear model.
+
+--
+
+`\(1_A(x)\)` is an *indicator* function (think of it like an `==` test from R).
+
+`$$\mathbb{1}_{A}(x) = \left\{
+\begin{array}{ll}
+1 &amp; \text{if } x \text{ matches } A \\
+0 &amp; \text{otherwise} \end{array}
+\right.$$`
+
+???
+
+Importantly, this offset is only applied to predictions for the second group through the use of an *indicator* function. An indicator which are written 1, followed by a single category level in the subscript, and then an input. You can think of an indicator function like an equality test from R using the == operator.
+
+If the input, x in this example, matches the category level (say, category level A in this example), the indicator function becomes a one, and the `\(b1\)` term stays in the equation. If the input does not match the category level, the indicator function become a zero, and the `\(b1\)` term drops out of the equation completely.
+
+
+---
+
+### Regression equation with categorical predictors
+.pull-left[
+&lt;br&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; weight &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; premie &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 6.38 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; full term &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 7.44 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; full term &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 7.06 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; full term &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 8.88 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; full term &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2.69 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; premie &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right[
+&lt;img src="Categorical-Regression_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+???
+Let's practice using the indicator function on our categorical variable premie. I'm going to draw in a new column to show what the indicator function would tell us for each row of our input data.
+
+So, I'm going to write out one, subscript premie, parenthesis, x. Next, I'm going to go down the rows and substitute the category levels of the premie variable in for the x, and record what the indicator function would output. 
+
+Since the input from the first row is full-term, this doesn't match the level for this indicator function, which is premie, so the indicator function outputs a zero. That same is true for rows 2, 3, 4. But when we get to the 5th row, the input does match the level for the indicator function, so it outputs a 1.
+
+you might be wondering: How do I know which group is the the baseline level that always applies, and which groups get turned on and off with indicator function? In other words, how did I know to write "premie" in the subscript, and not full-term? Here, I'm following R's convention, which is to sort the category levels in alphabetical order, and use the first one as the baseline level. So since the "f" in full-term comes before the "p" in premie, full-term is the baseline level, and we don't need an indicator function for that category level.
+
+Speaking of R, let see how to fit the regression model, and estimate those b0 and b1 values.
+
+---
+
+### Fitting the categorical regression in R
+
+
+```r
+library(moderndive) # for the get_regression_table function
+ncbirths &lt;- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
+                     stringsAsFactors = FALSE)
+
+
+weeks_model &lt;- lm(weight ~ premie, data = ncbirths)
+get_regression_table(weeks_model)
+```
+
+???
+
+Thankfully, the procedure is exactly the same as when using a numeric explanatory variable. We read in the data, and use the lm function, putting the outcome variable weight on the left of the tilde, and the premie variable on the right.
+
+--
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; std_error &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; p_value &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; lower_ci &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; upper_ci &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; intercept &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.46 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.04 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 173.24 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.38 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.54 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; premiepremie &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -2.33 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -21.13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -2.55 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -2.11 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+???
+
+Let's unpack the regression table we get back. Just like before, we only need to pay attention to the "term" and "estimate" columns for now. The "Intercept" term corresponds to b0 from our equation, and the "premiepremie" term corresponds to b1 from our equation. So, we know that b0 is 7.46, and b1 is negative 2.33.
+
+Remember, b0 is the mean of the baseline group, and since our baseline group is the "full-term" pregnancy group, we know the mean birth weight of the "full-term" pregnancy group is 7.46 pounds. However, b1 is not the mean of the second group - b1 is the difference between the mean of the baseline group and mean of the second group. So, we know the difference between the mean of the full-term pregnancy group and the mean of the premie group is 2.33 pounds.
+
+The labeling R uses for each term in the regression table can be a bit confusing. First, it doesn't label the baseline group with it's name - it always calls the baseline group "Intercept". Second, when labeling the other category levels, it combines the name of the variable in the data frame with the category level. So, our second group is labeled "premiepremie" because the column was called premie, and the second group was also called premie.
+
+---
+
+### Fitting the categorical regression in R
+
+`$$\hat{y} = 7.46 + -2.33 \cdot 1_{premie}(x)$$`
+
+&lt;img src="Categorical-Regression_files/figure-html/unnamed-chunk-10-1.png" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+Let's take the beta values we just estimated, plug them into our regression equation, and match things up between the regression equation and the visualization of the model that we looked at initially.
+
+We know the 7.46 is the mean of the baseline group, so it corresponds to the line through the full-term pregnancy group. Remember, the full-term group is considered the "baseline" by R simply because the f in "full-term" comes before the "p" in "premie. 
+
+The second value, negative 2.33 is difference between the baseline group and the second group, premie births. So, that means the model's prediction for the baseline group is 5.13 - which is the mean birth weight of infants in the premie group, and corresponds to the line going through the "premie" group.
+
+The fact that the regression lines go through the mean for each group shouldn't be too surprising, since we've talked a lot about how the mean is the value that minimizes the sum of square error for all the observations in a group.
+
+---
+
+### Generating predictions using the regression model
+
+What is the predicted birth weight for a full-term baby?
+
+???
+
+Next, lets' talk about how to use the regression equation itself to generate predictions for each group. First, let's use the regression equation to answer the question: what is the predicted birth weight for a full-term baby?
+
+--
+
+`$$\hat{y} = b_0 + b_1 \cdot 1_{premie}(x)$$`
+
+???
+
+Need to plug in our estimated beta values, and a value for x. When we did this same procedure for a regression with a numeric predictor, we plugged in a number for x. In this situation, we're going to plug in a category level instead of a number.
+
+--
+
+`$$\hat{y} = 7.46 + -2.33 \cdot 1_{premie}(\text{full-term})$$`
+`\(1_{premie}(\text{full-term})\)` evaluates to 0 ("full-term" does not match "premie"), the equation simplifies to:
+
+`$$\hat{y} = 7.46 + -2.33 \cdot 0 \\
+\hat{y} = 7.46$$`
+
+???
+
+Here I've filled in our beta values, and plugged in "full-term" for x, since that's the group we're interested in making a prediction for. Because "full-term" does not match "premie", the indicator function evaluates to 0, and the equation simplifies to:
+
+`$$\hat{y} = 7.46 + -2.33 \cdot 0 \\
+\hat{y} = 7.46$$`
+
+---
+
+### Generating predictions using the regression model
+
+What is the predicted value for a premie baby?
+
+???
+
+We can follow the same procedure to generate the predicted value for a premie baby as well.
+
+--
+
+`$$\hat{y} = 7.46 + -2.33 \cdot 1_{premie}(\text{premie})$$`
+
+Since `\(1_{premie}(\text{full-term})\)` evaluates to 1 ("premie" matches "premie"), the equation simplifies to:
+
+`$$\hat{y} = 7.46 + -2.33 \cdot 1 \\
+\hat{y} = 7.46 -2.33 \\
+\hat{y} = 5.13$$`
+
+???
+
+We plug in the same beta values, the category level, evaluate the indicator function, and simplify the equation. Since "premie" matches "premie", the indicator function returns a 1, and b1 stays in the equation, making the final value 5.13. Thus, the model predicts the birth weight of a premie baby to be 5.13 pounds.
+
+---
+
+### Generating predictions using the regression model
+
+Just like we did with a numeric predictor variable, we can also find the predicted values and residual error values for each observed birth weight in the data set applying the `get_regression_points` function to the linear model object we saved.
+
+--
+
+
+```r
+get_regression_points(premie_model)
+```
+
+
+
+```
+## # A tibble: 5 x 5
+##      ID weight premie    weight_hat residual
+##   &lt;int&gt;  &lt;dbl&gt; &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;
+## 1     1   2.69 premie          5.13   -2.44 
+## 2     2   8.88 full term       7.46    1.42 
+## 3     3   7.06 full term       7.46   -0.399
+## 4     4   7.44 full term       7.46   -0.019
+## 5     5   6.38 full term       7.46   -1.08
+```
+
+???
+
+- `weight`, `premie` are the data the model was fit to
+- `weight_hat` is the predicted weight based on the regression model. The same values gets predicted and over again, because the prediction is a constant value!
+- `residual` is the error (difference between actual observation and model prediction)
+
+---
+
+### Don't forget about numbers-as-categories!
+
+If you have a categorical variable represented with numbers (like how `smoker` is represented using a 1, and non-smoker with a 0), you need to convert it to a factor before fitting your regression model!
+
+
+```r
+ncbirths &lt;- mutate(ncbirths, smoker = factor(smoker,
+                                             levels = c(0,1),
+                                             labels = c("non-smoker","smoker")
+                                             )
+                   )
+```
+
+???
+
+Lastly, a reminder about categorical variables masquerading a numeric variables. If you have a categorical variable represented with numbers (like how `smoker` is represented using a 1, and non-smoker with a 0), you'll need to convert it to a factor variable before fitting your regression model!
+
+All right, that's all for today's video statisticians, and I'll see you in the next one!
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

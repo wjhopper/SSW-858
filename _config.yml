@@ -54,6 +54,7 @@ collections:
          - "Groupwise Summaries with dplyr"
          - "What does the mean mean?"
          - "Bivariate Regression"
+         - "Categorical Regression"
    problem_sets:
       order:
          - "Intro to R and RStudio"

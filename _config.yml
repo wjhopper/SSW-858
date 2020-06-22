@@ -55,6 +55,7 @@ collections:
          - "What does the mean mean?"
          - "Bivariate Regression"
          - "Categorical Regression"
+         - "Correlation"
    problem_sets:
       order:
          - "Intro to R and RStudio"

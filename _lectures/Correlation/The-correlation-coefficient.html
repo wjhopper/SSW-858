@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>The correlation coefficient</title>
+    <meta charset="utf-8" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# The correlation coefficient
+
+---
+
+
+&lt;style&gt;
+.right-column { padding-top: 0px;}
+.left-column {color: black;}
+&lt;/style&gt;
+
+
+
+
+## The correlation coefficient
+
+One job, and one job only: quantify the **strength** and **direction** of the **linear relationship** between **two** numeric variables.
+
+Denoted `\(r\)` - sometimes called Pearson's `\(r\)`
+
+???
+
+The correlation coefficient, which is denoted with the lowercase r symbol, is a statistic that has one very specific job - it's job is to quantify the *strength** and **direction** of the **linear relationship** between **two** numeric variables. This turns out to be such a useful statistics, that the correlation coefficient is computed and reported in just about every study ever done, and has turned the word "correlated" into a synonym for "related".
+
+Let's talk about a few important correlation coefficient facts that you need to know.
+
+--
+
+Ranges between -1 and 1
+
+Sign tells you *direction*: negative sign = negative relationship, positive sign = positive relationship
+
+
+![](correlation_scale.png)
+
+???
+
+First, the range of the correlation coefficient. The correlation coefficient can take on any value between -1 and 1, including -1 and 1. The closer the value is to the extremes of the scale, that is, the closer the value is to -1 or 1, the **stronger** the negative relationship is.
+
+Second, the *sign* of the correlation coefficient tells you about the *direction* of the relationship between the two variables. A negative correlation coefficient tells you that as one variable increases, the value of the other variable tends to go down, following a straight line. A positive tells you that as the value of one variable goes up, the value of the other variable tends to go up as well in a linear fashion.
+
+---
+
+### Examples
+&lt;img src="The-correlation-coefficient_files/figure-html/correlation1-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+To help you understand what I mean by strong and weak correlations, and connect those ideas to different values of the correlation coefficient, let's take a look at a few examples. This figure is similar to figure 5.1 in ModernDive. 
+
+In the top right, we have a perfect negative relationship - all the points fall exactly on the same line, and that line is sloping downwards. Unfortunately, such correlations never occur in real-world data. Data you see in real life are much more likely to look like one of the other panels in the figure, where the correlation is less than perfect.
+
+---
+
+### Correlation Caution
+Don't confuse strength of the correlation with the rate of increase (i.e., the slope). Correlation is all about how tight the points cluster around the line.
+
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+&lt;img src="The-correlation-coefficient_files/figure-html/same_cor-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+One common and quite understandable mistake people make when estimating or "eyeballing" correlations from plots is to assume that a steeper slope means a higher correlation. But I want you all to remember that correlation is not about the slope relating the x axis variable to the y axis variable. Instead, the strength of the correlation is all about how tightly the points cluster around the regression line.
+
+In this plot for example, the data set on the left has a slope that is twice as steep as the data set on the right. But despite this, the points cluster around the regression line in exactly the same way for both data sets - meaning that the correlation is the same.
+
+---
+
+### Correlation Caution
+The best way to get used to estimating correlations yourself is to practice - head over to http://guessthecorrelation.com/ and start a game for yourself!
+
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+&lt;img src="The-correlation-coefficient_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Correlation Caution
+As tempting as it may be, correlation is *never* causation - even when the correlation is .99!
+
+--
+
+See https://www.tylervigen.com/spurious-correlations for fun (and scary) examples
+
+![](chart.svg)
+
+---
+
+### Correlation Caution
+
+.left-column[
+
+- Anscombe's Quartet: all 4 pairs of variables have a correlation of .816!
+
+- Correlations always need context - such as a figure
+]
+
+.right-column[
+![Source: Wikipedia. Shared under the Creative Commons Attribution-Share Alike 3.0 Unported license ](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Anscombe%27s_quartet_3.svg/800px-Anscombe%27s_quartet_3.svg.png)
+]
+
+
+???
+
+Finally, beware of making strong assumptions about the relationship between two variables based only knowing their correlation coefficient. Anscombe's quartet, shown here, is a famous data set that has been used to show the danger of over-relying on summary statistics to draw conclusion about data. 
+
+Remarkably, all four pairs of variables in the quartet have the same strong correlation - .816. But only in the first case is the correlation a good description of the data - all of the others have significant departures from linearity that make the correlation coefficient a misleading summary. 
+
+The take-home lesson from Anscombe's quartet is that you should never interpret summary statistics without context, and that a visualization provides some of the best context possible.
+
+---
+
+## Computing `\(r\)` in R!
+
+
+```r
+ncbirths &lt;- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
+                     stringsAsFactors = FALSE)
+ncbirths &lt;- filter(ncbirths, !is.na(weight), !is.na(weeks))
+```
+
+Base R method:
+
+```r
+cor(ncbirths$weight, ncbirths$weeks)
+```
+
+```
+## [1] 0.6701013
+```
+
+???
+
+With all the cautionary tales out of the way, let's talk about computing the correlation coefficient for yourself. 
+
+
+The `cor` function in R is used to compute the correlation. Remember, you compute the correlation between two numeric variables, so we need to provide two numeric vectors to R. If those vectors happen to be two columns in a data frame, here's how you could provide those values to th `cor` function.
+
+--
+
+dplyr method:
+
+```r
+summarise(ncbirths, cor(weight, weeks))
+```
+
+```
+##   cor(weight, weeks)
+## 1          0.6701013
+```
+
+???
+
+If you want to get your answer in the form of a data frame, you can use the cor function inside the summarize function from dplyr.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

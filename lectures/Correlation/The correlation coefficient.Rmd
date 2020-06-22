@@ -1,0 +1,223 @@
+---
+title: "The correlation coefficient"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "../../assets/css/sds.css"]
+editor_options:
+  chunk_output_type: console
+---
+
+<style>
+.right-column { padding-top: 0px;}
+.left-column {color: black;}
+</style>
+
+```{r, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(mvtnorm)
+
+options(htmltools.dir.version = FALSE, stringsAsFactors = FALSE)
+knitr::opts_chunk$set(cache=TRUE, fig.align = 'center')
+theme_set(theme_grey(20) + theme(plot.margin = margin(1,1,1,1)))
+
+```
+
+
+## The correlation coefficient
+
+One job, and one job only: quantify the **strength** and **direction** of the **linear relationship** between **two** numeric variables.
+
+Denoted $r$ - sometimes called Pearson's $r$
+
+???
+
+The correlation coefficient, which is denoted with the lowercase r symbol, is a statistic that has one very specific job - it's job is to quantify the *strength** and **direction** of the **linear relationship** between **two** numeric variables. This turns out to be such a useful statistics, that the correlation coefficient is computed and reported in just about every study ever done, and has turned the word "correlated" into a synonym for "related".
+
+Let's talk about a few important correlation coefficient facts that you need to know.
+
+--
+
+Ranges between -1 and 1
+
+Sign tells you *direction*: negative sign = negative relationship, positive sign = positive relationship
+
+
+![](correlation_scale.png)
+
+???
+
+First, the range of the correlation coefficient. The correlation coefficient can take on any value between -1 and 1, including -1 and 1. The closer the value is to the extremes of the scale, that is, the closer the value is to -1 or 1, the **stronger** the negative relationship is.
+
+Second, the *sign* of the correlation coefficient tells you about the *direction* of the relationship between the two variables. A negative correlation coefficient tells you that as one variable increases, the value of the other variable tends to go down, following a straight line. A positive tells you that as the value of one variable goes up, the value of the other variable tends to go up as well in a linear fashion.
+
+---
+
+### Examples
+```{r correlation1, echo=FALSE, dev='svg', fig.width=9, fig.height=6}
+set.seed(12)
+correlation <- seq(-1, 1, by=.25)
+n_sim <- 100
+values <- NULL
+
+for(i in seq_along(correlation)){
+  rho <- correlation[i]
+  sigma <- matrix(c(5, rho * sqrt(50), rho * sqrt(50), 10), 2, 2)
+  sim <- rmvnorm(
+    n = n_sim,
+    mean = c(20,40),
+    sigma = sigma
+    ) %>%
+    as.data.frame() %>% 
+    as_tibble() %>%
+    mutate(correlation = round(rho,2))
+
+  values <- bind_rows(values, sim)
+}
+
+values <- mutate(values,
+                 correlation_strengths = factor(correlation,
+                                                labels = c("Perfect Negative", "Strong Negative", "Moderate Negative",
+                                                           "Weak Negative", "No relationship", "Weak Positive",
+                                                           "Moderate Positive", "Strong Positive", "Perfect Positive"
+                                                           )
+                                                )
+                 )
+
+correlation_tbl <- distinct(values, correlation, correlation_strengths)
+
+corr_plot <- ggplot(data = values, mapping = aes(V1, V2)) +
+  geom_point() +
+  facet_wrap(~ correlation_strengths, ncol = 3) +
+  geom_label(aes(label=paste0("italic(r) == ", correlation)),
+             data=correlation_tbl,
+             x = 20, y=29.5, parse = TRUE, size=5) +
+  scale_y_continuous(limits = c(29, 50)) +
+  labs(x = "x", y = "y") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        strip.text.x = element_text(margin = margin(1.5,1.5,1.5,1.5))
+       )
+corr_plot
+```
+
+???
+
+To help you understand what I mean by strong and weak correlations, and connect those ideas to different values of the correlation coefficient, let's take a look at a few examples. This figure is similar to figure 5.1 in ModernDive. 
+
+In the top right, we have a perfect negative relationship - all the points fall exactly on the same line, and that line is sloping downwards. Unfortunately, such correlations never occur in real-world data. Data you see in real life are much more likely to look like one of the other panels in the figure, where the correlation is less than perfect.
+
+---
+
+### Correlation Caution
+Don't confuse strength of the correlation with the rate of increase (i.e., the slope). Correlation is all about how tight the points cluster around the line.
+
+```{r same_cor, echo=FALSE, dev='svg'}
+x <- filter(values, correlation==.75)
+x <- bind_rows(times1 = x, times2 = mutate(x, V1 = (V1*2)-15, V2=(V2*.5)+20), .id='slope')
+y <- group_by(x, slope) %>% summarise(r = cor(V1, V2))
+ggplot(x, aes(x=V1, y=V2)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se=FALSE) +
+  geom_label(aes(label=paste0("italic(r) == ", round(r,2))),
+             data=y,
+             x = 26, y=35, parse = TRUE, size=5) +
+  facet_wrap(~ slope, ncol =2) +
+  labs("x","y") +
+  theme(strip.background = element_blank(),
+        strip.text = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank()
+        )
+```
+
+???
+
+One common and quite understandable mistake people make when estimating or "eyeballing" correlations from plots is to assume that a steeper slope means a higher correlation. But I want you all to remember that correlation is not about the slope relating the x axis variable to the y axis variable. Instead, the strength of the correlation is all about how tightly the points cluster around the regression line.
+
+In this plot for example, the data set on the left has a slope that is twice as steep as the data set on the right. But despite this, the points cluster around the regression line in exactly the same way for both data sets - meaning that the correlation is the same.
+
+---
+
+### Correlation Caution
+The best way to get used to estimating correlations yourself is to practice - head over to http://guessthecorrelation.com/ and start a game for yourself!
+
+```{r ref.label='same_cor', echo=FALSE, dev='svg'}
+```
+
+---
+
+### Correlation Caution
+As tempting as it may be, correlation is *never* causation - even when the correlation is .99!
+
+--
+
+See https://www.tylervigen.com/spurious-correlations for fun (and scary) examples
+
+![](chart.svg)
+
+---
+
+### Correlation Caution
+
+.left-column[
+
+- Anscombe's Quartet: all 4 pairs of variables have a correlation of .816!
+
+- Correlations always need context - such as a figure
+]
+
+.right-column[
+![Source: Wikipedia. Shared under the Creative Commons Attribution-Share Alike 3.0 Unported license ](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Anscombe%27s_quartet_3.svg/800px-Anscombe%27s_quartet_3.svg.png)
+]
+
+
+???
+
+Finally, beware of making strong assumptions about the relationship between two variables based only knowing their correlation coefficient. Anscombe's quartet, shown here, is a famous data set that has been used to show the danger of over-relying on summary statistics to draw conclusion about data. 
+
+Remarkably, all four pairs of variables in the quartet have the same strong correlation - .816. But only in the first case is the correlation a good description of the data - all of the others have significant departures from linearity that make the correlation coefficient a misleading summary. 
+
+The take-home lesson from Anscombe's quartet is that you should never interpret summary statistics without context, and that a visualization provides some of the best context possible.
+
+---
+
+## Computing $r$ in R!
+
+```{r}
+
+ncbirths <- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
+                     stringsAsFactors = FALSE)
+ncbirths <- filter(ncbirths, !is.na(weight), !is.na(weeks))
+```
+
+Base R method:
+```{r}
+cor(ncbirths$weight, ncbirths$weeks)
+```
+
+???
+
+With all the cautionary tales out of the way, let's talk about computing the correlation coefficient for yourself. 
+
+
+The `cor` function in R is used to compute the correlation. Remember, you compute the correlation between two numeric variables, so we need to provide two numeric vectors to R. If those vectors happen to be two columns in a data frame, here's how you could provide those values to th `cor` function.
+
+--
+
+dplyr method:
+```{r}
+summarise(ncbirths, cor(weight, weeks))
+```
+
+???
+
+If you want to get your answer in the form of a data frame, you can use the cor function inside the summarize function from dplyr.

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>An Additive Multiple Regression Model</title>
+    <meta charset="utf-8" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# An Additive Multiple Regression Model
+
+---
+
+
+&lt;style&gt;
+.right-column {padding-top: 0px;}
+.left-column {color: black;}
+
+.smaller-source code.r {font-size: 14px; line-height: 1.2em;}
+&lt;/style&gt;
+
+
+
+
+### Previously Used Model Types
+
+
+
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+&lt;img src="Parallel-slopes-model_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+In Chapter 5, we learned about bivariate regression models, which use a single explanatory variable. This explanatory variable may be numeric, such as in the scatterplot on the left which shows the relationship between pregnancy duration and birth weight, in which case our model will take the form of a smooth line with a non-zero slope. 
+
+Or, this explanatory variable may be categorical, such as in the dot plot on the right which shows the relationship between smoking behavior and birth weight, in which case our model will take the form of a piecewise linear function with a line segment passing through the mean of the outcome variable for each group.
+
+
+However, regression models can be designed to use many explanatory variables, combining information from several sources to improve the accuracy of the model's predictions. These kinds of models are called **Multiple** regression model, because they use multiple explanatory variables to generate their predictions. Importantly, we can use both numeric and categorical explanatory variables within the same model.
+
+---
+
+### A Multiple Regression Model
+
+&lt;img src="Parallel-slopes-model_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's explore our first regression model with both a numeric and categorical explanatory variable with a visualization. You'll see that many aspects of the bivariate regression models we've used previously can be seen again in multiple regression model.
+
+Here, we're  visualizing a regression model with infant birth weights as the outcome variable along the y axis, and pregnancy duration in weeks and smoking status as explanatory variables. Because our model has a categorical explanatory variable, smoker, we have two different lines: one line that applies to the smoking group, and one line that applies to the non-smoking group. 
+
+
+But because our model also has a numeric explanatory variable, those lines aren't flat any more. Instead, they have a slope that depends on the duration of the pregnancy in weeks. In other words, our model uses the information about the duration of the pregnancy, **and** the smoking status of the mother to make even more customized predictions about the likely birth weigh of an infant.
+
+
+An important thing to note is that in this model, the relationship between pregnancy duration and birth weight is exactly the same for both the smoking group and the non-smoking group. This can be seen by the fact that the regression lines for the two groups are exactly parallel to one another. In other words, the predicted change in birth weight for each additional week of pregnancy is the same for both smokers and non-smokers.
+
+This type of model is called an **additive** regression model, or a **parallel slopes** model.
+
+---
+
+### An *Additive* Multiple Regression Equation
+
+`$$\hat{y} = b_0 + b_1 \cdot 1_{A}(x_1) + b_2 \cdot x_2$$`
+
+Assume `\(x_1\)` represents our categorical explanatory variable, and `\(x_2\)` represents our numeric explanatory variable.
+
+???
+
+Let's take a look at the mathematical form of this parallel slopes model in GLM form. The first thing you'll notice is that the equation for this additive model, with one categorical and one numeric explanatory variable, looks a bit like I took the two individual equations, and smashed them together. That's actually not very far from the truth - let's unpack this equation a bit.
+
+--
+
+`\(b0\)` = y axis intercept for *baseline* group (i.e., prediction for baseline group when the `\(x_2\)` variable is equal to 0)
+
+???
+
+The first term in the model is represented with b0 as usual. When we fit a regression model with a single numeric explanatory variable in Chapter 5.1 of moderndive, the b0 term in the model was interpreted as the y axis intercept. And when we fit a a regression model with a single categorical explanatory variable, the b0 term in the model was interpreted as the mean of the baseline group. 
+
+But with both a numeric and categorical explanatory variable, the b0 term is becomes a compromise between those two things. Specifically, the b0 term is now the y axis intercept for *baseline* group. In other words, the value of the b0 parameter tells you what your model predicts for baseline group when all the other variables are equal to 0.
+
+--
+
+`\(b1\)` = Vertical distance between baseline group's regression line and second group's regression line (i.e., the difference between groups). 
+
+Indicator function still works the same way - turns to 0 if input category level doesn't match subscripted level.
+
+???
+
+Previously, when we fit a regression model with a single categorical explanatory variable, the b1 parameter was interpreted as the difference between the baseline group and the second group. That's still true now that we have multiple variables, but the interpretation actually becomes even richer. The b1 parameter represents the vertical distance between baseline group's regression line and second group's regression line - in other words, it represents the difference between groups no matter what the value of the other numeric variable is.
+
+--
+
+`\(b2\)` = Slope on `\(x_2\)`, i.e., the predicted increase in `\(\hat{y}\)` for each 1-unit increase in `\(x_2\)`.
+
+???
+
+Finally, we get to `\(b_2\)`, which is a new symbol, but it's interpretation will be familiar. The `\(b_2\)` parameter applies to the numeric explanatory variable, and tells us how much outcome variable is predicted to change with every one for each 1-unit increase in the value of the `\(x_2\)` variable. Put succinctly it's the slope on `\(x_2\)`. 
+
+Something very important to note is that both groups share the same slope on `\(x_2\)` in this model - that's why it's called the parallel slopes model. Because this slope value doesn't have an indicator function accompanying it, we know that the change in y with each one-unit change is the same for both groups.
+
+---
+
+### Order of explanatory variables doesn't matter
+Could just as easily make `\(x_1\)` represent a categorical explanatory variable, and `\(x_2\)` represents a numeric explanatory variable.
+
+`$$\hat{y} = b_0 + b_1 \cdot x_1 + b_2 \cdot 1_{A}(x_2)$$`
+
+The model is still two parallel lines.
+
+
+???
+
+Something I want to point out is that the order of the variables in the model doesn't matter - I can just as easily make x1 the numeric variable, and x2 the categorical variable. 
+
+The model will still describe two parallel lines, one for each group, but I interpret `\(b_1\)` as the slope, and `\(b_2\)` as the offset now.
+
+
+--
+
+The important thing: pay attention to what kinds of variables `\(b_1\)` and `\(b_2\)` apply to
+
+???
+
+So, we still get the same model with the same predictions, we just have to pay attention to what kinds of variables the `\(b_1\)` and `\(b_2\)` values actually apply to when we interpret their meanings. R will try to help you out with how a little bit with it labels things in the regression table, but ultimately it's up to you to remember and keep track of which variable is which using your knowledge of the data set you're working with.
+
+Speaking of R, let's go see how to fit this model in R, and estimate our additive model's parameters.
+---
+
+### Fitting the additive model
+
+
+```r
+library(moderndive)
+library(dplyr)
+ncbirths &lt;- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
+                     stringsAsFactors = FALSE)
+
+*ncbirths &lt;- mutate(ncbirths, smoker = factor(smoker, labels=c("non-smoker","smoker")))
+
+smoker_weeks_parallel_model &lt;- lm(weight ~ smoker + weeks, data = ncbirths)
+get_regression_table(smoker_weeks_parallel_model)
+```
+
+???
+
+As usual I start by loading relevant libraries and reading in the data. I do have to do one intermediary step before getting to the model though. Since my categorical variable `smoker` is represented with zeros and ones, I have to convert it into a factor variable before fitting the regression.
+
+I've also added a new symbol to our model formula inside the lm function. I still have the outcome variable on the left of the tilde, and explanatory variables on the right, but since I have two explanatory variables now, I need to join them together and tell R these terms are part of the same formula.
+
+Because I want to use a parallel slopes model, or an additive model, I join the two explanatory variables together with a plus sign. And, lets take a moment to remind ourselves that we're going to think of as the smoker categorical variable as the x1 variable from our GLM equation, and the the weeks numeric variable as the x2 variable from out GLM equation.
+
+Next, let's unpack the regression table that tells us all about our model's coefficients.
+
+--
+
+
+```
+## # A tibble: 3 x 7
+##   term         estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept      -6.07      0.462    -13.1    0       -6.98    -5.16 
+## 2 smokersmoker   -0.359     0.106     -3.38   0.001   -0.567   -0.151
+## 3 weeks           0.345     0.012     28.7    0        0.321    0.369
+```
+
+???
+
+The first row of the table, we see the "Intercept" term, as we always do, and this term corresponds to the b0 term in the model, as it always does.
+
+In the second row of the table, we see the "smokersmoker" term. Seeing this combination of the column name and a category name indicates that we're looking at a coefficient that applies an offset based on the presence or absence of a categorical variable. And since the smoker variable was the first variable in our formula, we know this offset value corresponds to the b1 term of our model.
+
+In the third row of the table, we see the "week" term. Since the "weeks" variable is a numeric variable, we know this term should be interpreted as a slope, which tells us the amount of change in weight with each one unit change in pregnancy duration in weeks. And since the weeks variable was the second term in our model, this slope corresponds to the b2 term of our model.
+
+Now that we have some real values for our parameters, let's plug them into our regression equation, and try to match up terms in our equation with what we see in our visualizations.
+
+---
+
+### Fitting and visualizing an additive model
+
+.left-column[
+
+`$$\begin{align*}
+   \hat{y} = &amp; b_0\ +\\
+   &amp;b_1 \cdot 1_{A}(x_1)\ + \\
+   &amp;b_2 \cdot x_2
+\end{align*}$$`
+
+`$$\begin{align*}
+   \hat{y} = &amp; -6.07\ +\\
+   &amp;-0.359 \cdot 1_{smoker}(x_1)\ + \\
+   &amp;\ \ \ \ \ 0.345 \cdot x_2
+\end{align*}$$`
+
+]
+
+
+.right-column[
+&lt;img src="Parallel-slopes-model_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto 0 auto auto;" /&gt;
+
+]
+
+???
+
+Y intercept stuff here.
+
+---
+
+### Fitting and visualizing an additive model
+
+.left-column[
+
+`$$\begin{align*}
+   \hat{y} = &amp; b_0\ +\\
+   &amp;b_1 \cdot 1_{A}(x_1)\ + \\
+   &amp;b_2 \cdot x_2
+\end{align*}$$`
+
+`$$\begin{align*}
+   \hat{y} = &amp; -6.07\ +\\
+   &amp;-0.359 \cdot 1_{smoker}(x_1)\ + \\
+   &amp;\ \ \ \ \ 0.345 \cdot x_2
+\end{align*}$$`
+
+]
+
+.right-column[
+&lt;img src="Parallel-slopes-model_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto 0 auto auto;" /&gt;
+]
+
+???
+
+offset and slope stuff here
+
+---
+
+### Predictions and Residuals for the observed data
+
+
+```r
+get_regression_points(smoker_weeks_parallel_model)
+```
+
+```
+## # A tibble: 998 x 6
+##       ID weight smoker     weeks weight_hat residual
+##    &lt;int&gt;  &lt;dbl&gt; &lt;fct&gt;      &lt;int&gt;      &lt;dbl&gt;    &lt;dbl&gt;
+##  1     1   2.69 smoker        32       4.61   -1.92 
+##  2     2   8.88 non-smoker    38       7.03    1.85 
+##  3     3   7.06 non-smoker    38       7.03    0.026
+##  4     4   7.44 non-smoker    42       8.41   -0.974
+##  5     5   6.38 smoker        40       7.36   -0.985
+##  6     6   7.5  non-smoker    38       7.03    0.466
+##  7     7   7.63 non-smoker    39       7.38    0.251
+##  8     8   7.13 non-smoker    41       8.07   -0.939
+##  9     9   8.5  non-smoker    40       7.72    0.776
+## 10    10   8.25 non-smoker    37       6.69    1.56 
+## # … with 988 more rows
+```
+
+???
+
+As always we can see what our model's predicted weight was for each observation in the data set, along with the residual error for that observations by using the get_regression_points function on our linear model object. The weight, smoker, and weeks columns represent the observed data from the ncbirths data set that was used to fit our multiple regression model. The weight hat column shows the predicted weight for each point along with the residual error.
+
+
+It's important to remember how the get_regression points function computes these last two columns. It simply takes the regression equation, first plugs in all the beta values that were estimated, just like we did on slides 7 and 8, and then plugs in the values for the smoker and weeks variables from each row into the regression equation one at a time. So, for the first row, it plugs in "smoker" for the smoking status and 2.69 for the weeks. With all the values plugged in, it's just a bit of arithmetic to find the predicted value of 4.61.
+
+To find the residual, we simply subtract the predicted weight from the observed weight. So, we have a residual error of negative 1.92, because 2.69 minus 4.61 is negative 1.92. Thus we can see that our model over predicted the weight for the first baby in our data set.
+
+
+---
+
+class: smaller-source
+
+### Use `geom_parallel_slopes` to visualize
+
+.pull-left[
+
+```r
+ggplot(aes(x=weeks, y=weight, color=smoker),
+       data = ncbirths) +
+  geom_point(position = position_jitter(.25), alpha=.5)
+```
+
+&lt;img src="Parallel-slopes-model_files/figure-html/unnamed-chunk-9-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+--
+
+.pull-right[
+
+```r
+ggplot(aes(x=weeks, y=weight, color=smoker),
+       data = ncbirths) +
+  geom_point(position = position_jitter(.25), alpha=.5) +
+* geom_parallel_slopes(se=FALSE)
+```
+
+&lt;img src="Parallel-slopes-model_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+Finally, note about visualizing the parallel slopes model with ggplot. You can always get regression lines onto your plot with geom_smooth, but the only way to get the parallel slopes model specifically is with the specialized geom_parallel_slopes function.
+
+Here I've taken the basic scatterplot on the left which distinguishes the smoking and non smoking groups using color and added the parallel slopes regression lines on the right. Most of the time you'll want to specify the se=FALSE argument, which suppresses the confidence interval bands around the regression line, since we haven't talked about interpreting those bands yet.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

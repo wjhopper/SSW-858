@@ -1,5 +1,5 @@
 ---
-title: 'Lecture 9: Categorical Regression'
+title: 'Lecture 09: Categorical Regression'
 author: Will Hopper
 ---
 

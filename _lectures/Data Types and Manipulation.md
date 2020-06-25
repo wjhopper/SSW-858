@@ -1,5 +1,5 @@
 ---
-title: 'Lecture 3: Data Types and Manipulation'
+title: 'Lecture 03: Data Types and Manipulation'
 author: Will Hopper
 ---
 

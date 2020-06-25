@@ -1,5 +1,5 @@
 ---
-title: 'Lecture 7: What does the mean mean?'
+title: 'Lecture 07: What does the mean mean?'
 author: Will Hopper
 ---
 

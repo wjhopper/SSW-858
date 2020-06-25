@@ -1,5 +1,5 @@
 ---
-title: 'Lecture 5: Filtering rows with dplyr'
+title: 'Lecture 05: Filtering rows with dplyr'
 author: Will Hopper
 ---
 

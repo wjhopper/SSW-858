@@ -85,6 +85,7 @@ build_lectures <- function(lectures) {
     )
   }
   
+  max_counter <- length(lectures)
   counter <- 1
   for (lecture in lectures) {
     
@@ -111,8 +112,19 @@ build_lectures <- function(lectures) {
     success <- file.copy(files_to_copy, to = destination_dir, recursive = TRUE)
   
     ## Generate "post" with links for lectures collection
+    
+    ## Due to sorting being hard, we need to pad smaller numbers with leading zeros
+    ## to achieve sensible sorting (e.g., 1,2,10 instead of 1, 10, 2)
+    
+    difference_in_length <- nchar(max_counter) - nchar(counter)
+    if (difference_in_length > 0) {
+      padding <- paste(rep("0", difference_in_length), collapse = "")
+    } else {
+      padding <- ""
+    }
+    
     yaml_header <- paste0("---\n",
-                          as.yaml(list(title = paste0("Lecture ", counter, ": ", lecture),
+                          as.yaml(list(title = paste0("Lecture ", padding, counter, ": ", lecture),
                                        author = "Will Hopper"
                                        )
                           ),

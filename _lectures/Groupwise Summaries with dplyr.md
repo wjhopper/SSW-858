@@ -1,5 +1,5 @@
 ---
-title: 'Lecture 6: Groupwise Summaries with dplyr'
+title: 'Lecture 06: Groupwise Summaries with dplyr'
 author: Will Hopper
 ---
 

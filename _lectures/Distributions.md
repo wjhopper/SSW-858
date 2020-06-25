@@ -1,5 +1,5 @@
 ---
-title: 'Lecture 4: Distributions'
+title: 'Lecture 04: Distributions'
 author: Will Hopper
 ---
 

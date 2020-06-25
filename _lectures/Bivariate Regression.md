@@ -1,5 +1,5 @@
 ---
-title: 'Lecture 8: Bivariate Regression'
+title: 'Lecture 08: Bivariate Regression'
 author: Will Hopper
 ---
 

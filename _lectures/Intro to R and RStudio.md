@@ -1,5 +1,5 @@
 ---
-title: 'Lecture 1: Intro to R and RStudio'
+title: 'Lecture 01: Intro to R and RStudio'
 author: Will Hopper
 ---
 

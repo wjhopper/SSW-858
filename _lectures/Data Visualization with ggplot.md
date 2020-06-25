@@ -1,5 +1,5 @@
 ---
-title: 'Lecture 2: Data Visualization with ggplot'
+title: 'Lecture 02: Data Visualization with ggplot'
 author: Will Hopper
 ---
 

@@ -61,6 +61,9 @@ In R, create a "tidy" data frame that represents each fruit for sale, its price,
 ## Exercise
 From your fruit data frame, select only rows where the price is $2.00 or more.
 
+### Solution
+
+
 ## The `txhousing` data
 For the remainder of the problems, you will be working with the `txhousing` data set, which is included in the `ggplot2` package and will be loaded when you use `library(ggplot2)`. Once you've loaded the package, take a peek at the dataset below, taking note of the data types of each variable:
 
@@ -94,6 +97,9 @@ Make a data set called `dallas` that includes data only from the city of Dallas 
 
 
 ## Exercise
-Find the median number of homes sold per month in each city for each year.
+The `sales` variable holds records of the number of homes sold in a given month, year and city. For example, the first row of the entire data set tells you that 72 homes were sold in Abilene during the month of January 2001. Use the `sales` variable to find:
+
+1. The median number of monthly home sales across all cities and all years
+2. The median number of monthly home sales in each city during each year
 
 ### Solution

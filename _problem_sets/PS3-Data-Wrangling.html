@@ -2645,7 +2645,7 @@ div[id^='exercise'] > h2::after {
 content: " " counter(exercises);
 counter-increment: exercises;
 }
-li[data-unique^="exercise"]::after {
+li[data-unique^="exercise" i]::after {
 content: " " counter(toc); 
 counter-increment: toc; 
 }
@@ -2894,6 +2894,9 @@ y &lt;- c(1839, 2709, 2422, 1547, 1686, 2159, 2929, 651, 1358, 756)</code></pre>
 <div id="exercise-3" class="section level2">
 <h2>Exercise</h2>
 <p>From your fruit data frame, select only rows where the price is $2.00 or more.</p>
+<div id="solution-3" class="section level3">
+<h3>Solution</h3>
+</div>
 </div>
 <div id="the-txhousing-data" class="section level2">
 <h2>The <code>txhousing</code> data</h2>
@@ -2925,21 +2928,25 @@ y &lt;- c(1839, 2709, 2422, 1547, 1686, 2159, 2929, 651, 1358, 756)</code></pre>
 <div id="exercise-4" class="section level2">
 <h2>Exercise</h2>
 <p>Remove any rows of the <code>txhousing</code> data set with missing values in the <code>sales</code> variable, and overwrite the original data frame. Then use the <code>anyNA()</code> function on the <code>sales</code> variable, e.g., <code>anyNA(txhousing$sales)</code>. If you were successful, this should print out <code>FALSE</code>.</p>
-<div id="solution-3" class="section level3">
+<div id="solution-4" class="section level3">
 <h3>Solution</h3>
 </div>
 </div>
 <div id="exercise-5" class="section level2">
 <h2>Exercise</h2>
 <p>Make a data set called <code>dallas</code> that includes data only from the city of Dallas in the years 2000 through 2010. If you did this correctly, running the command <code>distinct(dallas, city, year)</code> should print data frame with 11 rows.</p>
-<div id="solution-4" class="section level3">
+<div id="solution-5" class="section level3">
 <h3>Solution</h3>
 </div>
 </div>
 <div id="exercise-6" class="section level2">
 <h2>Exercise</h2>
-<p>Find the median number of homes sold per month in each city for each year.</p>
-<div id="solution-5" class="section level3">
+<p>The <code>sales</code> variable holds records of the number of homes sold in a given month, year and city. For example, the first row of the entire data set tells you that 72 homes were sold in Abilene during the month of January 2001. Use the <code>sales</code> variable to find:</p>
+<ol style="list-style-type: decimal">
+<li>The median number of monthly home sales across all cities and all years</li>
+<li>The median number of monthly home sales in each city during each year</li>
+</ol>
+<div id="solution-6" class="section level3">
 <h3>Solution</h3>
 </div>
 </div>

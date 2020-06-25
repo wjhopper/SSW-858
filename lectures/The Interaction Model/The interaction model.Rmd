@@ -1,0 +1,464 @@
+---
+title: "An Interactive Multiple Regression Model"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature: 
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "../../assets/css/sds.css"]
+editor_options:
+  chunk_output_type: console
+---
+
+<style>
+.right-column {padding-top: 0px;}
+.left-column {color: black;}
+
+.smaller-source code.r {font-size: 14px; line-height: 1.2em;}
+</style>
+
+```{r setup, include=FALSE}
+library(moderndive)
+library(ggplot2)
+library(gganimate)
+library(gridExtra)
+library(dplyr)
+
+
+options(htmltools.dir.version = FALSE, stringsAsFactors = FALSE)
+knitr::opts_chunk$set(cache=TRUE, fig.align = 'center')
+theme_set(theme_grey(24) + theme(plot.margin = margin(5,1,1,1), legend.box.margin = margin(0,0,0,-20)))
+
+house_prices <- filter(house_prices, sqft_living < 5280, sqft_lot < 5280, floors %in% 1:2) %>%
+  mutate(floors = factor(floors, labels = c("One","Two")))
+
+```
+
+### Home prices by square footage and bathrooms
+
+```{r, echo=FALSE, dev="svg", fig.width=10, fig.height=5.5}
+base <- ggplot(house_prices, aes(y=price,x=sqft_living, color=floors)) +
+  geom_point(alpha=.5) +
+  scale_y_continuous(labels = scales::comma) +
+  guides(color = guide_legend(override.aes = list(alpha = 1)))
+base
+```
+
+???
+
+To introduce a regression model with an interaction, I want to work with a different data set than we normally do. We're going to be using some data about home prices in King County, Washington between May 2014 and May 2015. This data comes to us via the house_prices data set which is built in to the moderndive package.
+
+In today's video, we're going to be modeling the relationship between sales prices and home size. We see home price in dollars measured for each house along the y axis, and the area of the house in square feet measured along the x axis. Furthermore, we have two groups of homes in the data set, one story homes (shown in pink) and two story homes (shown in blue).
+
+We can see a few things right off the bat in this plot. First, two story homes have much more square feet of living space - we can see that the blue cloud of points is shifted to right along the x axis. That makes sense, almost by definition - two story homes have whole second floor to add area in! They also tend to have a high selling price - look at all those above 1 million dollar homes with two stories. If you're paying a million dollars for a house, it better have two stories!
+
+Second, price tends to increase with the size of the home in square feet, and this positive relationship has a simple explanation - more home equals more money. They primary question we're going to address today is: does price increase with square footage at the same rate for one and two story homes? Put another way: if I add a square foot to my two story home, will the increase in price be the same as when I add a square foot to my one story home?
+
+---
+
+### Starting with parallel slopes..
+
+```{r, echo=FALSE, dev="svg", fig.width=10, fig.height=5.5}
+parallel_plot <- base +
+  geom_parallel_slopes(aes(group=floors), se=FALSE, size=1.3, color='black') +
+  geom_parallel_slopes(se=FALSE, size=1)
+parallel_plot
+```
+
+???
+
+Let's start addressing this question about the price/size relationship for one and two story homes using a familiar model, the parallel slopes model. The defining feature of this model is that it allows the one story homes and the two story homes to have their own regression lines, but forces the regression lines for these two groups to have the same slope. In other words, the model is tightly constrained - price has to increases with square footage at the same rate for both groups by definition.
+
+From this figure, that doesn't look like a totally incorrect model to have, but it does show some noticeable flaws. The regression line for the two story homes looks like it has some pretty large under prediction errors accommodating the larger, more expensive two story homes, while the regression line for the one story homes looks like it has some pretty large over prediction errors for the larger, less expensive one story homes.
+
+Let's try relaxing the parallel slopes assumption in our regression model, and see what happens when we try an interaction model.
+
+---
+
+### ...then adding an interaction
+
+```{r, echo=FALSE, dev="svg", fig.width=10, fig.height=5.5}
+
+iteraction_plot <- base +
+  geom_smooth(aes(group=floors), se=FALSE, size=1.3, color='black', method='lm', formula = y~x) +
+  geom_smooth(se=FALSE, method='lm', formula = y~x)
+iteraction_plot
+```
+
+Interaction = the effect of changing square footage depends on the number of floors
+
+???
+
+The interaction model will allow the one story homes and the two story homes to have a different relationship between price and square feet. In other words, it allows each group of homes to have their own slope on square feet in the model, so that the effect of changing square footage depends on the number of stories a house has. This is the definition of an interaction: when the effect of one variable depends on another variable.
+
+Importantly, it doesn't *force* the slopes to be different; rather, it lets the data speak for themselves - if having different slopes for each helps reduce the sum of squared prediction error, then the slopes will come out different.
+
+Under the interaction model, the two story group has a steeper slope than the one story group - in other words, increasing the square footage of a two story home produces a bigger increase in price than increasing the square footage of a one story home by the same amount.
+
+
+---
+
+### Does it matter?
+
+```{r echo=FALSE}
+floors_sqft_interaction_model <- lm(price ~ floors * sqft_living, data = house_prices)
+floors_sqft_parallel_model <- lm(price ~ floors + sqft_living, data = house_prices)
+```
+
+
+.pull-left[
+
+Sum of squared error  = `r round((var(floors_sqft_interaction_model$residuals)*(nrow(house_prices)-1))/1e12, 2)` trillion
+```{r, echo=FALSE, dev="svg", fig.width=5, fig.height=5.5}
+iteraction_plot + guides(color=FALSE)
+```
+]
+
+.pull-right[
+Sum of squared error  = `r round((var(floors_sqft_parallel_model$residuals)*(nrow(house_prices)-1))/1e12, 2)` trillion
+```{r, echo=FALSE, dev="svg", fig.width=5, fig.height=5.5}
+parallel_plot + guides(color=FALSE)
+```
+]
+
+???
+
+You might be wondering why I'm making a big deal out of allowing the slopes of those lines to be slightly different. After all, the lines in the parallel model and the interaction model aren't too different visually.
+
+That may be true, but regression models are all about minimizing the sum of squared error - and in this case, allowing for different slopes within each group makes a big difference to our prediction error. These different slopes matter to the tune of 1 trillion squared dollars for the interaction model! Remember, our model's degree of error gets penalized with a quadratic function, so all those expensive two story houses matter a lot to our models errors, and even a slight change can be immensely helpful.
+
+Now, let's turn to the equation for an interaction model, and see how this difference in slopes is accomplished mathematically.
+
+---
+
+### An *Interactive* Multiple Regression Equation
+
+$$\hat{y} = b_0 + [b_1 \cdot 1_{B}(x_1)] + [b_2 \cdot x_2] + [b_3 \cdot 1_{B}(x_1) \cdot x_2]$$
+
+Assume $x_1$ represents our categorical explanatory variable, and $x_2$ represents our numeric explanatory variable.
+
+???
+
+Let's continue our assumption from the parallel model video that $x_1$ represents our categorical explanatory variable, and $x_2$ represents our numeric explanatory variable. And, I've added some brackets around each term to help us keep things grouped visually.
+
+Overall, this equation looks exactly like our parallel model equation, except for the additional of the final term that has the b3 coefficient. This is the term that introduces the interaction effect into our model, and has important implications for how we interpret other beta values in our model.
+
+--
+
+$b0$ = y axis intercept for *baseline* group (i.e., prediction for baseline group when the $x_2$ variable is equal to 0)
+
+???
+
+As usual, lets start with the b0 term, which retains its interpretation from the parallel slopes model. It's the y axis intercept for the *baseline* group. In other words, the value of the b0 parameter tells you what your model predicts for the baseline group when all the other variables, such as square footage, are equal to 0.
+
+--
+
+$b1$ = Vertical distance between baseline group's regression line and second group's regression line **when all other variables are equal to 0** (i.e., the difference in y intercept for each group)
+
+???
+
+Previously, when we fit a the parallel slopes model with a single categorical explanatory variable, the b1 parameter represented the vertical distance between baseline group's regression line and second group's regression line - in other words, it represented the difference between groups no matter what. But now, the regression lines are not necessarily parallel, meaning that the vertical distance between them changes depending where you are along the x axis.
+
+That means our "offset between groups" parameter has a more limited interpretation. We can only see this value as the difference between the  baseline group's regression line and second group's regression line **when all other variables are equal to 0**. In other words, the b1 parameter tells us the difference in y intercept for each group. 
+
+Technically, the b1 parameter told us the difference in y intercept for each group under the parallel slopes model as well, but because the lines were parallel, it also told the us difference between the regression lines when x2 was 1, or 2, or 10, or 50. Now, under the interaction model, we're forced to adopt the more restricted interpretation that the b1 parameter only tells as the difference in y intercept between groups. 
+
+--
+
+$b2$ = Slope on $x_2$ (i.e., the increase in $\hat{y}$ for each 1-unit increase in $x_2$) **for the baseline group**. 
+
+???
+
+Next, the b2 parameter. The b2 parameter is still a slope, since it applies to our numeric variable x2. But now we interpret it as he the predicted increase in y for each 1-unit increase in $x_2$ **for the baseline group only**
+
+Why is it now baseline only?? To understand, let's look at the fourth term, which has our newest coefficient, b3.
+
+--
+
+$b3$ = **Difference** in slope on $x_2$ for between the baseline group and the second group.
+
+???
+
+This fourth term applies to x2, our numeric explanatory variable AND to x1, our categorical explanatory variable. This is the first time we've seen a single term that involved both explanatory variables. Looking the model this way makes it explicit that the changes in x2 depend on x1, because both variables are incorporated into the same term.  In this case, the dependency between x2 and x1 is imposed by the indicator function, which turns this portion of the equation gets turned on or gets turned off depending on what group our model is making a prediction for.
+
+When this indicator function is turned on, because the value of the categorical variable matches the indicator, the b2 and b3 coefficients can be combined into a single slope!
+
+---
+
+### Simplifying our regression equation
+
+$$\hat{y} = b_0 + [b_1 \cdot 1_{B}(x_1)] + [b_2 \cdot x_2] + [b_3 \cdot 1_{B}(x_1) \cdot x_2]$$
+
+Assume $A$ and $B$ are the two levels of the $x_1$ categorical variable.
+
+???
+
+The best way to understand this is to start plugging in some hypothetical values for our categorical explanatory variable x1, and seeing what it does for our equation.
+
+--
+
+If $x_1$ = A, the $b_1$ and $b_3$ terms drop out
+
+$$\begin{align*}
+\hat{y} =& b_0 + [b_1 \cdot 1_{B}(A)] + [b_2 \cdot x_2] + [b_3 \cdot 1_{B}(A) \cdot x_2] \\
+\hat{y} =& b_0 + [b_1 \cdot 0] + [b_2 \cdot x_2] + [b_3 \cdot 0 \cdot x_2] \\
+\hat{y} =& b_0 + [b_2 \cdot x_2]
+\end{align*}$$
+
+???
+
+Let's assume $A$ and $B$ are the two levels of the $x_1$ categorical variable. Following R's convention, A would be the baseline level, because it comes first alphabetically. Thus our indicator function will have B in the subscript, because it job is turning the effects for group B on or off appropriately.
+
+If we plug in "A" for our categorical variable, like we would when using our equation to generate a predicted value for group A, we see that every term involving the indicator function drops out, and our equation quickly simplifies to b0 plus b2 times x. Thus, we get the regression line for group A.
+
+--
+
+If $x_1$ = B, the $b_0$ and $b_1$ terms combine, and the $b_2$ and $b_3$ terms combine!
+
+$$\begin{align*}
+\hat{y} =& b_0 + [b_1 \cdot 1_{B}(A)] + [b_2 \cdot x_2] + [b_3 \cdot 1_{B}(A) \cdot x_2] \\
+\hat{y} =& b_0 + [b_1 \cdot 1] + [b_2 \cdot x_2] + [b_3 \cdot 1 \cdot x_2] \\
+\hat{y} =& b_0 + b_1 + [b_2 \cdot x_2] + [b_3 \cdot x_2] \\
+\hat{y} =& [b_0 + b_1]+ (b_2 + b_3)x_2
+\end{align*}$$
+
+???
+
+Things get a bit more interesting we plug in "B" for our categorical variable. Now every term involving the indicator function stays in the mix. But we can still simplify our equation by grouping like terms. We can group the b0 and b1 one terms, because the don't involve any explanatory variables, and we can group the b2 and b3 terms because they both apply to the x2 variable. If you're having trouble seeing how I got from step 3 in the equation to step 4, it might be helpful to try and go from 4 to 3. To go from step 4 to step 3, you just distribute the x2 to both b's inside the parenthesis. This makes it clear that in going from step 3 to step 4, we simply "pull out" the x2 from b2 and b3
+
+Thus, we get the regression line for group B. This way of writing the equation makes it even more clear that b1 is the change in intercept, and b3 is the change in slope for the second group.
+
+Since I'm sure we've gotten our fill of hypothetical values, let's turn back to our house prices data, and see how to estimate the interaction model in R.
+---
+
+### Fitting the interaction model
+
+```{r eval=FALSE}
+library(moderndive)
+library(dplyr)
+
+house_prices <- filter(house_prices, sqft_living<5280, sqft_lot<5280, floors %in% 1:2) %>%
+  mutate(floors = factor(floors, labels = c("One","Two")))
+
+floors_sqft_interaction_model <- lm(price ~ floors * sqft_living, data = house_prices)
+get_regression_table(floors_sqft_interaction_model)
+```
+
+???
+
+As usual I start by loading relevant libraries, but I don't have to use import any data, because the house_prices data set is built in to the moderndive package. I do need to do a bit of data wrangling, to remove homes with more than a square mile of property and living space, and pare the data down to just one and two story homes.
+
+In our model formula, things look mostly the same as always. TO make things clear, let's take a moment to remind ourselves that we're thinking of as the "floors" categorical variable as the x1 variable from our GLM equation, and the sqft_living numeric variable as the x2 variable from our GLM equation.
+
+The important change in the formula is that I've joined the two explanatory variables together with the multiplication star, instead of the plus sign. This change tells R to include the interaction term in the model, giving it the flexibility to produce regression lines with different slopes for each group. 
+
+Lets see how giving the model this flexibility affects what we see in regression table  describing our model's coefficients.
+
+--
+
+```{r, echo=FALSE}
+floors_sqft_interaction_model <- lm(price ~ floors * sqft_living, data = house_prices)
+knitr::kable(get_regression_table(floors_sqft_interaction_model)[,1:2], format = 'html',digits=1)
+```
+
+???
+
+I've only printed out the first two columns, so we have a bit more room to write.
+
+The first row of the table, we see the "Intercept" term, as we always do, and this term corresponds to the b0 term in the model, as it always does. Because this tells us where the regression line for the baseline group passes through the y axis, we know the regression line for the one-story homes has a y intercept of 198,552 dollars.
+
+In the second row of the table, we see the "floorsTwo" term, which corresponds to the b1 term in our model. Because this tells us the difference in the y intercept between the baseline one-story group and the two story group, we know regression line for two story homes passes through the y axis at a about point 143,163 dollars lower than one story homes.
+
+We shouldn't make too much out of this difference though, as the y intercept represents the predicted sale price of a home with 0 square feet. I don't know about you, but I don't think I need a regression model to tell me you're not going to get much for a zero square foot house.
+
+In the third row of the table, we see the sqft_living term, which corresponds to the b2 term in our model. Like the intercept term, the table doesn't explicitly mention any groups for this term, but we know this is the slope on square feet for the one-story home group, because that is the baseline group.
+
+Finally,we get to the fourth row, where we see the interaction term in our model that corresponds to the b3 term in our model Just as we saw in the equation, the interaction term in the model includes both explanatory variables at the same time. R will denote any interaction term by using colon between the two variables. Here, we find that the difference in the slope on square footage between the baseline one-story group and the two story group is 56.86 dollars. Thus, we know that by increasing the square footage of a house, we increase it's predicted sale price, and if it's a two story house, we increase it's predicted sale price even more.
+
+Now that we have some real values for our parameters, let's plug them into our regression equation, and try to match up terms in our equation with what we see in our visualizations.
+
+---
+
+### Fitting and visualizing an interaction model
+
+
+.left-column[
+
+$$\begin{align*}
+\hat{y} = & b_0\ +\\
+          & b_1 \cdot 1_{B}(x_1)\ + \\
+          & b_2 \cdot x_2\ +\\
+          & b_3 \cdot 1_{B}(x_1) \cdot x_2
+\end{align*}$$
+
+$$\begin{align*}
+\hat{y} = & 198552.4\ +\\
+          & -143162.8 \cdot 1_{B}(x_1)\ + \\
+          & 177.1 \cdot x_2\ +\\
+          & 56.86 \cdot 1_{B}(x_1) \cdot x_2
+\end{align*}$$
+]
+
+
+.right-column[
+```{r, echo=FALSE, dev='svg', fig.height=5.5, fig.align='right'}
+base + geom_smooth(method = 'lm', se=FALSE, fullrange=TRUE, formula = y~x) +
+  scale_x_continuous(limits = c(0, max(house_prices$sqft_living)))
+```
+
+]
+
+???
+
+On the left, I've taken the generic GLM form of our interaction model equation, and inserted the beta values we've just estimated using R for the corresponding b0, b1, b2 and b3 values. On the right side, I've reproduce the visualization of the interaction model we saw back on slides 4 and 5. 
+
+Since the scale of this plot makes it difficult to annotate, I'm going to zoom in on a few place to show you where we can find our beta values in this figure.
+
+First, let's zoom in on the y axis where, to see the intercepts of our regression lines
+
+---
+
+### Fitting and visualizing an interaction model
+
+
+.left-column[
+
+$$\begin{align*}
+\hat{y} = & b_0\ +\\
+          & b_1 \cdot 1_{B}(x_1)\ + \\
+          & b_2 \cdot x_2\ +\\
+          & b_3 \cdot 1_{B}(x_1) \cdot x_2
+\end{align*}$$
+
+$$\begin{align*}
+\hat{y} = & 198552.4\ +\\
+          & -143162.8 \cdot 1_{B}(x_1)\ + \\
+          & 177.1 \cdot x_2\ +\\
+          & 56.86 \cdot 1_{B}(x_1) \cdot x_2
+\end{align*}$$
+]
+
+
+.right-column[
+```{r, echo=FALSE, dev='svg', fig.height=5.5, fig.align='right'}
+base + geom_smooth(method = 'lm', se=FALSE, fullrange=TRUE, formula = y~x) +
+  scale_x_continuous(limits = c(-10, max(house_prices$sqft_living))) +
+  coord_cartesian(xlim=c(-10,600), ylim=c(55000,360000))
+```
+
+]
+
+???
+
+The easiest thing to identify is the b0 parameter, which represents the y intercept for the baseline group. So, this {point to pink intercept} is 198552.4, and tells us that the predicted price for a zero square foot one story house is nearly 200000 dollars. I thought this was King County, not san fransisco.
+
+Anyway, the next thing we can identify here is the b1 parameter, which represents the difference in y intercept between the baseline and second group. So, we know this distance here {draw distance} is equal to negative 143162.8 dollars. We can combine these two pieces of information together to find the y intercept for the two story house group, which is 198552.4 - 143162.8, which is 55,389.6.
+
+Now let's move on to the slopes, b2 and b3. I'm going to zoom in on the region of the plot near where the two regression lines 
+intersect
+
+---
+
+### Fitting and visualizing an interaction model
+
+
+.left-column[
+
+$$\begin{align*}
+\hat{y} = & b_0\ +\\
+          & b_1 \cdot 1_{B}(x_1)\ + \\
+          & b_2 \cdot x_2\ +\\
+          & b_3 \cdot 1_{B}(x_1) \cdot x_2
+\end{align*}$$
+
+$$\begin{align*}
+\hat{y} = & 198552.4\ +\\
+          & -143162.8 \cdot 1_{B}(x_1)\ + \\
+          & 177.1 \cdot x_2\ +\\
+          & 56.86 \cdot 1_{B}(x_1) \cdot x_2
+\end{align*}$$
+]
+
+
+.right-column[
+```{r, echo=FALSE, dev='svg', fig.height=5.5, fig.align='right'}
+base + geom_smooth(method = 'lm', se=FALSE, fullrange=TRUE, formula = y~x) +
+  scale_x_continuous(limits = c(0, max(house_prices$sqft_living)),
+                     breaks = c(2518, 2519)) +
+  coord_cartesian(xlim=c(2517.95, 2519.05), ylim=c(644500,644800))
+```
+]
+
+???
+
+Take note that I've zoomed in so far we're examining the difference a single square foot makes in our model.
+
+We can spot the b2 parameter in our regression model by looking at the slope of the pinkish orange line. We can see that the predicted home price for a one story house increases from about six hundred forty four thousand five hundred to just under six hundred forty four thousand seven hundred {draw city block, rise over run} when we add one square foot to the house, and looking at the b3 parameter we know this difference is 177.1 dollars.
+
+Turning to the, two story group, we can spot the b3 parameter by looking at the difference in price increase between the group. Eyeballing it, we can see that the predicted home price for a two story home increases from about six hundred forty four thousand five hundred twenty five to just over six hundred forty four thousand seven hundred fifty {draw city block, rise over run}. The difference between how much the price increased for one story homes, and how much the price increased for two story homes, is given by this distance, which is exactly the b3 parameter. Adding b2 and b3 together, we find that when we add one square foot to the two story house, we the increase in the predicted price by 233.9 dollars.
+
+---
+
+### Using the regression equation to generate predictions
+
+What is the predicted price for a one-story house with 1,750 square feet?
+
+$$\begin{align*}
+\hat{y} =& b_0 + [b_1 \cdot 1_{Two}(x_1)] + [b_2 \cdot x_2] + [b_3 \cdot 1_{Two}(x_1) \cdot x_2] \\
+\hat{y} =& 198552.4 + [−143162.8 \cdot 1_{Two}(One)] + [177.1 \cdot 1750] + [56.86 \cdot 1_{Two}(One) \cdot 1750] \\
+\hat{y} =& 198552.4 + [−143162.8 \cdot 0] + [177.1 \cdot 1750] + [56.86 \cdot 0 \cdot 1750] \\
+\hat{y} =& 198552.4 + [177.1 \cdot 1750] \\
+\hat{y} =& 508477.4
+\end{align*}$$
+
+???
+
+Since the regression equation for an interaction model can be a little tricky, let's practice using it to generate predictions for different types of houses.
+
+Let's start with finding the predicted price for a one-story house with 1750 square feet.
+
+First, lets set up our equation in GLM format so we can plug our explanatory variables and our beta values into it. Note that since the baseline level in our model is one-story homes, our indicator function has the subscript Two, because it's job is to turn on the effects for two story homes when they are needed.
+
+After plugging in our explanatory variables and our beta values in step 2, we see that after evaluating the indicator functions in step 3, the second and fourth terms drop out because the indicator function become zeros, and finishing the arithmetic in step four tells us that the predicted price is about five hundred and eight thousand.
+
+--
+
+What is the predicted price for a two-story house with 1,750 square feet?
+
+$$\begin{align*}
+\hat{y} =& 198552.4 + [−143162.8 \cdot 1_{Two}(Two)] + [177.1 \cdot 1750] + [56.86 \cdot 1_{Two}(Two) \cdot 1750] \\
+\hat{y} =& 198552.4 + [−143162.8 \cdot 1] + [177.1 \cdot 1750] + [56.86 \cdot 1 \cdot 1750] \\
+\hat{y} =& [198552.4 −143162.8] + (177.1 + 56.86) \cdot 1750 \\
+\hat{y} =& 464,819.6
+\end{align*}$$
+
+???
+
+Lets do the same thing with a two-story house with 1750 square feet, so we can see the interaction IN action.
+
+We start with the same equation as for a one-story house, but since our categorical variable's value now matches our indicator function's subscript, the indicators becomes 1, and the second and fourth terms stay in the equation. But fear not, because by grouping the like term in the equation, we can see the familiar form of a regression line emerge.
+
+We group the b0 and b1 terms, since they do not depend on the square footage, and then we group the b2 and b3 terms because they do depend on the square footage, and them pull the square footage "out" of the parenthesis.
+
+Once we complete the arithmetic following the order of operations, which means adding values inside the parenthesis first, multiplying by 1750 second, and then adding the intercepts, we see the predicted price is about four hundred sixty four thousand.
+
+So paradoxically, a 1750 square foot house probably will cost more if it's one story than if it's two. This might seem strange, but perhaps in an urban county like King County, which includes Seattle, perhaps the premium you pay for when buying a house is land, and when there's only one floor, that living area *has* to be spread out over more land than a two story house.
+
+---
+
+### Use `geom_smooth` to visualize
+
+```{r, dev='svg', fig.height=5}
+ggplot(house_prices, aes(y=price,x=sqft_living, color=floors)) +
+  geom_point(alpha=.35) +
+  geom_smooth(method = 'lm', se=FALSE, fullrange=TRUE, formula = y~x)
+```
+
+???
+
+On that interesting note, I want remind you that you can visualize the interaction model along with your data by using the geom_smooth function, making sure you put your numeric variable on the x axis, and using the color aesthetic to divide the data into different categories. 
+
+You should specify two arguments to geom_smooth when you do this. First, set the method argument equal the string "lm", which tells R to us the lm function to generate the prediction lines. Second, you'll want to specify the se=FALSE argument, which suppresses the confidence interval bands around the regression line, since we haven't talked about interpreting those bands yet.

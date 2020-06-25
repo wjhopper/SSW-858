@@ -57,6 +57,7 @@ collections:
          - "Categorical Regression"
          - "Correlation"
          - "The Parallel Slopes Model"
+         - "The Interaction Model"
    problem_sets:
       order:
          - "Intro to R and RStudio"

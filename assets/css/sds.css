@@ -45,10 +45,13 @@ ul ul li {
 
 .noverticalmargin p,
 .noverticalmargin img,
-.noverticalmargin pre {
+.noverticalmargin pre,
+.noverticalmargin ul,
+.noverticalmargin ol {
   margin-bottom: 0;
   margin-top: 0;
 }
+
 .noverticalmargin h3, h4 {
   margin-bottom: 5px;
   margin-top: 5px;

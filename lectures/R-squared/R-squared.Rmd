@@ -1,0 +1,721 @@
+---
+title: "The R^2^ Statistic"
+author: "Will Hopper"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "default-fonts", "../../assets/css/sds.css"]
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r include=FALSE}
+library(ggplot2)
+library(moderndive)
+library(grid)
+library(gridExtra)
+library(dplyr)
+knitr::opts_chunk$set(dev="svg", fig.align = "center", cache=TRUE, echo = FALSE)
+```
+
+
+### What is R<sup>2</sup>
+
+R<sup>2</sup> is a statistic that summarizes the "goodness of fit" of a linear model
+  - i.e., how close is the regression line to all of the observations
+
+???
+
+Hello Statisticians! In today's video, we're going to be exploring R squared, the first statistic that everyone wants to know after they've fit a linear regression model.
+
+Just because you've fit a linear regression model to your data, doesn't mean that it's a good description for your data. Before we begin to treat our model as a useful predictive or explanatory tool, we need to check how well it fits the data, which is just another way to say how close is the regression line to all of the observations in your data set. Visualizations are very useful in this regard, but the visual approach usually needs to be supplemented with numerical measurement. Quantifying exactly how well your data is described your model is why statisticians always examine the R<sup>2</sup> statistic after fitting a linear regression model.
+
+--
+
+R<sup>2</sup> is preferred for communicating goodness of fit because it is easy to interpret
+  - R<sup>2</sup> is a proportion; thus it ranges between 0 and 1
+  - R<sup>2</sup> = 0 means the regression model has no predictive value
+  - R<sup>2</sup> = 1 means the regression model is perfect; all points lie on the regression line
+
+???
+
+The R<sup>2</sup> statistic is the preferred way for communicating goodness of fit because it is so user-friendly. At the end of the day, R^2 is just a proportion, which is a relatively easy thing to wrap your head around. At the low end of the proportion scale, an R squared value of 0 means your regression model has absolutely no predictive or explanatory value, and in some sense, you're just as likely to make a good prediction for your outcome variable by throwing a dart at a dartboard as you are by using your model. At the other end of the scale, and R<sup>2</sup> of 1 means your model is absolutely perfect, and your regression model exactly captures the data, the regression line goes through all the points in your scatterplot.
+
+So, the ends of the scales are easy to think about, but you're unlikely to ever actually get an R squared value of 0 or 1 working with a real data set. All the action happens in between those two extremes, so we should spend some time thinking about that middle range. What if we fit a model, compute R<sup>2</sup> and get value of say, .42 or .19? What should we think?
+
+--
+
+The R<sup>2</sup> value tells you (as a proportion) how much variance in the outcome variable is explained by your model
+  -  i.e., How much you've reduced your uncertainty about what the outcome will be
+  
+???
+
+As I mentioned, R<sup>2</sup> is a proportion. Specifically, R<sup>2</sup> is the proportion of the variance in your outcome variable that is explained by your regression model. Remember, "variance accounted for" is another way to say "uncertainty reduced by". So, the larger your model's R<sup>2</sup> value, the more variance it explains, and the more uncertainty it reduces - when it get's to 1, 100% of the uncertainty in your data is gone, because the model exactly predicts each observation.
+
+This statistic sounds fantastic, and I'll bet you're all eager to start calculating it for your own models, so you can let the world know how great your regression models are . The first step towards calculating the R<sup>2</sup> statistic is to understand exactly what the "variance" in "variance accounted for" is, and what exactly it mean to "account for it". We're going to be taking a visual approach to understanding these two things, and then link our visualizations up with the mathematics involved in the computation.
+
+---
+
+### The Data: `ncbirths_mini`
+
+A "miniaturized" ncbirths data set, using just the first 10 observations from the larger data set, and just the `weeks`, `weight` and `sex` variables.
+
+```{r echo=1}
+ncbirths_mini <- data.frame(weeks = c(38L, 42L, 40L, 39L, 39L,
+                                      41L, 40L, 37L, 37L, 41L),
+                            weight = c(7.06, 8.19, 6.38, 7.5, 8.0,
+                                       7.13, 8.5, 8.25, 6.63, 9.88),
+                            sex = c("female", "male", "male", "female", "male",
+                                    "female", "female", "female", "female", "male")
+                            )
+ncbirths_mini
+```
+
+???
+
+For all of our worked examples, we'll be using this miniaturized version of the ncbirths data set, with just 10 observed births. And, we're only going to use three variables, the duration of the pregnancy in weeks, the birth weight of the baby in pounds, and the sex of the baby at birth, male or female.
+
+If you want to follow along with these examples, run the code here to create the data set in your R session.
+
+ncbirths_mini = rows 3,510,5,490,79,6,9,10,11,12
+
+---
+
+### The "variance" in "variance accounted for"
+
+.noverticalmargin[
+The variance is around the mean of the outcome variable - which is the simplest possible model of the outcome.
+
+```{r echo=FALSE, fig.width=5.75, fig.height=5.75}
+base_plot <- ggplot(ncbirths_mini, aes(x=weeks, y=weight)) +
+  scale_y_continuous(limits=c(6,10)) +
+  scale_x_continuous(limits=c(36.75, 42.25)) +
+  theme_bw(22)
+
+null_model_plot <- base_plot +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "black", se=FALSE, size = 3
+              ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "red", se=FALSE, size = 2
+              ) +
+  geom_point(size = 2,color="forestgreen")
+
+null_model_plot
+```
+]
+
+???
+
+Let's start by examining a relationship we've seen before, the relationship between birth weight and pregnancy duration. Each point in this scatterplot represents a pair of measurements from the same birth - this point in the bottom left represents a baby born weighing about 6.6 pounds after a 37 week pregnancy, and the point towards the top right represents a baby born weighing about 9.9 pounds after a 41 week pregnancy.
+
+Our overarching goal is to develop a linear regression model that predicts the birth weight of a baby. When developing a model, it's always a good idea to start simple, and add complexity as needed. So, let's start with the simplest possible model for a numerical variable like birth weights, the mean.
+
+Since the mean is a single number, the model will predict the exact same birth weight no matter the duration of the pregnancy is - that's why it's represented as a horizontal line through the scatter plot. In this case, the mean birth weight of our 10 babies is 7.67 pounds.
+
+And, as you can see, this model definitely leaves something to be desired - it's not an especially accurate prediction for most of our observed births weights. Put another way, there is a good amount of variability around the mean.
+
+---
+
+### The "variance" in "variance accounted for"
+.noverticalmargin[
+The variance is around the mean of the outcome variable - which is the simplest possible model of the outcome.
+
+```{r, fig.width=5.75, fig.height=5.75}
+null_model <- lm(weight ~ NULL, data=ncbirths_mini)
+null_model_points <- get_regression_points(null_model)
+null_model_points$weeks <- ncbirths_mini$weeks
+
+null_model_errors_plots <- base_plot +
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = null_model_points,
+               color = "red", size = 1
+               ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "black", se=FALSE, size = 3
+              ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "red", se=FALSE, size = 2
+              ) +
+  geom_point(size = 2, color="forestgreen")
+null_model_errors_plots
+```
+]
+
+???
+
+Let's add in lines that represent the residual errors for each individual observation. Together, the total distance of all the lines represents the "variance" in "variance accounted for". The amount of error variance around this simple model is what we're going to compare all our more complicated more models to, to see whether or not the more complicated models give more accurate predictions than our simple model.
+
+---
+
+### The "accounted for" in "variance accounted for"
+
+.noverticalmargin[
+The model using `weeks` as an explanatory variable appears more accurate - but how do we quantify "more accurate"?
+
+```{r, fig.width=5.75, fig.height=5.75}
+both_models <- base_plot +
+  geom_smooth(method="lm", formula = y ~ x, fullrange=TRUE,
+              se=FALSE, size = 2, color = "black") +
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = null_model_points,
+               color = "red", size = 1
+               ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "black", se=FALSE, size = 3
+              ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "red", se=FALSE, size = 2
+              ) +
+  geom_point(size = 2, color="forestgreen")
+both_models
+```
+]
+
+???
+
+Speaking of more complicated models, let's try one out. We'll take it up one notch, and add in the duration of the pregnancy as an explanatory variable. The produces a familiar bivariate regression model, which uses a line with a non-zero slope to generate predictions. Based on visual appearance alone, this model seems to be more accurate - the regression line follows the apparent positive relationship between pregnancy duration and birth weight.
+
+But, let's get a bit more specific with what it means to "be more accurate"
+---
+
+### The "accounted for" in "variance accounted for"
+
+.noverticalmargin[
+The model using `weeks` as an explanatory variable appears more accurate - overall, the residual errors lines are smaller
+
+```{r, fig.width=5.75, fig.height=5.75}
+bivariate_model <- lm(weight ~ weeks, ncbirths_mini)
+bivariate_model_points <- get_regression_points(bivariate_model)
+bivariate_model_points <- dplyr::mutate(bivariate_model_points,
+                                        weeks = ifelse(weight_hat > weight & weight > mean(weight),
+                                                       weeks,
+                                                       weeks + .075
+                                                       ),
+                                        weeks = ifelse(residual < 0 & (weeks-as.integer(weeks) != 0), 
+                                                        weeks - .15,
+                                                        weeks),
+                                        
+                                        )
+
+both_models_errors <- base_plot +
+  geom_smooth(method="lm", formula = y ~ x, fullrange=TRUE,
+              se=FALSE, size = 2, color = "black"
+              )+
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = null_model_points,
+               color = "red", size = 1
+               ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "black", se=FALSE, size = 3
+              ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "red", se=FALSE, size = 2
+              ) +
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = bivariate_model_points,
+               color = "black", size = 1
+               ) +
+  geom_point(size = 2, color="forestgreen") 
+
+both_models_errors
+```
+]
+
+???
+
+The black lines that I've added in represent the residual error between the new bivariate model and each observed birth weights.
+
+The important thing to do now is compared these black lines with the red lines. In general, the black lines are shorter than the red lines. For example, consider the baby born at 42 weeks - the distance from the bivariate model to the birth weight is much smaller than the distance from the mean to the birth weight.
+
+This improvement doesn't happen for every single observation, but looking at the data set as a whole, our bivariate model produces smaller errors than our simple "mean only" model.
+
+Now that we know we're going to quantify our improvement by comparing the overall amount of residual error, let's turn to the next big question - exactly how **much** smaller are our errors. In other words, how **much** better is this new bivariate model than our old "just the mean" model?
+
+---
+
+### The "accounted for" in "variance accounted for"
+
+.noverticalmargin[
+"Original error" (red lines) can be decomposed into two parts by the bivariate model - the change from mean-only to bivariate (blue lines) and the still remaining error (black lines)
+
+```{r, fig.width=5.75, fig.height=5.75}
+improvement <- dplyr::bind_cols(dplyr::select(ncbirths_mini, weight, weeks),
+                                dplyr::select(null_model_points, mean = weight_hat),
+                                dplyr::select(bivariate_model_points, y_hat = weight_hat, residual)
+                                )
+
+improvement <- dplyr::mutate(improvement,
+                             weeks = ifelse(residual < 0,
+                                            weeks - .075,
+                                            weeks + .075
+                                            ),
+                             mean = ifelse(y_hat < mean,
+                                             mean - .02,
+                                             mean + .02
+                                           )
+                             )
+decomposed <- base_plot +
+  geom_smooth(method="lm", formula = y ~ x, fullrange=TRUE,
+              se=FALSE, size = 2, color = "black"
+              )+
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = null_model_points,
+               color = "red", size = 1
+               ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "black", se=FALSE, size = 3
+              ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "red", se=FALSE, size = 2
+              ) +
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = bivariate_model_points,
+               color = "black", size = 1
+               ) +
+  geom_segment(aes(x=weeks, y=mean, xend=weeks, yend=y_hat),
+               data=improvement,
+               color="blue", size=1) +
+  geom_point(size = 2, color="forestgreen")
+
+
+decomposed
+```
+]
+
+???
+
+There's one last set of line segments we can add to this plot to help us answer this question. The new blue line segments represent how much our bivariate model's predictions have changed from our old mean-only model's predictions.
+
+And, adding these blue line segments highlights something really interesting about the old residual errors from the mean-only model we started out with. To see it, let's focus in the baby in our data set born at 48 weeks, which provides a great example of how we can decompose our errors into an explained component, and an unexplained component.
+
+As we can see, the regression line from our new bivariate model divides the original error, the red line, into two parts. The first part, shown with the blue line segment, shows the change in our predicted birth weight from the mean-only model to the new bivariate model. The second part, the black line segment, shows the error that still remains in our new bivariate model - the distance from the new regression line to the actual observed birth weight value. Looking at this decomposition, we can that the blue line represents how much our prediction has improved by, and the black line represents how far we still have to go to get the prediction perfectly right. 
+
+---
+
+### Variance Decomposed - Explained and Unexplained
+
+.noverticalmargin[
+How much has the bivariate model reduced our prediction error, as a proportion of the original amount of error?
+
+```{r, fig.width=11.5, fig.height=5.75}
+layout <- rbind(c(1,1,2,2),
+                c(1,1,2,2),
+                c(1,1,2,2),
+                c(1,1,2,2),
+                c(1,1,3,3),
+                c(1,1,4,4),
+                c(1,1,4,4),
+                c(1,1,4,4),
+                c(1,1,4,4)
+                )
+grid.arrange(grobs = list(decomposed),
+             layout_matrix = layout
+             )
+```
+]
+
+???
+
+Noticing how our errors can be decomposed into an "improvement" component, and a "remaining" component, provides the answer to the question of how we're going to quantify how much better our new model is doing than our old model. 
+
+We're going to compare the total change in prediction from our old model to our new model to the amount of error we started with based on our old mean-only model. 
+
+---
+
+### Variance Decomposed - Explained and Unexplained
+
+Compare the total squared lengths of the blue bars...
+```{r, fig.width=11.5, fig.height=5.75}
+
+decomposed_minus_blue <- base_plot +
+  geom_smooth(method="lm", formula = y ~ x, fullrange=TRUE,
+              se=FALSE, size = 2, color = "black"
+              )+
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = null_model_points,
+               color = "red", size = 1
+               ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "black", se=FALSE, size = 3
+              ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "red", se=FALSE, size = 2
+              ) +
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = bivariate_model_points,
+               color = "black", size = 1
+               ) +
+  geom_point(size = 2, color="forestgreen")
+
+explained_lines <- ggplot(data = improvement) +
+  geom_segment(aes(x=weeks, y=mean, xend=weeks, yend=y_hat),
+               color="blue", size=1) +
+  geom_abline(slope = coefficients(bivariate_model)[2],
+              intercept =coefficients(bivariate_model)[1],
+              color = "black",
+              size = 1.1) +
+  scale_y_continuous(limits=c(6, 10)) +
+  coord_cartesian(ylim=c(7,9)) +
+  theme_void()
+
+layout <- rbind(c(1,1,2,2),
+                c(1,1,2,2),
+                c(1,1,2,2),
+                c(1,1,2,2),
+                c(1,1,3,3),
+                c(1,1,4,4),
+                c(1,1,4,4),
+                c(1,1,4,4),
+                c(1,1,4,4)
+                )
+grid.arrange(grobs = list(decomposed_minus_blue, explained_lines),
+             layout_matrix = layout
+             )
+```
+
+
+???
+
+What we're going to do is take the lengths of all the blue bars, square them, and add up those squared lengths...
+
+---
+
+### Variance Decomposed - Explained and Unexplained
+
+...to the total squared lengths of the red bars in a ratio.
+```{r, fig.width=11.5, fig.height=5.75}
+
+decomposed_minus_blue_and_red <- base_plot +
+  geom_smooth(method="lm", formula = y ~ x, fullrange=TRUE,
+              se=FALSE, size = 2, color = "black"
+              )+
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "black", se=FALSE, size = 3
+              ) +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "red", se=FALSE, size = 2
+              ) +
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = bivariate_model_points,
+               color = "black", size = 1
+               ) +
+  geom_point(size = 2, color="forestgreen")
+
+
+variance_data <- dplyr::mutate(null_model_points,
+                               weeks = ifelse(residual < 0,
+                                              weeks - .075,
+                                              weeks + .075
+                                              )
+                               )
+
+unexplained_lines <- ggplot(data = variance_data) +
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               color = "red", size = 1
+               )  +
+  geom_abline(slope = 0,
+              intercept =coefficients(null_model)[1],
+              color = "black",
+              size = 2) +
+  geom_abline(slope = 0,
+            intercept =coefficients(null_model)[1],
+            color = "red",
+            size = 1) +
+  scale_y_continuous(limits=c(6,10)) +
+  theme_void()
+
+division_line <- segmentsGrob(x0 = unit(0,"npc"),
+                              y0 = unit(.5, "npc"),
+                              x1 = unit(1, "npc"),
+                              y1 = unit(.5, "npc"),
+                              gp = gpar(lwd = 2.0)
+                              )
+
+layout <- rbind(c(1,1,2,2),
+                c(1,1,2,2),
+                c(1,1,2,2),
+                c(1,1,2,2),
+                c(1,1,3,3),
+                c(1,1,4,4),
+                c(1,1,4,4),
+                c(1,1,4,4),
+                c(1,1,4,4)
+                )
+
+grid.arrange(grobs = list(decomposed_minus_blue_and_red, explained_lines, division_line, unexplained_lines),
+             layout_matrix = layout
+             )
+```
+
+???
+
+... do the same thing with red bars, square them, and add up the squared lengths. And then, we're going to put these two sums in a ratio. In other words, we're going to add up the total squared lengths of the blue bars, and divide that sum by the squared lengths of the red bars.
+
+---
+
+```{r fig.width=5.75, fig.height=5.75}
+base_plot +
+  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
+               data = variance_data,
+               color = "red", size = 1
+               )  +
+  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
+              color = "black", se=FALSE, size = 1.1
+              ) +
+  theme_void()
+```
+
+---
+
+
+### R<sup>2</sup> is the proportion of original variance explained by your model
+
+Blue bars represent change (i.e., improvement) from the "empty" mean-only model, red bars represent original error magnitude
+
+Their (squared) ratio gives you the R<sup>2</sup> statistic - how much your error has been reduced as a proportion of the original error.
+
+.pull-left[
+```{r, fig.width=5.75, fig.height=4}
+grid.arrange(grobs = list(explained_lines, division_line, unexplained_lines),
+             heights = c(.45, .05, .45)
+             )
+```
+]
+
+.pull-right[
+<br>
+$$\sum\limits_{i=1}^n { (\hat{y}-\bar{y})^2 }$$
+
+<br>
+
+$$\sum\limits_{i=1}^n { (y_i-\bar{y})^2 }$$
+]
+
+???
+
+This is exactly the mathematical formula for the R^2 statistic, and representing it this way helps remind us what exactly the R^2 statistic represents. Remember, the blue bars represents how much the new bivariate model has changed from the mean-only model we started out with, and the red bars show the amount of residual error we began with. 
+
+By putting these two quantities in a ratio, the sum of squared deviations between the regression model and the mean, and the sum of squared deviations between each real observation and the mean, we express how much we've reduced our error by adding an explanatory variable as a percentage of the amount of error we started out with. 
+
+And since "variance explained" is a just another way of saying "error reduced", we can see exactly why the R<sup>2</sup> statistic is described as "proportion of variance explained by the model".
+
+---
+
+### Computing R<sup>2</sup> in `R`
+
+The `get_regression_summaries` function from the `moderndive` package uses the `lm` object you saved to compute R<sup>2</sup> for you.
+
+```{r, echo=TRUE}
+weight_by_weeks_model <- lm(weight ~ weeks, data = ncbirths_mini)
+get_regression_summaries(bivariate_model)
+```
+
+--
+
+So, the ratio of the total (squared) blue bars length to the total (squared) red bars length was `r round(get_regression_summaries(bivariate_model)$r_squared, 3)`, meaning the `weight ~ weeks` model accounted for `r paste0(round(get_regression_summaries(bivariate_model)$r_squared * 100 , 1),"%")` of the variance in birth weights
+
+???
+
+Luckily, you don't need to use any of these formulas directly yourself - there are number of functions in R to compute R<sup>2</sup> for you. I'd recommend using the `get_regression_summaries` function from the `moderndive` package. You give this function an linear model object, which you can get by saving the output of the `lm` function to a variable, and it will compute an table of summary statistics for your regression model. 
+
+The first one it computes is the R<sup>2</sup> statistic, which happens to be `r round(get_regression_summaries(bivariate_model)$r_squared, 3)` for our weight by weeks model. This means that `r paste0(round(get_regression_summaries(bivariate_model)$r_squared * 100 , 1),"%")` of the original error around the mean-only model is explained, or in other words, removed by using weeks as an explanatory variable.
+
+But, if we look at the second column in this table of summaries, we see a second, very similar summary statistic. `adj_r_squared` is short for "Adjusted R squared", and as we can see, this "adjusted" value is quite a bit smaller than `r round(get_regression_summaries(bivariate_model)$r_squared, 3)`. So, why does our summary table need a regular R squared and an adjusted R squared? And what exactly is the "Adjustment" adjusting for?
+
+---
+
+### R<sup>2</sup> is easy to hack
+
+Adding an explanatory variable to your model can **only** increase R<sup>2</sup>
+  - Making a model more complicated and flexible can never decrease the variance your model accounts for
+  
+This means increasing R<sup>2</sup> is a trivial exercise - just add more explanatory variables
+  - Even if they don't make sense (e.g., use "day of the week" to predict birth weight)
+
+???
+
+Well, as cool as R squared is, it does have one flaw that makes it easy to manipulate - it can never decrease. That is to say, a model with more explanatory variables can have a lower R squared value than a model with fewer explanatory variable. This makes comparing the goodness of fit between two different regression models a bit tricky, because it's easy to get the higher R^2 value just by adding more explanatory variable, regardless of whether they make any conceptual sense at all.
+
+For example, I could improve by birth weight model by adding a new explanatory variable to the model representing the day of the week the baby way born on. Now, there's no compelling reason I know of that would cause a baby born on Saturday to weigh more than a baby born on Sunday, but just taking a shot in the dark and including this in my model has no drawbacks. If there isn't any difference at all between Saturday and Sunday babies, no worries, my R squared will stay the same. But if there is *any* difference at all, even a tiny one due to just random chance, my R squared will increase, and my model using duration and day of the week will look better on paper than your model using just day of the week.
+
+--
+
+.center[
+![Increasing R<sup>2</sup> by using **ALL** the explanatory variables!](img/scantron.jpg)
+]
+Increasing R<sup>2</sup> by adding more and more explanatory variables is a bit like getting the answer correct on a multiple choice test by bubbling in **ALL** the options!
+
+???
+
+In this sense, R^2 is like a multiple choice test where you can get the answer right by bubbling in ALL the response options. If you fill in the wrong bubble, no worries, just make sure you get the right one in there. This kind of system incentivizes you to just add more and more explanatory variable to your model - there's no reason not too add a bunch of random ones, since you'll get a few ones with a strong relationship just by chance.
+
+---
+
+### Adjusted R<sup>2</sup>
+
+The adjustment penalizes (i.e., reduces) the raw R<sup>2</sup> value, to take into account the chance that explanatory variables could be related to the outcome purely due to chance alone
+ - Just like how you get a penalty on your multiple choice test if you bubble in multiple answers
+ 
+The more complex your model (i.e., the more explanatory variables it has), the bigger the penalty and the lower your adjusted R<sup>2</sup> gets.
+
+???
+
+This is where Adjusted R<sup>2</sup> comes in to level the playing field between simpler models that have more residual error, and more complex models that have less residual errors, but can more easily capitalize on chance to boost their score.
+
+The downward adjustment on R squared depends on the number of explanatory variables. The more explanatory variable, the bigger the penalty that gets applied. The exact formula for taking the raw R squared and adjusting it isn't too important here, as it's fairly complex and relies on lots of concepts that we haven't explored yet, so just remember the rule of thumb "more explanatory variables means a bigger penalty".
+
+--
+
+This allows adjusted Adjusted R<sup>2</sup> to serve as a **model comparison** tool; it helps you decide which of two linear regression models you should prefer.
+  - Goodness of fit to trade off with complexity in adjusted R<sup>2</sup>, making it a "fair fight" between models
+
+???
+
+The real reason this whole adjustment process is necessary useful is so that you can have a fair, head to head comparison between two regression models. You can decide which one to prefer, by choosing the one with the higher adjusted R squared, without worrying that you're capitalizing on a chance relationship that isn't reliable in the world outside your data set.
+
+---
+
+### Adding another explanatory variable: `sex`
+
+```{r echo=TRUE}
+weight_by_weeks_and_sex_model <- lm(weight ~ weeks*sex, data = ncbirths_mini)
+```
+
+???
+
+Let's use adjusted R squared to perform our own comparison between two candidate regression models. We'll add a new regression model into the mix, one that uses both duration of the pregnancy in weeks, the sex of the baby, and the interaction between sex and weeks, to predict birth weight.
+
+--
+
+.pull-left[
+```{r echo=TRUE, eval=FALSE}
+weight_by_weeks_model %>%
+  get_regression_summaries()
+weight_by_weeks_and_sex_model %>%
+  get_regression_summaries()
+```
+
+```{r echo=FALSE, eval=TRUE}
+bind_rows("weight~weeks" = get_regression_summaries(weight_by_weeks_model)[,1:2],
+          "weight~weeks*sex"=get_regression_summaries(weight_by_weeks_and_sex_model)[,1:2],
+          .id="Model"
+          )
+```
+]
+
+.pull-right[
+```{r, fig.width=5.75, fig.height=5.75}
+ggplot(data=ncbirths_mini, aes(x=weeks, y=weight, color=sex)) +
+  geom_point(size=2, color="forestgreen") +
+  geom_smooth(method="lm", formula=y~x, se=FALSE, size=2) +
+  geom_abline(slope = coefficients(bivariate_model)[2],
+              intercept =coefficients(bivariate_model)[1],
+              color = "black",
+              size=2, alpha=.15) +
+  theme_bw(22) +
+  theme(legend.position = "top",
+        legend.margin = margin(0,0,-15,0))
+```
+]
+
+
+???
+
+There's a lot to look at here, but let's start on the right, with the visualization of our latest multiple regression model. Since we've added sex, a categorical variable with two levels, as an explanatory variable, we have two different regression lines, one for male babies and one for female. And, because we allowed sex and weeks to interact, which is a fancy way of saying we allowed the effect of pregnancy duration to depend on the sex of the baby, our two regression lines are free to have different slopes. In the background, we see the ghost of our bivariate model, the one that just uses weeks as an explanatory variable, so that' we can keep in mind what we're going to be comparing our new model to.
+
+On the left, I've used the `get_regression_summaries` function to calculate R squared and adjusted R squared for both models. The simpler bivariate model is in the top row, and the more complicated interaction model is in the bottom row.
+
+If we just look at the raw R squared values, we see that the R squared value is larger for the interaction model than the bivariate model. This tell us that the interaction model does indeed have smaller errors than the bivariate model - 18% proportion of the error around the mean-only model is removed when using the interaction model, compared to just 12% when usingthe bivariate model.
+
+But, this accuracy comes at a price - a bigger penalty on the adjusted R squared for the interaction model. The complexity penalty you pay for using the interaction model adjusts the R squared value down below 0 - a rare thing to see, but it's a clear sign we've made our model too complex and too flexile, and it's apprant goodness of fit isn't likely to generalize beyond these 10 observations. So, despite having the lower raw R squared value, the simpler bivariate model has the higher adjusted R squared value. And, since the adjusted R squared value is the statistic that puts both models on equal footing, thats the statistic we should pay attention to when choosing which model to prefer. So in this case, we would prefer the weight by weeks model, over the interaction model.
+
+
+---
+
+### Don't forget to use your eyes!
+
+.noverticalmargin[
+Visualization is also a key component of model selection - you should be able to see the difference in goodness of fit as well as quantify it.
+
+.pull-left[
+```{r, fig.width=5.75, fig.height=5.75}
+ggplot(data=ncbirths_mini, aes(x=weeks, y=weight)) +
+  geom_point(size=2, color="forestgreen") +
+  geom_smooth(method="lm", formula=y~x, se=FALSE, size=2, color="black") +
+  theme_bw(22)
+```
+]
+
+.pull-right[
+```{r, fig.width=5.75, fig.height=5.75}
+ggplot(data=ncbirths_mini, aes(x=weeks, y=weight, color=sex)) +
+  geom_point(size=2, color="forestgreen") +
+  geom_smooth(method="lm", formula=y~x, se=FALSE, size=2) +
+  guides(color=FALSE) +
+  theme_bw(22)
+```
+]
+]
+
+???
+
+But, no matter useful R squared may be, don't forget to use your eyes when deciding which model to prefer. Visualizing the data and the model together can be very helpful in guiding your model selection.
+
+For example, if you're trying to choose between a parallel slopes and an interaction model, visualize them both and ask youself - do the slopes of the lines change meaningfully going from the parallel slopes to the interaction model? If the two models give the same predictions for all intents and purposes, you don't need R squared to tell you the parallel slopes model is better.
+
+In this situatoin here, the bivariate vs the interaction model, we can see that even the regression lines for the two sexes look differnt, if you compare them hollistically against the bivariate model, the predicted weights between the simpler left hand model aren't very different from the predicted weights for the more complicated right hand model. So right away, we have an indication we might be overcomplicating things, and staying simple might be better.
+
+---
+
+### Recap
+
+R<sup>2</sup> is a statistic that summarizes the "goodness of fit" of a linear model
+
+???
+
+All right, let's recap everything we've learned about R squared and model selection today. We started out with the basic definition of the R<sup>2</sup> statistic, which is a statistic that summarizes the "goodness of fit" of a linear model.
+
+--
+
+.noverticalmargin[
+R<sup>2</sup> is literally the proportion of error variance removed thanks to your model
+  - 0 = none, 1 = all of it (model perfectly reproduces data)
+]
+
+???
+
+We interpret the value of R<sup>2</sup> as the the proportion of prediction error accounted for, or in other words, removed from the data, thanks to your model and it's explanatory variables. If R<sup>2</sup> is 0, you model is no better than throwing darts at the board, and if it's 1, you model is absolutely perfect, and you should call the Nobel committee. But those values almost never happen, and your R squared will be somewhere in between those two extremes, hopefully towards the higher end.
+
+--
+
+.noverticalmargin[
+<img src="img/bluebar_redbar.png" style="float: right;">
+
+Think of it as the ratio between the "blue bars" and the "red bars"
+  - Red bars = how wrong the simplest model (just the mean) was
+  - Blue bars = how much closer your model got to the right value
+]
+
+???
+
+The idea of "proportion of variability accounted for" was a pretty abstract idea, so we use a visual representation of two models and their errors to make it concrete. We started with a simple "mean only" model, that didn't use explanatory variables, and looked at what happened when we compared that super simple model to one with a single explanatory variable. When we did this, and visualized the errors from each model, we saw that the bivariate model divided the mean-only model's errors into tow parts - one part showing how much closer our model got to the observed data by adding in an explanatory variable, and one part showing how far we still had to go. This led to us thinking of the R squared statistics as the ratio of the blue bars, the improvement distance, to the red bars, the amount of error we started out with. This gave us a concrete way of thinking about what it means to "account for error" as a reduction in error, how to quantify this reduction as a proportion.
+
+--
+
+.noverticalmargin[
+R<sup>2</sup> is easily "hacked" by adding more and more explanatory variables, because it can't ever go down
+  - Adjusted R<sup>2</sup> corrects for this by penalizing more complex models (ones with more explanatory variables)
+  - This means you can use Adjusted R<sup>2</sup> to perform a "fair comparison" between two models, and decide which one to prefer
+]
+
+???
+
+Lastly, we talked about how it's important to use the **adjusted** R squared statistic to compare the goodness of fit between two regression models and decide which one to prefer. Plain old R squared is easy to hack by adding more and more and more explanatory variables to the model, because it's riskless - R squared can only ever increase, it's impossible to do worse than the mean-only model. The Adjusted R squared statistic icorportates a penalty that deceases R squared, counteracting the ability to increase your R squared by capitalizing on chance. The more explanatory variables you add to the model, the bigger the penalty that gets applied, and the smaller your Adjusted R squared gets. This means, you really want to include just the most important explanatory variables in your model, and eschew the ones that are only marginally predicitve.
+
+OK statisticians, that's it for today's video, I'll see you in the next one!

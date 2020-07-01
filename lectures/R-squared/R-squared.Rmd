@@ -459,21 +459,6 @@ grid.arrange(grobs = list(decomposed_minus_blue_and_red, explained_lines, divisi
 
 ---
 
-```{r fig.width=5.75, fig.height=5.75}
-base_plot +
-  geom_segment(aes(x=weeks, y=weight, xend=weeks, yend=weight_hat),
-               data = variance_data,
-               color = "red", size = 1
-               )  +
-  geom_smooth(method = "lm", formula = y ~ NULL, fullrange=TRUE,
-              color = "black", se=FALSE, size = 1.1
-              ) +
-  theme_void()
-```
-
----
-
-
 ### R<sup>2</sup> is the proportion of original variance explained by your model
 
 Blue bars represent change (i.e., improvement) from the "empty" mean-only model, red bars represent original error magnitude

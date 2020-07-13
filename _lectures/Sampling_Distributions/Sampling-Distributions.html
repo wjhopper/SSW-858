@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Sampling Distributions</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Will Hopper" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Sampling Distributions
+### Will Hopper
+
+---
+
+
+
+
+
+### From sampling variability to sampling distributions
+
+There is always *sampling variability*
+  - Due to unavoidable randomness, the sample you observe could always come out differently
+  - Thus, things will always be slightly different from sample to sample
+
+???
+
+You might find a lot of the language and vocabulary in ModernDive chapter 7 familiar, as much of the chapter is devoted to introducing the notion of sampling variability. We've encountered this notion previously, when we talked about how we shouldn't place too much emphasis on the shape of distributions from small samples, and when we talked about how it's always possible to make a Type I error during an experiment, where we conclude our manipulated variable had a causal effect on our outcome variable when in fact it was just due to randomness.
+
+Underlying both of these discussions was the idea of sampling variability - that whenever you take a sample of observations from a population, there's always a chance the sample could have come out differently, just due to unforeseeable randomness. Maybe the participant in your color perception experiment was out in the bright sunlight for too long before coming to the lab, which impairs their color perception, or maybe they used to work as graphic designer and have a lot of practice discriminating between similar colors. The point is, just as you can never stand in the same stream twice because the stream is constantly changing, the sample you observe is unique, and even if you tried again and again, you would be unable to collect exactly the same observations again.
+
+Chapter 7 develops the idea of sampling distribution. In practice, sampling distributions are used for a process known as *statistical inference*, which is the process of drawing conclusions about population parameters. But before we start drawing conclusions about population parameters, let's think about what we need to draw conclusions about a single observation. As we go, we'll learn about what exactly a sampling distribution is, and what special properties they have that make statistical inference tractable.
+
+---
+
+### Individual birth weights
+
+
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Lets say I learn that my sister has just given birth to her second child, a 6.8 pound baby. How should I think about that value, 6.8?. In other words, what conclusion should I draw about this weight? Should I be shocked, alarmed, happy, or indifferent?
+
+---
+
+### Individual birth weights
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Similarly, let's say that I know her first child weighted 9.2 points at birth. How should I think about the difference between these two birth weights? Should I think these children are very similar, or should I think they are radically different?
+
+What I need to answer these questions is context, and the context I require is knowing what weights are possible, and how likely different weights are to be observed.
+
+---
+
+### Individual birth weights in context
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-4-1.gif" style="display: block; margin: auto;" /&gt;
+
+???
+
+In other words, the context I need is information about the *distribution* of birth weights. When I put these babies into the context of the 1000 birth weights we have in the ncbirths data set, I can see that the 6.8 pound baby is not very unusual, as most babies are around 7 pounds. But, the 9 pound baby is definitely large compared to most babies, and based on this I can say there appears to be a meaningful difference between the weights of the two infants.
+
+---
+
+### A Sample Mean
+
+
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+We can ask the same questions about a sample statistic, such as the sample mean. If the mean birth weight of all the babies in my sample of births from North Carolina in 2004 is 7.1, how should I think about this mean? Should I think the average baby in North Carolina is exceptionally heavy? Should I think the average baby in North Carolina is exceptionally light?
+
+---
+
+### A Sample Mean
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Similarly, let's say that in another sample of babies from France the average birth weight was 8 pounds. How should I think about the difference between the mean birth weight in of babies from North Carolina and the mean birth weight of those other babies from France? Should I think the something strange is going on in North Carolina, or in France, or is this kind of difference no big deal?
+
+Again, I need context to answer these questions, but this time the context I need is knowing what MEAN birth weights are possible, and how likely different MEAN weights are to be observed. In other words, I need to know the distribution of sample means.
+
+---
+
+### Sample means in context
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-8-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+But, what does the distribution of sample means look like? It's not something we have lying around to look at. After all, when we collect a sample of, say, 1000 observations, we boil all those observations down to a single number when computing the mean. With just one number left, there isn't context to put it into.
+
+But all is not lost. Think about the other value I've shown in this figure - the blue bar, representing births from France. This blue bar is another mean birth weight. If our original quandry was about how to meaningfully compare two mean birth weights, this gives us a hint that what we need to answer this question is more mean birth weights - a whole distribution of them.
+
+The question then is - how do we get more means? Well, one way is to do exactly what we did to get the first mean birth weight. We can weigh 1000 more babies, compute the mean of those weights, then weigh 1000 more babies, compute the mean of those weights, weigh 1000 more babies, compute the mean of THOSE weights, and continue this process until we have enough sample means to construct a satisfactory distribution. 
+
+In real life, this would be a very time and labor intensive process. But we can simulate this process very quickly using a computer, which is what I'm going to do in this video. By simulating the process of taking many samples, we'll be able to see the effects of sampling variation and learn what the sampling distribution of the sample mean looks like.
+
+---
+
+### The population of birth weights in North Carolina
+
+Courtesy of the [CDC's National Vital Statistics Service](https://www.cdc.gov/nchs/nvss/births.htm)
+
+
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-10-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Thanks to the CDC's National Vital Statistics system, we actually know what the entire population of births weights in North Carolina in 2004 was, because state laws require birth certificates to be completed for all births, and Federal law mandates collection of this data from states!
+
+So we know that there were 120,535 births in North Carolina in 2004, and the mean birth weight for the entire population of births was 7.21 pounds. Remember, since this is a *population* mean, we consider it a parameter, and use the greek symbol mu to represent it.
+
+This population distribution reminds me a lot of our original sample of 1000 birth weights - approximately normal, with a slight negative skew, probably because there were premature births.
+
+---
+
+### A new sample from the population
+
+Blue rectangles represent 1,000 newly observed birth weights.
+
+
+
+
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-13-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's begin building up our sampling distribution of average birth weights by taking a new sample of 1000 birth weights, represented in our figure as the small blue rectangles among the much larger population of birth weights. If you like, you can think about this being just the births observed at one single hospital.
+
+---
+
+### A new sample from the population
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's take a closer look at our new sample of 1000 births weights by plotting a histogram of those weights, again in blue. Our sample seems to represent the population well, as it has a very similar shape and spread. Overall, it looks likes both distributions tell the same story: births between 6.5 and 8.5 pounds are extremely likely, births above 10 pounds are extremely rare, and births between 1 and 4 pounds are unlikely, but still very much within the realm of possibility.
+
+---
+
+### A new sample mean
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Importantly, let's take a look at the mean birth weight in our new sample, represented by the red vertical line on the right. It's very close the population's mean, coming in at 7.23. Since this is a sample mean, we denote it with the x-bar symbol. Keep in mind that knowing the true population mean is unrealistic in real life situations, and in practice, we consider our sample mean an estimate of the population mean, which we would denote with a mu wearing a hat.
+
+---
+
+### A new sample mean
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-16-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Our ultimate goal is to build up a distribution of these sample means by repeatedly sampling from the population and computing the sample mean each time, so let's start doing that. A journey of 1000 miles starts with a single footstep, and so our sampling distribution starts with a single sample mean. Right now, the only value in our sampling distribution on the right is 7.23, the mean of our first sample, which is represented with the red bar on the right.
+
+---
+
+### From population, to sample, to sample mean
+
+
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's put all these pieces together in one figure - our population on top, our sample and it's mean on the bottom left, and our measly sampling distribution of the mean on the bottom right. 
+
+Let's start taking some more samples from our population, so we can give the poor little guy some company!
+
+---
+
+### Another Sample
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-18-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+What we're going to do is take a another sample of 1000 birth weights from the population, plot the sample using a histogram on the bottom left, and record its sample mean in the distribution on the bottom right. If you like, you can think of this sample as all the births from a second hospital in North Carolina.
+
+By chance, the mean of our second sample exactly matched the mean of the population, both are 7.21.
+
+---
+
+### Yet Another Sample
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-19-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Now we take a third sample, we can think of these as the births from a third hospital in north carolina, plot it, and add the mean to our distribution of means. While our sample changes each time, and thus our newest mean changes each time, the plot in the bottom right will show us all the means we accumulate as we take more and more samples.
+
+---
+
+### After 100 Samples
+
+&lt;img src="Sampling-Distributions_files/figure-html/100_samples-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's speed up time a bit, and see how things are going after collecting 100 samples of a thousand birth weights, say, from 100 different hospitals. The 100th sample mean turned out just a bit lower than the ones we've seen so far, coming in at 7.16, but the important thing to notice is what's happening to our sampling distribution in the bottom right.
+
+Things are really starting to take shape here - we can see the beginnings of a pretty symmetric, unimodal distribution, with values between 7 and 7.2 being the most likely.
+
+---
+
+### After 1,000 Samples
+
+&lt;img src="Sampling-Distributions_files/figure-html/1000_samples-1.png" style="display: block; margin: auto;" /&gt;
+
+  
+???
+
+If we skip forward until we've collected a thousand samples, we see the true form of the sampling distribution emerge. We can see that it is definitely symmetric and unimodal, and it's mean is exactly the same as the population.
+
+
+This match is not a coincidence at all. Think about it it like this: each individual mean was an unbiased estimate of the population mean. If we average together a bunch of unbiased estimates of the same thing, the population mean, we're going to get something very very very close to the true value each sample mean was estimating. In essence, our sampling distribution has 1000 times the information about the population mean than each individual sample had. So, it's not surprising we get a really really good estimate of the population mean by doing this!
+
+---
+
+### Properties of the Sampling Distribution of the mean
+
+The sampling distribution of the mean:
+
+1. Represents how likely it is to observe a specific value for the sample mean.
+2. Is symmetric and unimodal (i.e., a "bell curve")
+3. is centered on the same value as the population mean (i.e., the mean of the sampling distribution is also the mean of the population)
+
+???
+
+Let's review what we've learned from our simulation
+
+1. The sampling distribution of the mean represents how likely it is to observe a specific value for the sample mean. For example, our simulation told us that sample means between 7.15 and 7.25 were very likely, and anything smaller than 7 or bigger than 7.4 was all but impossible.
+2. The sampling distribution of the mean is symmetric and unimodal (i.e., a "bell curve")
+3. The sampling distribution of the mean is centered on the same value as the population mean (i.e., the mean of the sampling distribution is also the mean of the population)
+
+---
+
+### Drawing conclusions from our sampling distribution
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-20-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's come back to our original questions about the mean birth weight from the ncbirths data set we know and love, and how we should compare it to France's average birth weights.
+
+As it turns out, our "classic" ncbirths data set actually has a pretty low mean birth weight compared to the population average of 7.2. It might not seem a big difference, a tenth of a pound, but looking at the sampling distribution, samples with a mean of of 7.1 or below were really really rare.
+
+And I'll admit, France and North Carolina seemed pretty equivocal at first, but looking at the difference between 7.1 and 8 in context of the the sampling distribution for North Carolina, it seems absolutely massive!
+
+---
+
+### Sampling distributions and sample size
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-21-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+The last thing I want to talk about in the video is the influence of sample size on the sampling distribution. Recall that when we took samples from the population of baby weights, we took 1000 babies at a time. In other words, our sample size, N, was 1,000. And if we look at the width of our sampling distribution, we can see it encompasses values from about 7.0 to 7.4, for a width of about .4.
+
+Let's see what happens when we change our code to take samples of size 100, and samples of size 10, and compare these sampling distributions to what we got with a sample size of 1000
+
+---
+
+### Smaller samples, Wider Sampling Distributions
+
+```
+## Warning: The `x` argument of `as_tibble.matrix()` must have column names if `.name_repair` is omitted as of tibble 2.0.0.
+## Using compatibility `.name_repair`.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_warnings()` to see where this warning was generated.
+```
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-22-1.png" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+We can see that when we observe fewer babies in each sample, our sampling distribution is much more variable. When there were 1000 babies, our sampling distribution was very narrow, entirely between 7 and 7.5. With 100 babies per sample, it spreads out to about 6.75 and 7.75, almost twice as wide. And with only 10 babies per sample, it spreads out to from about 6 to 8 pounds.
+
+So as sample size decreases, variance of the sampling distribution increases.
+
+---
+
+### Wider Sampling Distributions, same mean!
+
+&lt;img src="Sampling-Distributions_files/figure-html/unnamed-chunk-23-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+But importantly, we don't sacrifice the central tendency of our sampling distribution when we observe fewer babies in each sample - each one of these distribution is composed of 1000 sample means, and each one is still centered on the same value as the population mean. So, a smaller sample doesn't cause our sample mean and sample distribution to become biased or inaccurate estimates of the population mean - it just makes the estimates less *precise* estimates. 
+In other words, when our sample size is small, we can't be certain that the mean of our sample will be similar to the means for other samples.
+
+---
+
+
+### Properties of the Sampling Distribution of the mean
+
+The sampling distribution of the mean:
+
+1. Represents how likely it is to observe a specific value for the sample mean
+2. Is symmetric and unimodal (i.e., a "bell curve")
+3. is centered on the same value as the population mean (i.e., the mean of the sampling distribution is also the mean of the population)
+4. is more variable when samples have fewer observations
+  - Smaller sample size = same mean, but less *precise* estimate
+  - We can't be certain that the mean of *OUR* sample will be similar to the means for *OTHER* samples.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

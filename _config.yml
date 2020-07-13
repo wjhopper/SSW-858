@@ -59,6 +59,7 @@ collections:
          - "The Parallel Slopes Model"
          - "The Interaction Model"
          - "R-squared"
+         - "Sampling Distributions"
    problem_sets:
       order:
          - "Intro to R and RStudio"

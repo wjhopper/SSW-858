@@ -1,0 +1,451 @@
+---
+title: "The Central Limit Theorem"
+author: "Will Hopper"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "default-fonts", "../../assets/css/sds.css"]
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(moderndive)
+library(ggplot2)
+library(gganimate)
+library(gridExtra)
+library(dplyr)
+library(purrr)
+library(tidyr)
+
+options(htmltools.dir.version = FALSE, stringsAsFactors = FALSE)
+knitr::opts_chunk$set(echo = FALSE, cache=TRUE, fig.align = 'center')
+theme_set(theme_bw(24) +
+            theme(plot.margin = margin(12,1,1,1),
+                  legend.box.margin = margin(0,0,0,-20),
+                  plot.title = element_text(size=16, margin = margin(-10)),
+                  plot.subtitle = element_blank()
+                  )
+          )
+
+ncbirths <- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv", stringsAsFactors = FALSE) %>%
+  dplyr::filter(!is.na(weight), !is.na(weeks), !is.na(smoker))
+
+ncbirths_population <- read.csv("../../data/ncbirths_population.csv", stringsAsFactors = FALSE) %>%
+  filter(!is.na(weight))
+```
+
+```{r}
+set.seed(10)
+tile_population_into_samples <- function() {
+  sizes <- sample(100, 4)
+  sizes <- floor((sizes/sum(sizes)) * nrow(ncbirths_population))
+  
+  random_sample <- sample(c(rep("1", 250),
+                            rep("2",sizes[1]),
+                            rep("3", 250),
+                            rep("4", sizes[2]),
+                            rep("5", 250),
+                            rep("6", sizes[3]),
+                            rep("7", 250),
+                            rep("8", nrow(ncbirths_population) - 1000 - sum(sizes[1:3]))
+                            ),
+                          size = nrow(ncbirths_population)
+                          )
+  random_sample
+}
+
+ncbirths_population <- bind_cols(ncbirths_population, as.data.frame(replicate(10, tile_population_into_samples())))
+
+first_10_sample_means <- gather(ncbirths_population, key = "sample", value = "group", V1:V10) %>%
+  filter(group %in% c("1","3","5","7")) %>%
+  group_by(sample) %>%
+  summarise(mean_weight = mean(weight))
+
+thousand_sample_means <- suppressWarnings(
+  select(ncbirths_population, weight) %>%
+  moderndive::rep_sample_n(size = 1000, reps=1000) %>%
+  summarise(mean_weight = mean(weight))
+ )
+
+set.seed(11)
+weights_only <- select(ncbirths_population, weight)
+replicates <- lapply(list("100" = moderndive::rep_sample_n(weights_only, size = 100, reps=1000),
+                 "10" = moderndive::rep_sample_n(weights_only, size = 10, reps=1000)
+                 ),
+            function(x) {summarise(group_by(x, replicate), mean_weight = mean(weight))}
+            ) %>%
+  c(list("1000" = thousand_sample_means)) %>%
+  bind_rows(.id="N")
+
+y <- group_by(replicates, N) %>%
+  summarise(var_weight = var(mean_weight),
+            mean_weight = mean(mean_weight)
+            )
+
+```
+
+### Last time: The population of birth weights in NC, 2004
+
+What means should we expect when we sample from this population?
+
+```{r, cache=FALSE, fig.height=7, fig.width=8}
+pop <- ggplot(ncbirths_population, aes(x=weight, fill=V1)) +
+  geom_histogram(binwidth = .5) +
+  annotate('label', label = paste("mu ==", round(mean(ncbirths_population$weight),2)),
+            x=3, y=12500, size=10, parse=TRUE) +
+  annotate('label', label = paste("sigma^2 ==", round(var(ncbirths_population$weight),2)),
+            x=3, y=10000, size=10, parse=TRUE) +
+  scale_fill_manual(values = c("blue","grey50","blue","grey50","blue","grey50","blue","grey50")) +
+  scale_x_continuous(expand = c(0,0.2), breaks = seq(0,13,1)) +
+  guides(fill=FALSE) +
+  theme(axis.text.y = element_text(size = 12),
+        axis.title.y = element_text(size = 12)
+        )
+pop
+```
+
+???
+
+In the last video, we introduced the idea of a sampling distribution of the mean, which was a distribution that told use which values for the sample means were possible and how likely they were to occur.
+
+We explored the form of this sampling distribution by simulating what would happen if we kept taking samples of 1000 babies from the population of births in north Carolina in 2004, and computing the mean birth weight each time.
+
+The population of birth weights is shown here. Because this distribution represents literally all of the births from north Carolina in 2004, we can compute its mean and variance to find that the population mean, denoted mu, is 7.21 pounds, and the population variance, denoted sigma squared, is about 1.92. Remember, the variance tells us the average squared deviation from the mean, and relates to how spread out the distribution is.
+
+We can use the sampling distribution of the mean to answer the question: What means should we expect when we sample from this population? If the small blue rectangles in this plot represent a new sample of 1,000 birth weights, what value is the mean of those birth weights likely to be?
+
+---
+
+### Sampling distribution properties
+
+Always centered on population mean; variability depends on sample size
+
+```{r, fig.width=13, cache=FALSE}
+different_N <- ggplot(replicates, aes(x=mean_weight, y=stat(density))) +
+  geom_histogram(binwidth = .05, fill="red") +
+  facet_wrap(~N, labeller = label_both) +
+  ggtitle("1000 Samples, different samples sizes") +
+  geom_label(aes(label = paste("bar(x)[bar(x)]==", round(mean_weight, 2))),
+             data = y, inherit.aes = FALSE,
+             y=4, x=6, size=7, parse=TRUE
+             ) +
+  geom_label(aes(label = paste("{s^2}[bar(x)]==", round(var_weight, 3))),
+           data = y, inherit.aes = FALSE,
+           y=3, x=6, size=7, parse=TRUE
+           ) +
+  scale_y_continuous("count", limits=c(0,9.5),
+                     labels = c(0,100,200,300,400), breaks = c(0,2,4,6,8)
+                     ) +
+  scale_x_continuous("Mean birth weight (lbs.)")
+
+different_N + geom_vline(aes(xintercept=mean_weight), data=y, size=1.5)
+```
+
+???
+
+We discovered last time that the most likely sample mean value is the population mean. This is because the mean of the sampling distribution is the same as the population mean! {draw mu and 7.21, explain x bar subscript}
+
+We also discovered that the variance of the sampling distribution depends on the number of observations in each sample - the more observations we collected in each sample, the narrower our sampling distribution was. 
+
+On the left is when we weighted 10 babies in each sample, in the middle is when we weighted 100 babies in each sample 100, and on the right is when we weighted 1000 babies in each sample 1000. We can see that the variance of all these means goes down as we move from left to right, going from .191 with 10 babies per sample, to just .002 with 1000 babies per sample. 
+
+In other words, we shouldn't expect the mean to change much from one sample to the next if collect 1000 observations in a sample. For example, if one hospital in north Carolina weighs 1,000 babies, and another hospital weighs 1000 babies, we should expect the mean from the first hospital to be very similar to the mean of the second hospital.
+
+
+As it turns out, there is a precise mathematical relationship between the mean and variance of the population, and the mean, variance and SHAPE of the sampling distribution of the mean. This mathematical relationship is given to us by the central limit theorem.
+
+---
+
+### The Central Limit Theorem
+
+The Central Limit Theorem tells us that the mean of the sampling distribution, $\mu_{\bar{x}}$, and the variance of the sampling distribution, $\sigma^2_{\bar{x}}$ are:
+
+$$\begin{equation}
+  \begin{split}
+    \mu_{\bar{x}} = \mu
+  \end{split}
+  \hspace{5cm}
+  \begin{split}
+  \sigma^2_{\bar{x}} = \frac{\sigma^2}{N}
+  \end{split}
+\end{equation}$$
+
+where $\mu$ and $\sigma^2$ are the population mean and variance, respectively.
+
+???
+
+There are three main things to know about the central limit theorem. One, it tells us that the mean of the sampling distribution is exactly the same as the population. Second, it tells us that the variance of the sampling distribution is proportional to the sample size - specifically, the population variance divided by the sample size gives you the variance of the sampling distribution.
+ 
+--
+
+It also tells us that the shape of the distribution will be a **Normal** distribution (i.e., a bell curve)
+
+???
+
+The third thing it tells you is that the sampling distribution of the mean will always be normally distributed - so, it will always have that symmetric and unimodal shape we've seen thus far.
+
+--
+
+Since the standard deviation of the sampling distribution, $\sigma_{\bar{x}}$, is just $\sqrt{\sigma^2_{\bar{x}}}$, then:
+
+$$\sigma_{\bar{x}} = \sqrt{\frac{\sigma^2}{N}} = \frac{\sqrt{\sigma^2}}{\sqrt{N}} = \frac{\sigma}{\sqrt{N}}$$
+
+???
+
+And not to get too far into the mathematical weeds, but you'll also see the standard deviation of the sampling distribution come up in many situations, and many definitions of the central limit theorem will be given in terms of the standard deviation of the sampling distribution. Just so you don't think these are two different definitions, remember that we just take the square root over variance to get standard deviation, so we can see that the standard deviation of the sampling distribution is equal to the standard deviation of the population divided by the square root of the sample size.
+
+I'll stick to the definition in terms of variance, since I think not having square roots in the denominator makes life easier.
+
+---
+
+### The Central Limit Theorem
+
+Blue curves = normal distributions given by the CLT. $\mu_{\bar{x}} = \mu,\sigma^2_{\bar{x}} = \frac{\sigma^2}{N}$
+
+```{r, fig.width=13, cache=FALSE}
+mu <- mean(ncbirths_population$weight)
+sigma <- sd(ncbirths_population$weight)
+x <- seq(5.5, 8.5, .02)
+
+curves <- bind_rows("10" = data.frame(x, y = dnorm(x, mu, sigma/sqrt(10))),
+                    "100" = data.frame(x, y = dnorm(x, mu, sigma/sqrt(100))),
+                    "1000" = data.frame(x, y = dnorm(x, mu, sigma/sqrt(1000))),
+                    .id = "N"
+                    )
+
+pop_parameters = data.frame(N = c("10", "100", "1000"),
+                            mu = round(mu,2),
+                            sigma_sq = round((sigma^2)/c(10,100,1000), 3)
+                            )
+
+different_N +
+  geom_line(data=curves, mapping = aes(x=x,y=y), color="blue", size=1) +
+  geom_label(aes(label = paste("mu[bar(x)]==", mu)),
+             data = pop_parameters, inherit.aes = FALSE,
+             y=4, x=8, size=7, parse=TRUE
+             ) +
+  geom_label(aes(label = paste("{sigma^2}[bar(x)]==", sigma_sq)),
+             data = pop_parameters, inherit.aes = FALSE,
+             y=3, x=8, size=7, parse=TRUE
+            )
+  
+```
+
+???
+
+Turning back to the sampling distribution of mean birth weights, by applying the central limit theorem, we now know the exact form of this sampling distribution.
+
+Shown by the 3 blue curves, we know the sampling distribution of the mean birth weight is a normal distribution with mean 7.2 and variance .192 when the sample size is 10 babies per sample, the sampling distribution of the mean birth weight is a normal distribution with mean 7.2 and variance .019 when the sample size is 100 babies per sample, and the the sampling distribution of the mean birth weight is a normal distribution with mean 7.2 and variance .002 when the sample size is 100 babies per sample. Remember, we learned the values of mu and sigma by examining the entire population of birth weights, and plugged them into these equations along with the sample size to get these values.
+
+Even though these normal distributions are represented with smooth curves instead of bars in a histogram, they still tell use the same information: the height of they curve tells us how relatively likely a specific value is to be observed.
+
+As we can see, our simulation where we took 1,000 samples of size 10, 100 and 1000 match up closely with the normal distributions given by the central limit, which is exactly what we should expect.
+
+---
+
+### What does this mean for us?
+
+Mean and variance of the sampling distribution depends on the mean and variance of the population distribution
+- Variance also depends on the sample size $N$
+
+So if we know $\mu$ and $\sigma^2$, we know $\mu_{\bar{x}}$ and $\sigma^2_{\bar{x}}$ (since we also know the sample size, because we took it!)
+
+???
+
+Now that we know what the central limit theorem tells us, lets consider what the practical implications of this theory are. Basically, it means that we know all the detail of the population, we know all the details of the sampling distribution of the mean.
+
+--
+
+The problem? We never know $\mu$ and $\sigma^2$ unless we take a full census!
+
+So we turn to our usual trick: estimate $\mu$ using $\bar{x}$ and estimate $\sigma^2$ using $s^2$
+
+???
+
+But, there's just one hold up. We never know mu and sigma unless we take a full census, and that's only possible if we have unlimited time and resources, or if the population is trivial, like "the weight of all spoons in my silverware drawer" or something silly.
+
+However, this problem of not knowing a population parameter is a familiar one to us statisticians. So, we pull out our usual bag of tricks, and select our favorite one: estimation! We can estimate mu and sigma using the mean of our sample and the variance of our sample.
+
+---
+
+### What does this mean for us?
+This means we can also estimate $\mu_{\bar{x}}$ and $\sigma^2_{\bar{x}}$!
+
+$$\begin{equation}
+  \begin{split}
+    \hat{\mu}_{\bar{x}} = \bar{x}
+  \end{split}
+  \hspace{5cm}
+  \begin{split}
+  \hat{\sigma}^2_{\bar{x}} = \frac{s^2}{N}
+  \end{split}
+\end{equation}$$
+
+???
+
+Just to make things clear, let's re-write our main central limit theorem equations to use the sample mean and variance 
+--
+
+So even if we have just **ONE** sample of data, we can estimate what the sampling distribution of the mean looks like!
+
+In other words, if we have a single mean, we can still get an idea about what other means will look like!
+
+???
+
+So even if we have just **ONE** sample of data, we can estimate what the sampling distribution of the mean looks like!
+
+In other words, if we have a single mean, we can still get an idea about what other sample means will look like if the experiment was repeated again! As you can see, the central limit theorem is quite a handy result!
+
+---
+
+### Estimating the sampling distribution with one sample
+
+```{r, fig.width=13, cache=FALSE, warning=FALSE}
+ggplot(data=data.frame(x = seq(6.9, 7.5, .01)), aes(x=x)) +
+  stat_function(mapping = aes(color="blue"), fun = dnorm, n = 101,
+                args = list(mean = mu, sd = sigma/sqrt(1000))) +
+  stat_function(mapping = aes(color="red"), fun = dnorm, n = 101,
+                args = list(mean = mean(ncbirths$weight), sd = sd(ncbirths$weight)/sqrt(1000))) +
+  scale_x_continuous("Mean birth weight (lbs.)", breaks=seq(6.9,7.5,.1)) +
+  scale_color_manual(values=c("blue","red"), labels = c("True Sampling Distribution (CLT)",
+                                                        "ncbirths 'classic' data set estimate")
+                     ) +
+  theme(legend.title = element_blank(),
+        legend.position = 'top',
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank()
+        )
+```
+
+???
+
+Let's put this into practice, by comparing the exact sampling distribution of the mean given to us by the central limit theorem (shown in blue) and the population parameters to the estimated sampling distribution given to us by the central limit theorem and the estimated parameters from our "classic" sample of 1000 birth weights from the ncbirths data set (shown in red.)
+
+We've seen this blue curve before actually, it's the same one from the right most panel on slide 5. We can see that in fact, a sample mean of 7.1, which what we got in the ncbirths data set, is actually pretty unlikely (draw likelihood).
+
+But using the central limit theorem together with our sample still gives us a pretty good estimate of the sampling distribution, especially when we put it in the context of time and effort needed to collect data - think how much easier it is to weigh 1000 babies compared to 120,000 babies. I'm pretty sure an error of .1 pounds is a pretty good price to pay for being done with your experiment a year early.
+
+---
+
+### Estimating the sampling distribution with one sample
+
+```{r, echo=TRUE, eval=FALSE}
+ncbirths_population <-
+  read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths_population.csv",
+           stringsAsFactors = FALSE) %>%
+  filter(!is.na(weight))
+
+ncbirths <-
+  read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
+           stringsAsFactors = FALSE) %>%
+  filter(!is.na(weight))
+```
+
+```{r, echo=TRUE}
+sample_size <- nrow(ncbirths)
+sample_size
+
+```
+
+???
+
+Since all this central limit theorem stuff can be pretty abstract, lets finish up with a concrete example of using one sample of data to estimate the properties of the sampling distribution of the mean.
+
+We'll do this with the ncbirths dataset and the ncbirths population
+
+Import the data, and remove any missing values. Since there were two missing birth weights in the original ncbirths data set, our sample size is actually 998 instead of 1000.
+
+---
+
+### Estimating the sampling distribution with one sample
+```{r, echo=1:2}
+mu <- mean(ncbirths_population$weight)
+sigma_squared <- var(ncbirths_population$weight)
+print(c("mu"=mu))
+print(c("sigma_squared"=sigma_squared))
+```
+
+???
+
+Start by computing the population parameters mu and sigma, which are the population mean and variance.
+
+--
+
+```{r, echo=1:2}
+x_bar <- mean(ncbirths$weight)
+s_squared <- var(ncbirths$weight)
+print(c("x_bar"=x_bar))
+print(c("s_squared"=s_squared))
+```
+
+???
+
+Then we'll do the same for the sample mean and sample standard deviation, calling them x_bar and s_squared
+
+---
+
+### Estimating the sampling distribution with one sample
+
+```{r, echo=1:2}
+mu_sampling_distribution <- mu
+sigma_squared_sampling_distribution <- sigma_squared/sample_size
+print(c("mu_sampling_distribution"=mu_sampling_distribution))
+print(c("sigma_squared_sampling_distribution"=sigma_squared_sampling_distribution))
+```
+
+???
+
+Now we'll start applying the central limit theorem to find the properties of the sampling distribution of the mean. So, we know the true mean of the sampling distribution of the mean will be equal to mu and the true variance of the sampling distribution of the mean will be equal to sigma squared divided by N.
+
+--
+
+```{r, echo=1:2}
+mu_hat_sampling_distribution <- x_bar
+sigma_squared_hat_sampling_distribution <- s_squared/sample_size
+print(c("mu_hat_sampling_distribution"=mu_hat_sampling_distribution))
+print(c("sigma_squared_hat_sampling_distribution"=sigma_squared_hat_sampling_distribution))
+```
+
+???
+
+Finally, we'll see how our estimates compare. We follow the exact same steps, just substituting x_bar, the sample mean, as our estimate of mu, and s squared, the sample variance, as our estimate of the population variance.  
+
+We see again that our estimate of the mean is slightly off, but nothing to be worried about, and that our estimate of the variance is really close! So, I'd consider this estimation exercise a success! I'd recommend everyone play around with this code to make sure you understand the mechanics of doing the central limit theorem estimation.
+
+---
+
+### Options to find the sampling distribution of the mean
+
+If you have unlimited time and resources:
+
+- CLT Exact: Perform a census to find $\mu$ and $\sigma^2$, use CLT formulas (unrealistic, also kind of silly)
+  - What we did to construct the blue Normal distribution curves on slide 6
+--
+
+- Manually: Collect many samples of size $N$, compute mean of each one (unrealistic, except in simulations)
+  - What we did to construct the red histograms on slides 5 and 6
+
+???
+
+OK, let's recape what we've learned about finding the exact form of the sampling distribution of the mean. If you have unlimited time and resources, you can perform a census of the population to find it's mean and variance, then plug those values into the equations given by the central limit theorem. Of course, unlimited time and resources isn't a realistic scenario, and even if it was, doing this would be a silly exercise. If you can sample literally the entire population to find it's parameters, then who even cares about learning what the sampling distribution looks like - you're so rich and powerful you don't even have to take samples!
+
+Another thing you can do if you have almost unlimited time and resources is build a sampling distribution manually, like we did in the last video. You can collect a whole bunch of samples, and take the mean of each one until you've made a whole distribution of them. This so-called "empirical" sampling distribution approach is still pretty unrealistic though, since you still need a lot of time a resources. One nice thing about it though, is that you don't have to rely on the central limit theorem to construct your sampling distribution.
+
+
+--
+
+If you have limited time and resources
+- CLT Estimation: Collect one sample, use sample mean and sample variance $\bar{x}$ and $s^2$ to estimate $\mu$ and $\sigma^2$, use those estimates in the CLT formulas (realistic)
+  - What we did on slides 9-12
+  
+???
+
+What happens in practice 99.9% of the time is that you use estimates of mu and sigma in combination with the central limit theorem to estimate your sampling distribution properties. You might be a bit off in your estimation, like the ncbirths data set was, but this is a small price to pay for actually being able to pull it off - the other two methods are unfeasible in nearly every situation.
+

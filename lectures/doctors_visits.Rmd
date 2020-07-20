@@ -1,0 +1,104 @@
+---
+title: "The Great Doctors Visits Investigation"
+author: "William Hopper"
+date: "7/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(moderndive)
+```
+
+## Matt's Data - Mercy Presbyterian
+```{r}
+mercy <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRzrU3hpegjpfOPjfxXpmlBVjPEQK5mb0Xz2Id2WtrAoUNh1ecIuGgYfWQic8M4-YIj87iKB8D_4hA2/pub?output=csv") %>%
+  select(visits)%>%
+  summarise(mean = mean(visits))
+mercy
+```
+
+## Jon's Data - UNC Teaching Hospital
+```{r}
+UNC <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRd5i4J3Uns1vE_ehPyGj3RQI0bpxTVE5A4bzQ-EzrlOV0R9XGtIzPImMCbse3ykkMdiZ-sKCIoS7Mu/pub?output=csv") %>%
+  select(visits)%>%
+  summarise(mean = mean(visits))
+UNC
+```
+
+## Christina's Data - Blossom Hill 
+```{r}
+blossom_hill <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQGXTBoreDm2-UUx81h56gbw8W5PU6-o8KfYyojPoG5LBEH-Bd7w39G_qRVNPaEOzPHHcnl7LRX7Ryj/pub?output=csv") %>%
+  select(visits)%>%
+  summarise(mean = mean(visits))
+blossom_hill
+```
+
+Matt = 12.84715
+Christina = 13.4
+Jon = 13.80
+
+```{r}
+ncbirths_population <- read.csv("https://wjhopper.github.io/SDS-201/data/ncbirths_population.csv")
+```
+
+```{r}
+birth_record_samples <- rep_sample_n(ncbirths_population,
+                                     size = 5001,
+                                     reps = 120
+                                     )
+avg_visits <- group_by(birth_record_samples, replicate) %>%
+  summarise(mean_visits = mean(visits))
+```
+
+```{r}
+ggplot(data=avg_visits, aes(x = mean_visits)) +
+  geom_histogram() +
+  scale_x_continuous(limits=c(12,15))
+```
+
+
+## Calculating the mean and variance of the sampling distribution
+
+## Method 1: Simulation with 5001 records per sample
+```{r}
+summarise(avg_visits,
+          mean(mean_visits),
+          var(mean_visits)
+          )
+```
+
+The mean of the sampling distribution was 13.1, and the variance of the sampling distribution was .0113.
+
+## Method 2: Central Limit Theorem
+
+```{r}
+summarise(ncbirths_population,
+          mean(visits),
+          var(visits)
+          )
+```
+
+The mean number of doctors visits in the population is 13.13, and the variance of the number of doctor's visits is 75.97
+
+```{r}
+mean_of_means = 13.13
+variance_of_means = 75.97/5001
+```
+
+## Method 3: Central Limit Theorem ESTIMATION METHOD
+
+Using the Mercy Hospital as data set to estimate the populatiom mean and variance.
+```{r}
+read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRzrU3hpegjpfOPjfxXpmlBVjPEQK5mb0Xz2Id2WtrAoUNh1ecIuGgYfWQic8M4-YIj87iKB8D_4hA2/pub?output=csv") %>%
+  select(visits)%>%
+  summarise(mean = mean(visits),
+            variance = var(visits))
+```
+
+```{r}
+estimated_mean_of_means <- 12.84
+estimated_variance_of_means <- 27.91961/1001
+```
+

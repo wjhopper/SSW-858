@@ -1,0 +1,19 @@
+div.wider {padding-left: 2em; padding-right: 2em;}
+
+#sampling-dist-methods {border-collapse: collapse; border: none;}
+
+#sampling-dist-methods thead {background: none;}
+
+#sampling-dist-methods thead th {border-color: black;}
+
+#sampling-dist-methods th:first-of-type {border-right: 1px black solid;}
+
+#sampling-dist-methods tr {background: none;}
+
+#sampling-dist-methods tbody td {border: 1px solid black;}
+
+#sampling-dist-methods td:first-of-type {font-weight: bold; border-top: none; border-left: none; border-bottom: none; width: 18%;}
+
+#sampling-dist-methods ul {margin-top: .5em; margin-bottom: .5em; padding-left: 20px;}
+
+#sampling-dist-methods li {font-size: 22px; line-height: 1.25em;}

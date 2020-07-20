@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>The Bootstrapped Sampling Distribution</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Will Hopper" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+    <link rel="stylesheet" href="sampling_dist_methods.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# The Bootstrapped Sampling Distribution
+### Will Hopper
+
+---
+
+
+
+
+### Previously: 3 methods for constructing a sampling distribution
+
+- CLT Exact: Perform a census to find `\(\mu\)` and `\(\sigma^2\)`, apply CLT to find mean, variance and shape of sampling distribution
+- Manual: Collect many samples of size `\(N\)` from the population, compute mean of each one
+  - From there, the mean of means and variance of means estimates `\(\mu_{\bar{x}}\)` and `\(\sigma^2_{\bar{x}}\)`
+- CLT Estimation: Collect one sample, use sample mean and sample variance `\(\bar{x}\)` and `\(s^2\)` to estimate `\(\mu\)` and `\(\sigma^2\)`, use those estimates in the CLT formulas
+
+???
+
+At the end of the last lecture, we recapped our three techniques for constructing a sampling distribution.
+
+---
+
+### Previously: 3 methods for constructing a sampling distribution
+
+
+- CLT Exact: Perform a census to find `\(\mu\)` and `\(\sigma^2\)`, apply CLT to find mean, variance and shape of sampling distribution
+.grey[
+- Manual: Collect many samples of size `\(N\)` from the population, compute mean of each one
+  - The mean of means and variance of means estimates `\(\mu_{\bar{x}}\)` and `\(\sigma^2_{\bar{x}}\)`
+]
+- CLT Estimation: Collect one sample, use sample mean and sample variance `\(\bar{x}\)` and `\(s^2\)` to estimate `\(\mu\)` and `\(\sigma^2\)`, use those estimates in the CLT formulas
+
+???
+
+At the end of the last lecture, we recapped our three technique for constructing a sampling distributions.
+
+The first method and the third method shown here both make use of the central limit theorem to construct the sampling distribution.
+
+--
+
+Recall that the CLT tells us:
+
+- The mean of sample averages, `\(\mu_{\bar{x}}\)`, is equal to the mean of the population, `\(\mu\)`
+- The variance of sample averages, `\(\sigma^2_{\bar{x}}\)`, is equal to the variance of the population, `\(\sigma^2\)`, divided by the sample size `\(N\)`
+- The shape of the sampling distribution will be a normal distribution
+
+???
+
+ To remind you, the central limit theorem tells us three things
+
+- The mean of sample averages, `\(\mu_{\bar{x}}\)`, is equal to the mean of the population, `\(\mu\)`
+- The variance of sample averages, `\(\sigma^2_{\bar{x}}\)`, is equal to the variance of the population, `\(\sigma^2\)`, divided by the sample size `\(N\)`
+- and finally, we know the shape of the sampling distribution will be a normal distribution
+
+This last point, that the sampling distribution will be exactly normal, is a very strong assumption to make, and sometimes, there can be small deviations from normality in the sapling distribution which can make future computations slightly less accurate.
+
+---
+
+### Previously: 3 methods for constructing a sampling distribution
+
+.grey[
+- CLT Exact: Perform a census to find `\(\mu\)` and `\(\sigma^2\)`, apply CLT to find mean, variance and shape of sampling distribution
+]
+
+- Manual: Collect many samples of size `\(N\)` from the population, compute mean of each one
+  - The mean of means and variance of means estimates `\(\mu_{\bar{x}}\)` and `\(\sigma^2_{\bar{x}}\)`
+
+.grey[
+- CLT Estimation: Collect one sample, use sample mean and sample variance `\(\bar{x}\)` and `\(s^2\)` to estimate `\(\mu\)` and `\(\sigma^2\)`, use those estimates in the CLT formulas
+]
+
+???
+
+So far, only the second method here, the manual method, doesn't require that you make any assumptions as part of your work - you just construct a sampling distribution by collecting sample after sample, and finding the mean of each one. In other words, to estimate the effects of sampling variability on the sample mean, you quite literally observe the effects of sampling variability on the sample mean.
+
+However, I also mentioned this approach was almost never possible, because there are almost no situations where you have both the time and resources necessary to collect thousands of separate samples. So, it wasn't really possible to use this assumption-free technique.
+
+--
+
+- Manual method can be approximated using the "Bootstrap" method, which *is* a feasible technique
+
+???
+
+This leads us to the main topic of today's video, the bootstrap, which will allow us to have our cake and eat it too. The Bootstrap will allow us to construct an estimate of the sampling distribution without making strong assumptions, *and* we'll be able to do it using only a single sample of data.
+
+---
+
+
+### Previously: Repeatedly sampling from the *population*
+
+![](after_1_sample.png)
+
+
+???
+
+Since the Bootstrap method is so similar to the Manual method we explored via simulation a few lectures ago, it's worth revisiting how the process of manually constructing the sampling distribution unfolded.
+
+We started with the entire population, all 120,000 or so babies born in North Carolina in 2004, and we randomly selected 1,000 babies from the population {draw arrow from pop to sample}. We observed their weights, computed the mean weight of all 1,000 babies, and saved that mean for later {draw arrow from sample to sampling distribution}
+
+---
+
+### Previously: Repeatedly sampling from the *population*
+
+![](after_2_samples.png)
+
+???
+
+We continued this process by sampling 1000 new babies, finding their average weight, and saving the average again {draw a second set of arrows}
+
+---
+
+### Previously: Repeatedly sampling from the *population*
+
+![](after_3_samples.png)
+
+???
+
+and we did it again, and again, and again {draw a third set of arrows}
+
+---
+
+### Previously: Repeatedly sampling from the *population*
+
+![](after_1000_samples.png)
+
+???
+
+We repeated this process 1,000 times, until we had collected 1,000 total samples, and saved up 1,000 sample means {draw x1000 by arrows}
+
+This final result, the distribution in the bottom right, was our sampling distribution. Here we directly observed the effects of sampling variability on the sample mean - some means were a bit higher than the population average mu, some were a bit lower than the population average, but overall most of them were quite close.
+
+With this process finished, we can use this distribution to inform our expectations about what average birth weights are likely to be observed in North Carolina in 2004, and which aren't.
+
+However, we were able to construct this distribution because we were able to quickly and efficiently collect 1,000 independent samples - we had the entire population loaded into R, and could use a computer to quickly take sample after sample.
+
+If we were facing this problem is real life, we probably wouldn't be able to do this. In fact, we'd probably only be able to collect a single sample of data. {erase all but one of the pop to sample arrows}. But thanks to Bootstrap re-sampling, we can still construct a sampling distribution of 1,000 different means, using just the observations in this single sample.
+
+---
+
+### Bootstrap Re-sampling Procedure
+
+.pull-left[
+1. Collect a sample of `\(N\)` observations
+{{content}}
+]
+
+.noverticalmargin.pull-right[
+&lt;img src="inventing_the_bootstrap.png" width="320px" height="600px" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+The Bootstrap is actually remarkably simple, yet profound technique. As I mentioned, you start with just a single sample of data. The logic is that since you already consider your sample representative of the population, you take that idea to it's natural conclusion and treat your sample as if it WAS the population.
+
+--
+
+2. Randomly re-sample `\(N\)` observations from your original sample *with replacement* (i.e., use your first data set to make a second!)
+{{content}}
+
+???
+
+So, to collect the many different samples you're after, you randomly re-sample the observations from your original sample *with replacement* - think of it like place all your observations in a bag, drawing one out, writing down it's value and putting it back in the bag, and repeating this until you have a second data set based on your first
+
+
+--
+
+3. Compute the mean of your re-sampled observations, save it
+{{content}}
+
+???
+
+Then take the mean of your second, new data set, save it
+
+--
+
+4. Repeat as many time as desired - you now have a bootstrapped sampling distribution
+
+Basically, you treat your sample as a mini population, and sample from it again and again!
+
+???
+
+Then you repeat this process again and again until you've got enough means for a sampling distribution. To summarize it briefly, you treat your sample as it's own mini population, and sample from it again and again!
+
+---
+
+class: smaller-code
+layout: false
+
+
+### Sampling vs Re-sampling (bootstrapping)
+
+
+```r
+ncbirths_population &lt;- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths_population.csv",
+                                stringsAsFactors = FALSE) %&gt;%
+  filter(!is.na(weight))
+```
+
+???
+
+Here's an example of how we might do this in R. We'll start by importing the full population of north carolina births, removing any missing birth weight observations using dplyr's filter function.
+
+--
+
+.pull-left[
+#### Sampling
+
+```r
+sampling_dist &lt;-
+  select(ncbirths_population, weight) %&gt;%
+  rep_sample_n(size=500, reps=1000) %&gt;%
+  group_by(replicate) %&gt;%
+  summarise(avg_weights = mean(weight))
+
+glimpse(sampling_dist)
+```
+
+```
+## Rows: 1,000
+## Columns: 2
+## $ replicate   &lt;dbl&gt; 1, 2, 3, 4, 5, 6,…
+## $ avg_weights &lt;dbl&gt; 7.23, 7.17, 7.19,…
+```
+]
+
+???
+
+Let's start by referring back to how we would estimate the sampling distribution using many samples from the population, and then we'll compare this technique with the new bootstrap method.
+
+The first thing I've done is select just the weight column, since that's the only variable I'm interested in. You don't have to do this step, but I like doing because it makes it a bit more clear what we're sampling.
+
+Then I use the rep_sample_n function from the moderndive package to collect 1000 different samples of 500 birth weights. The individual sample each weight belongs to is encoded by the replicate column, so to find the mean birth weight of each individual sample, I first group the data frame by the replicate column, and use the summarise function from dplyr to find the 1,000 average birth weights. We can see the first few average birth weights by taking a glimpse of the sampling_dist data frame.
+
+--
+
+.pull-right[
+#### Re-sampling (bootstrapping)
+
+```r
+one_sample &lt;- 
+  select(ncbirths_population, weight) %&gt;%
+* rep_sample_n(size=500, reps=1) %&gt;%
+  ungroup()
+
+bootstrap_dist &lt;-
+  select(one_sample, weight) %&gt;%
+  rep_sample_n(size=500, reps=1000,
+*              replace = TRUE) %&gt;%
+  group_by(replicate) %&gt;%
+  summarise(avg_weights = mean(weight))
+
+glimpse(bootstrap_dist)
+```
+
+```
+## Rows: 1,000
+## Columns: 2
+## $ replicate   &lt;int&gt; 1, 2, 3, 4, 5, 6,…
+## $ avg_weights &lt;dbl&gt; 7.23, 7.14, 7.15,…
+```
+]
+
+???
+
+The process is similar for the bootstrap, with two important differences. The first step we take is to collect one single sample of birth weights, which I've done using the rep_sample_n function by setting the reps argument to 1, and I've saved the 500 randomly selected birth weights in the `one_sample` data frame
+
+Then, I use the rep_sample_n function again to re-sample from the original set of 500 birth weights, collecting 1000 additional re-samples of 500 birth weights. Using `replace=TRUE` tells R to never remove an observation from the pool of weights that it has to sample from. This is crucial, because if we removed each birth weight after re-sampling it, we would just get back our original sample in the end, meaning there would be no sampling variability and thus no sampling distribution to speak of.
+
+We see that in the end, the bootstrap technique gives us same type of thing: 1,000 different average birth weights.
+---
+
+class: smaller-code, wider
+
+### Sampling vs Re-sampling (bootstrapping)
+
+.pull-left[
+
+```r
+ggplot(sampling_dist, aes(x=avg_weights)) +
+geom_histogram(binwidth=.025, fill="red") +
+ggtitle("Sampling distribution")
+```
+
+&lt;img src="Bootstrapping_files/figure-html/unnamed-chunk-5-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+```r
+ggplot(bootstrap_dist, aes(x=avg_weights)) +
+geom_histogram(binwidth=.025, fill="forest green") +
+ggtitle("'Bootstrapped' sampling distribution")
+```
+
+&lt;img src="Bootstrapping_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Let's plot the sampling distribution, and the bootstrap approximation to the sampling distribution, for comparison. It appears our bootstrap gives us a fair estimate estimate of the sampling distribution. It's mean appears to be slightly larger, telling us that our original sample mean was a bit larger than the population mean, and it appear to have a slight positive skew which deviates from normality somewhat.
+
+So, there you have it, we've bootstrapped our way into a sampling distribution, by repeatedly re-sampling our original 500 observations, and learned a tractable approach for estimating the sampling distribution of the mean that doesn't rely on the central limit theorem.
+
+---
+
+class: wider
+
+### 4 methods for constructing a sampling distribution
+
+        
+&lt;table id="sampling-dist-methods"&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style="text-align:center"&gt;&lt;/th&gt;
+      &lt;th style="text-align:center"&gt;Using the C.L.T.&lt;/th&gt;
+      &lt;th style="text-align:center"&gt;Manually (e.g., simulations)&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style="text-align:center"&gt;Using entire population&lt;/td&gt;
+      &lt;td&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Perform a census to find \(\mu\) and \(\sigma^2\) &lt;span style="font-style: italic;"&gt;exactly&lt;/span&gt;&lt;/li&gt;
+          &lt;li&gt;Apply the Central Limit Theorem (assuming samples of \(N\) observations)&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+      &lt;td&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Collect &lt;span style="font-style: italic;"&gt;many&lt;/span&gt; samples of \(N\) observations&lt;/li&gt;
+          &lt;li&gt;Find the mean of each sample&lt;/li&gt;
+          &lt;li&gt;Find the mean of means and the variance of means&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style="text-align:center"&gt;Using a single sample&lt;/td&gt;
+      &lt;td&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Collect &lt;span style="font-style: italic;"&gt;one&lt;/span&gt; sample of \(N\) observations&lt;/li&gt;
+          &lt;li&gt;Use sample mean to &lt;span style="font-style: italic;"&gt;estimate&lt;/span&gt; \(\mu\) and \(\sigma^2\)&lt;/li&gt;
+          &lt;li&gt;Apply the Central Limit Theorem using your estimates and sample size&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+      &lt;td&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Collect &lt;span style="font-style: italic;"&gt;one&lt;/span&gt; sample of \(N\) observations&lt;/li&gt;
+          &lt;li&gt;"Bootstrap": Collect many re-samples of size N&lt;/li&gt;
+          &lt;li&gt;Find the mean of each re-sample&lt;/li&gt;
+          &lt;li&gt;Find the mean of means and the variance of means&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+???
+
+Let's add the bootstrap method to the set of techniques we've learned for constructing a sampling distribution. To help you conceptually organize them, I've described these methods in  table which divides them up according to what set of observations your rely on to construct the distribution, the entire population or a single sample, and whether you construct the distribution using the Central Limit Theorem to determine it's properties, or manually construct it by computing many different sample means.
+
+Only by performing a census can we ever know the true sampling distribution, but performing a census is unrealistic in nearly every situation, and would also render the sampling distribution moot - the reason to care about the sampling distribution is because of sampling variability, and if you don't have to take samples, then you don't really have to care care about the sampling distribution! So let's cross this one off.
+
+But even if knowing the exact truth may be impossible, we still have options, as the other three techniques in this table are ways of estimating the true sampling distribution {draw arrows}
+
+---
+
+class: wider
+
+### 4 methods for constructing a sampling distribution
+
+&lt;img src="Bootstrapping_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+
+I've also constructed a visual representation of these four methods as applied to the north carolina birth weights. In the top left we have the true sampling distribution, which is a normal distribution whose mean and variance were obtained by performing a census to learn the population mean and variance, and then applying the central limit theorem to construct the sampling distribution.
+
+Below it, the green normal distribution shows an estimate of the true sampling distribution based on collecting a single sample of 500 birth weights, using the sample mean and variance to estimate the population mean and variance, and then applying the central limit theorem to construct the sampling distribution. I've left the true sampling distribution in the background to remind ourselves of what distribution this method is estimating.
+
+In the top right, we have the manually constructed sampling distribution we saw back on slide 11, and below it we have the bootstrapped estimate of that sampling distribution. And for reference, I've left the red sampling distribution in the background to remind us what the bootstrap method is designed to estimate.
+
+All right statisticians, that's all for today's video. Next time, we'll be putting our two green distributions to work estimating confidence intervals that summarize what the sampling distribution tells us about sampling variability. So, I'll see you in the next one.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

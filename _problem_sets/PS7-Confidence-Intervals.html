@@ -2872,7 +2872,7 @@ textbooks &lt;- read.csv(&quot;https://wjhopper.github.io/SSW-858/data/ucla_text
 <h1>Data Exploration</h1>
 <div id="exercise" class="section level2">
 <h2>Exercise</h2>
-<p>Report the sample mean and sample variance of new textbook prices at the campus bookstore and on Amazon.com. Compare the statistics you find for the campus bookstore to those on Amazon.com.</p>
+<p>Report the sample mean and sample variance of new textbook prices at the campus bookstore and new textbook prices on Amazon.com. Compare the statistics you find for the campus bookstore to those on Amazon.com.</p>
 <div id="solution" class="section level3">
 <h3>Solution</h3>
 </div>
@@ -2880,7 +2880,7 @@ textbooks &lt;- read.csv(&quot;https://wjhopper.github.io/SSW-858/data/ucla_text
 </div>
 <div id="bootstrap-confidence-intervals" class="section level1">
 <h1>Bootstrap Confidence Intervals</h1>
-<p>For exercises in this section, feel free use the <code>infer</code> package workflow described in <a href="https://moderndive-bert.netlify.app/8-confidence-intervals.html#infer-workflow">ModernDive Chapter 8.4</a>, or do things the “old fashioned” way (e.g., using <code>dplyr</code>, <code>ggplot</code> and <code>rep_sample_n</code> directly).</p>
+<p>For exercises in this section, feel free use either the <code>infer</code> package workflow described in <a href="https://moderndive.com/8-confidence-intervals.html#infer-workflow">ModernDive Chapter 8.4</a>, or do things the “old fashioned” way (e.g., using <code>dplyr</code>, <code>ggplot</code> and <code>rep_sample_n</code> directly). Just be sure not to “mix and match” i.e., don’t start off using <code>rep_sample_n</code> directly, and switch to using <code>infer</code> package functions halfway through (because they won’t work correctly!).</p>
 <p><strong>Note:</strong> Just like last week’s problem set, don’t forget to seed your computer’s Random Number Generator using the <code>set.seed()</code> function before doing any computations that require random sampling! That way, you’ll get the same sample every time you run that code chunk or knit your document. To help remind you, I’ll include a “suggested seed” for every exercise where random sampling is necessary.</p>
 <div id="exercise-1" class="section level2">
 <h2>Exercise</h2>
@@ -2903,7 +2903,7 @@ textbooks &lt;- read.csv(&quot;https://wjhopper.github.io/SSW-858/data/ucla_text
 <div id="exercise-3" class="section level2">
 <h2>Exercise</h2>
 <p>Estimate the <strong>90%</strong> confidence interval for new textbook prices at the campus bookstore data based on just the original sample (i.e., using the <code>textbooks</code> data frame without bootstrapping).</p>
-<p><strong>Hints</strong> The central limit theorem will be useful, as will the quantile conversion formula from <a href="https://moderndive-bert.netlify.app/8-confidence-intervals.html#se-method">ModernDive 8.3.2</a>.</p>
+<p><strong>Hints</strong> The central limit theorem will be useful, as will the quantile conversion formula from <a href="https://moderndive.com/8-confidence-intervals.html#se-method">ModernDive 8.3.2</a>.</p>
 <div id="solution-3" class="section level3">
 <h3>Solution</h3>
 </div>
@@ -2915,13 +2915,27 @@ textbooks &lt;- read.csv(&quot;https://wjhopper.github.io/SSW-858/data/ucla_text
 <h3>Solution</h3>
 </div>
 </div>
+</div>
+<div id="interpreting-confidence-intervals" class="section level1">
+<h1>Interpreting Confidence Intervals</h1>
 <div id="exercise-5" class="section level2">
 <h2>Exercise</h2>
-<p>Re-sample 100 more data sets from the original <code>textbooks</code> data set, but don’t combine them together to create a bootstrap sampling distribution. Instead, find the mean and variance of the new textbook prices at the campus bookstore in each one, and create a 90% confidence interval for each re-sampled data set (using the same method you used in Exercise #4).</p>
-<p>Assume that the true average price of a new textbook at the campus bookstore, across the entire population of new textbooks at UCLA campus bookstore, was the same as the average price you calculated in Exercise 1.</p>
-<p>How many of your 100 confidence interval do you expect to capture the mean of the population? How many actually did?</p>
-<p><strong>Suggested Seed: set.seed(42)</strong></p>
+<p>Inspired by your analyses, your friend Francesca decides to sample 100 new textbook prices at their college’s bookstore, and construct an 85% confidence interval around the mean new textbook price. What is the probability that their confidence interval contains the true population mean of new textbook prices? Briefly explain how you reached this answer.</p>
 <div id="solution-5" class="section level3">
+<h3>Solution</h3>
+</div>
+</div>
+<div id="exercise-6" class="section level2">
+<h2>Exercise</h2>
+<p>Francesca 85% confidence interval ranges from $68 (lower boundary) to $87 (upper boundary). Does their confidence interval contain the true population mean? If so, how can you tell? If not, can you report the probability that the true population mean of new textbook prices lies between $68 and $87? Be sure to exaplin your answers.</p>
+<div id="solution-6" class="section level3">
+<h3>Solution</h3>
+</div>
+</div>
+<div id="exercise-7" class="section level2">
+<h2>Exercise</h2>
+<p>Explain to Francesca has been learned by finding that the 85% Confidence Interval ranges from $68 to $87?</p>
+<div id="solution-7" class="section level3">
 <h3>Solution</h3>
 </div>
 </div>

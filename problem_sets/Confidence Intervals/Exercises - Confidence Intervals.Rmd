@@ -35,13 +35,14 @@ textbooks <- read.csv("https://wjhopper.github.io/SSW-858/data/ucla_textbooks_f1
 # Data Exploration
 
 ## Exercise
-Report the sample mean and sample variance of new textbook prices at the campus bookstore and on Amazon.com. Compare the statistics you find for the campus bookstore to those on Amazon.com.
+Report the sample mean and sample variance of new textbook prices at the campus bookstore and new textbook prices on Amazon.com. Compare the statistics you find for the campus bookstore to those on Amazon.com.
 
 ### Solution
 
 
 # Bootstrap Confidence Intervals
-For exercises in this section, feel free use the `infer` package workflow described in [ModernDive Chapter 8.4](https://moderndive-bert.netlify.app/8-confidence-intervals.html#infer-workflow), or do things the "old fashioned" way (e.g., using `dplyr`, `ggplot` and `rep_sample_n` directly).
+
+For exercises in this section, feel free use either the `infer` package workflow described in [ModernDive Chapter 8.4](https://moderndive.com/8-confidence-intervals.html#infer-workflow), or do things the "old fashioned" way (e.g., using `dplyr`, `ggplot` and `rep_sample_n` directly). Just be sure not to "mix and match" i.e., don't start off using `rep_sample_n` directly, and switch to using `infer` package functions halfway through (because they won't work correctly!).
 
 **Note:** Just like last week's problem set, don't forget to seed your computer's Random Number Generator using the `set.seed()` function before doing any computations that require random sampling! That way, you'll get the same sample every time you run that code chunk or knit your document. To help remind you, I'll include a "suggested seed" for every exercise where random sampling is necessary.
 
@@ -65,7 +66,7 @@ Find the 95% confidence interval of the bootstrap distribution. What does this i
 ## Exercise
 Estimate the **90%** confidence interval for new textbook prices at the campus bookstore data based on just the original sample (i.e., using the `textbooks` data frame without bootstrapping).
 
-**Hints** The central limit theorem will be useful, as will the quantile conversion formula from [ModernDive 8.3.2](https://moderndive-bert.netlify.app/8-confidence-intervals.html#se-method).
+**Hints** The central limit theorem will be useful, as will the quantile conversion formula from [ModernDive 8.3.2](https://moderndive.com/8-confidence-intervals.html#se-method).
 
 ### Solution
 
@@ -76,14 +77,21 @@ Why is the interval created in Exercise 4 narrower than the one created in Exerc
 ### Solution
 
 
+# Interpreting Confidence Intervals 
+
 ## Exercise
-Re-sample 100 more data sets from the original `textbooks` data set, but don't combine them together to create a bootstrap sampling distribution. Instead, find the mean and variance of the new textbook prices at the campus bookstore in each one, and create a 90% confidence interval for each re-sampled data set (using the same method you used in Exercise #4).
+Inspired by your analyses, your friend Francesca decides to sample 100 new textbook prices at their college's bookstore, and construct an 85% confidence interval around the mean new textbook price. What is the probability that their confidence interval contains the true population mean of new textbook prices? Briefly explain how you reached this answer.
 
-Assume that the true average price of a new textbook at the campus bookstore, across the entire population of new textbooks at UCLA campus bookstore, was the same as the average price you calculated in Exercise 1.
+### Solution
 
-How many of your 100 confidence interval do you expect to capture the mean of the population? How many actually did?
 
-**Suggested Seed: set.seed(42)**
+## Exercise
+Francesca 85% confidence interval ranges from \$68 (lower boundary) to \$87 (upper boundary). Does their confidence interval contain the true population mean? If so, how can you tell? If not, can you report the probability that the true population mean of new textbook prices lies between \$68 and \$87? Be sure to exaplin your answers.
+
+### Solution
+
+## Exercise
+Explain to Francesca has been learned by finding that the 85% Confidence Interval ranges from \$68 to \$87?
 
 ### Solution
 

@@ -62,6 +62,7 @@ collections:
          - "Sampling Distributions"
          - "The Central Limit Theorem"
          - "The Bootstrap"
+         - "Constructing Confidence Intervals"
    problem_sets:
       order:
          - "Intro to R and RStudio"

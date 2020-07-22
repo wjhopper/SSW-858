@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Finding Confidence Intervals</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Will Hopper" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+    <link rel="stylesheet" href="sampling_dist_methods.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Finding Confidence Intervals
+### Will Hopper
+
+---
+
+
+
+
+### What is a Confidence Interval?
+
+A confidence interval (CI) consists of two numbers: a lower boundary, and an upper boundary
+
+???
+
+Hello statisticians! In today's video, we're going to finally put our sampling distributions we've taken so much time constructing and understanding to good use. We're going to use them to construct confidence intervals, which is the primary way statisticians convey uncertainty in their sample statistics.
+
+At a practical level, a confidence interval is just two numbers - a lower number, and a higher number. But, they are two very useful numbers.
+
+--
+
+These two numbers inform you about the magnitude of sampling variability your estimator (e.g., the sample mean) has by telling you how wide the sampling distribution is
+  - In other words: If you were to collect data again, what range of values is your next sample mean likely to fall in?
+
+???
+These two numbers inform you about the magnitude of sampling variability your estimator, such as the sample mean, has, because they tell you something about how wide the sampling distribution is.
+
+You can think of the upper and lower boundaries as telling you: if you were to collect data again, what range of values is your next sample mean likely to fall in?
+
+--
+
+The end points of the CI are determined based on the percentage of the sampling distribution you want to lie in between them
+
+???
+
+At the heart of finding the endpoints of your confidence interval is a choice - how much of the sampling distribution do you want to capture between your two endpoints? 
+
+But, having to make this choice raises a question - why is a choice involved at all? If our goal is to provide a range of likely values for the next sample mean, why don't we simply report the minimum and maximum of the sampling distribution, and go home a bit early?
+
+---
+
+### Why do we need thresholds?
+
+
+
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+To see why we have to choose a threshold to divide an unlikely sample mean from a likely sample mean, consider the form of the normal distribution. The normal distribution is critical to this topic, because as we've learned, the true sampling distribution of the mean is a normal distribution with the same mean as the population, and a variance equal to the population variance divided by the sample size.
+
+Excellent, so lets draw such a distribution. I'm going to draw a normal distribution with a mean of 0 and a variance of 1. A normal distribution with a mean of 0 and a variance of 1 is a very useful distribution, so useful that it gets it's own name: the *standard* normal distribution. I mention this because we're going to use some of the standard normal distribution's convenient properties in little bit, but for now, pretend this is our sampling distribution, and let's try to find the maximum of this distribution.
+
+It looks like the curve hits 0 around an x value of 4. If this is true, then any value greater than 4 should have a likelihood of 0, or in other words, be impossible to observe. Let's zoom in to see if we can find an exact x value where the likelihood hits 0.
+
+---
+
+### Why do we need thresholds?
+
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+On the left, I've circled the zoomed in region in blue, and on the right, we've getting an up close look at what the normal distribution curve is doing as x gets closer and closer to 4. While it appears that the curve has a height of zero when looking at the plot on the left, when we take a closer look, we see that the curve still hasn't hit the axis yet.
+
+In other words, under the standard normal distribution, there is still some chance of observing a value as large as four. A very small chance, but a chance nonetheless.
+
+Let's keep going, and see what the curve is doing as we go further out beyond 4.
+
+---
+
+### Why do we need thresholds?
+
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+As we examine the range from 4 to 4.5, we see the same thing - the height of the curve is decreasing but it still hasn't hit zero yet! We are maddeningly close, we are less than one one thousandth away from zero, but we can't quite seem to get there!
+
+---
+
+### Why do we need thresholds?
+
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+As you may have predicted, we see the same thing happening when we examine the curve between 4.5 and 5 - still not zero! At this point, you may be wondering if the height of the curve will ever be 0. As it turns out, the answer is no! The normal distribution has an infinite support - which is a fancy way of saying that all values from negative infinity to positive infinity have some likelihood of being observed under the normal distribution!
+
+This brings us back to the reason *we* have to choose a threshold to divide an unlikely sample mean value from a likely sample mean, instead of reporting the max and min - it's because the sampling distribution we created using the central limit theorem doesn't even have a maximum and minimum!
+
+So, we have to draw the line somewhere ourselves, which isn't really too much of a loss. No one will be upset with your for exercising common sense and arguing that even though the normal distribution says it's technically possible, you're going to rule out the possibility of observing a sample mean of 1 billion sometime in the future when the population mean is 0.
+
+So, now that we understand the need for consciously setting a threshold between likely and unlikely values, let's learn how we get the job done in practice. Since every variable is on a different scale, we can't set any hard and fast rules for every situation like "values above 10 and less than -10 are unlikely" - that would fail miserably for incomes in dollars, or life expectancy in years. What we need is a way to tailor our cutoffs to the needs of every possible sampling distribution.
+
+---
+
+### Thresholds by percentage of the distribution
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+The best way to do this is by first specifying our cutoffs in terms of what *percentage* of the distribution lies between them. That way, we can shift and stretch our distribution to have any mean and variance, and our cutoff rule will still make sense.
+
+The most commonly used threshold is the symmetric 95% interval That is, we set our upper and lower boundaries at values that are equidistant to the mean, and contain 95% of the distribution between them. So, if our distribution was 100 numbers, we're searching for two numbers that hold 95 of the 100 values in between them, and both of these numbers are the same distance away from the mean.
+
+---
+
+### How can we find our cutoffs?
+
+.noverticalmargin[
+What 2 values equidistant from the mean have 95% of the distribution in between?
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+So, if we decide to use the symmetric 95% interval, the question then becomes, what are the actual values that contain 95% of the distribution between them?
+
+As it turns out, the best way to make progress towards answering this question is by reframing. We're going to appoach this problem in terms of the percentage of the distribution *below* each of the cutoff values. 
+
+---
+
+### How can we find our cutoffs?
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+Take a look at the area in grey, the regions of the distribution that we've decided will be outside our confidence interval. Since we've purposefully designed our confidence interval to hold 95% of the distribution, we know that 5% of the distribution will fall outside of our confidence interval.
+
+And because we purposefully made our interval symmetric - that is, the upper boundary is the same distance from the mean as the lower boundary - we know this left over 5% is divided equally between the two tails. Thus, we know that 2.5% of the distribution is below the lower cutoff, and 2.5% of the distribution is above the upper cutoff.
+
+
+---
+
+### How can we find our cutoffs?
+
+.noverticalmargin[
+The lower cutoff has 2.5% of values below it
+
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-9-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+With this in mind, lets think again about our two cutoffs. We just determined that our lower boundary is going to be the number that has 2.5% of the distribution to the left of it. 
+
+
+---
+
+### How can we find our cutoffs?
+
+.noverticalmargin[
+The upper cutoff has &lt;span style="color: darkgrey;"&gt;2.5%&lt;/span&gt; + &lt;span style="color: royalblue;"&gt;95%&lt;/span&gt; = 97.5% of the distribution below it
+
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+And, we can figure out what percent of the distribution is to the left of our upper cut off by combining what we know about the percentage of the distribution below our lower cutoff, and what percentage of the distribution our confidence interval, the region shaded in blue, contains.
+
+Since we know 2.5% of the distribution is to the left of the lower cutoff, and 95% of the distribution is contained in our confidence interval, then 97.5% of the distribution is below the upper boundary. Thus, our upper boundary will be the value that has 97.5% of the distribution below it!
+
+
+---
+
+### Why is this reframing useful?
+
+Because we have computational and mathematical tools that are very good at finding values that have a specific proportion of other values below them!
+
+???
+
+You may be wondering why I said that reframing the question from "what two values equidistant from the mean have 95% of the distribution between them" into "what value has 2.5% of the distribution below it" and "what value has 97.5% of the distribution below it" is a helpful thing to do.
+
+The reason is because of the computational and mathematical tools we have available, which are very at finding values that have a specific proportion of other values below them.
+
+--
+
+For a vector of numbers (like the average births representing the bootstrap sampling distribution), we can use the `quantile` function
+  - Another word for quantiles is *percentiles*
+  - The median is the same as the .5 quantile
+  
+  ```r
+  median(1:6)
+  ```
+  
+  ```
+  ## [1] 3.5
+  ```
+  
+  ```r
+  quantile(1:6, .5)
+  ```
+  
+  ```
+  ## 50% 
+  ## 3.5
+  ```
+
+???
+
+For example, if you have a distribution represented by a vector of numbers, like we do when we have a sample from a population, or when we have the bootstrapped distribution of sample means, we can use the `quantile` function.
+
+We supply the vector of numbers, and a proportion of our choosing, and ask the quantile function to find the value that has that specific proportion of the values below it! And before you think this is some exotic technique, recall that we did exactly the same thing when we found the median, first quartile and third quartiles of our samples, way back in the first few weeks of the course.
+
+The median value is defined by having 50% of the values below it, so we could just have easily used the quantile function and asked for the .5 quantile of our sample, instead of using the median function.
+
+As a side note, the ModernDive book uses the term percentiles in this context. This is just a stylistic choice - the term "percentile" and the term "quantile" have the exact same meaning.
+
+---
+
+### The bootstrap percentiles
+
+Start by obtaining a bootstrap distribution
+
+```r
+bootstrap_dist &lt;- select(ncbirths, weight) %&gt;%
+  rep_sample_n(size=1000, reps=1000, replace = TRUE) %&gt;%
+  group_by(replicate) %&gt;%
+  summarise(avg_weights = mean(weight))
+
+glimpse(bootstrap_dist)
+```
+
+```
+## Rows: 1,000
+## Columns: 2
+## $ replicate   &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17…
+## $ avg_weights &lt;dbl&gt; 7.16803, 7.07900, 7.13567, 7.08926, 7.08704, 7.11741, 7.1…
+```
+
+???
+
+With all the background out the way, let's get our hands dirty, and find the 95% confidence interval for our bootstrapped sampling distribution of the mean birth weight.
+
+I'm going to start with our sample of 1000 birth weights from the classic ncbirths data set, use the rep_sample_n function to re-sample 1000 more data sets based on our original data set, and take the mean of each replicate.
+
+---
+
+### The bootstrap percentiles
+
+Then *summarize* the distribution with two numbers: the .025 quantile (the lower 2.5% cutoff) and the .975 quantile (the upper 97.5% cutoff)
+
+.pull-left[
+
+```r
+summarise(bootstrap_dist,
+          lower = quantile(avg_weights,
+                           .025),
+          upper = quantile(avg_weights,
+                           .975)
+          )
+```
+
+```
+## # A tibble: 1 x 2
+##   lower upper
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1  7.01  7.20
+```
+]
+
+.pull-right[
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-14-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Then, I'll use the quantile function to find the value that has 2.5% of all 1,000 means below it, and the value that has 97.5 of all 1,000 means below it.
+
+One the right, I've plotted all 1,000 means from our bootstrap distribution using a histogram, and overlayed a representation of the 95% confidence interval on top of the histogram. The green shaded area represents the region of the distribution that falls inside the confidence interval, and the two green bars on either side represent the endpoints, which are 7.0 and 7.2.
+
+---
+
+### An algorithm for finding your thresholds
+
+1. Choose your confidence level `\(p\)`, with `\(0 &lt; p &lt; 1\)`
+
+--
+
+2. Find the amount left over in the tails, `\(\alpha\)`, using `\(\alpha = 1-p\)`
+
+--
+
+3. Your lower threshold is `\(\frac{\alpha}{2}\)`
+
+--
+
+4. You upper threshold is `\(p + \frac{\alpha}{2}\)`
+
+Remember *not* to use percentages for this, use proportions.
+
+???
+
+If you wanted to find the endpoints of an interval the represented a different degree of confidence, you wouldn't use .025 and .975 any more. Instead, your proportional cutoff depends on your chosen confidence level.
+
+Here, I've outlined how to find your proportional cutoff values for an arbitrary confidence level p. After selecting your confidence level, determine how much of the distribution it leaves out by subtracting your confidence level from 1. We'll call this left over proportion alpha.
+
+Then, take your alpha value, and divide in half to find your lower proportion cutoff. In the 95% confidence example, our lower proportional cutoff was .025, because 5% of the distribution was left in the tails, and .05 divided by two is .025.
+
+Then, add your confidence level to your lower proportional cutoff to find your upper proportion cutoff. In the 95% confidence example, our upper proportional cutoff was .975, because our lower proportional cutoff was .025 and our confidence level was .95, and those two things add up to .975
+
+Remember *not* to use percentages for this, use proportions, because that's what the functions we use in R will expect.
+
+---
+
+### Why is this reframing useful?
+
+Because we have computational and mathematical tools that are very good at find the proportion of things less than a given value!
+
+.grey[
+For a vector of numbers (like the average births representing the bootstrap sampling distribution), we can use the quantile function
+]
+
+For the standard normal distribution, we can use the `qnorm` function (which is short for the `normal quantile` function)
+
+???
+
+Now, let's come back to the normal distribution. We've covered how to find the confidence interval after estimating the sampling distribution with the bootstrap method, but what about the central limit theorem method?
+
+Luckily, we have a tool that can compute the quantiles of the normal distribution the same way the quantile function computed quantiles based on a vector of numbers. That tool is the `qnorm` function, which is short for the `normal quantile` function.
+
+---
+
+### The *standard* normal distribution quantiles
+
+.pull-left[
+2.5% of the *standard* normal distribution is more than 1.96 *below* the mean
+
+```r
+qnorm(.025)
+```
+
+```
+## [1] -1.959964
+```
+
+2.5% of the *standard* normal distribution is more than 1.96 *above* the mean
+
+```r
+qnorm(.975)
+```
+
+```
+## [1] 1.959964
+```
+]
+
+.pull-right[
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-17-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Assuming we wanted to construct a 95% confidence interval, we can use the `qnorm` function to start finding our endpoints. We tell the `qnorm` function the proportion we're interested in, and it tells us what value has that proportion of the normal distribution below it.
+
+Here we can see that our lower boundary is approximately negative 1.96, because 2.5% of the *standard* normal distribution is below negative 1.96, and that our upper endpoint approximately 1.96, because 97.5% of the *standard* normal distribution is below 1.96.
+
+I've placed emphasis on the *standard* part of standard normal, to remind us that the negative and positive 1.96 threshold applies to a normal distribution with a mean of 0 and a standard deviation of 1.
+
+---
+
+### *Our* sampling distribution
+
+.pull-left[
+How can it help us find the cutoffs for *our* sampling distribution?
+
+
+```r
+mu_hat &lt;- mean(ncbirths$weight)
+sigma_sq_hat &lt;- var(ncbirths$weight)
+
+mu_hat_x_bar &lt;- mu_hat
+sigma_sq_hat_x_bar &lt;- sigma_sq_hat/1000
+
+mu_hat_x_bar
+```
+
+```
+## [1] 7.104389
+```
+
+```r
+sigma_sq_hat_x_bar
+```
+
+```
+## [1] 0.002269123
+```
+]
+
+.pull-right[
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-19-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+I bring this up because it means we have to do a little more work beyond just using the `qnorm` function. Negative and positive 1.96 bound 95% of the standard normal distribution, but what the normal distribution WE really care about, the sampling distribution of mean birth weights we estimated using the central limit theorem. 
+
+Our sampling distribution has a mean of 7.1, and a variance of .0022, much different from the standard normal distribution. To see how bad the problem is, look at the two plots on the right side here. The standard normal distribution is shown on the top, and our sampling distribution is shown on the bottom. Negative and positive 1.96 may contain 95% of the standard normal distribution, but it's clear those two values are no where near close to containing 95% of **our** sampling distribution.
+
+---
+
+### The normal distribution quantiles
+
+.pull-left[
+The units of the standard normal distribution are *standard deviations* (hence the name!)
+
+And because the mean is 0, this means we traveled 1.96 units away from the mean (in both directions) to find our cutoffs
+
+Thus, under the normal distribution, our cutoffs are 1.96 *standard deviations away from the mean*
+
+]
+
+.pull-right[
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-20-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+But fortunately, we have a path to salvation. We can connect our sampling distribution to the standard normal distribution by seeing our negative and positive 1.96 cutoffs in a new light.
+
+I've been calling this distribution the standard normal distribution the entire time, and that name is no accident. Remember, this distribution has a standard deviation of 1. This means that moving to the left or the right along the x axis by 1 unit means you moved the same distance as one standard deviation. Thus, the units of the standard normal distribution ARE standard deviations.
+
+People often get confused by this equivalence, but it's really no more complicated than saying two units of measurement are the same. If I tell you I weighed 200 pounds, and that 1 blargle equals 1 pound, you would immediately know that I weighed 200 blargles. The same thing is going on with the "x" axis, whatever "x" is, and the standard deviation. Since the standard deviation is 1, and standard deviation is measured in the same units as x, I know that one "x" is the same amount as one standard deviation. Similarly, if the standard deviation was 2, I would know that one "x" is the same as half of a standard deviation.
+
+The fact that measuring things in terms of "x's", and measuring them in terms of standard deviations are the same thing when the standard deviation is 1 means that the cutoffs of negative 1.96 and positive 1.96 can be thought of as 1.96 *standard deviations* under this normal distribution. Further more, since the mean of the distribution is zero, the cutoffs of negative 1.96 and positive 1.96 can be thought of as 1.96 *standard deviations away from the mean*. In other words, under the normal distribution, our cutoffs are 1.96 *standard deviations away from the mean*
+
+---
+
+### The normal distribution quantiles
+
+.pull-left[
+We can think of finding the cutoffs using this formula:
+
+`$$\text{mean} \pm \text{# of s.d.'s} \times \text{size of s.d.'s}$$`
+
+- The `mean` tells you where to start
+- The `# of s.d.'s` tells you how many steps to take
+- The `size of s.d.'s` tells you how big the steps are
+
+So, for the standard normal distribution and a 95% CI, you would use: `\(0 \pm 1.96 \cdot 1\)`
+]
+
+.pull-right[
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-21-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Realizing this gives us a new way to think about the cutoffs that we found initially based on percentages. We can find our cutoffs by starting at the mean of the distribution, going to right by a certain number of standard deviations, and by going to the left by a certain number of standard deviations.
+
+We can write down this new perspective in this verbal formula: our cutoffs are equal to the mean, plus or minus the number of standard deviations you wish to travel, times the size of the standard deviations you are traveling.
+
+You can think of the mean as the starting point for your travels, the number of standard deviations as the number of steps you want to take, and the standard deviation itself as the size of the steps you want to take.
+
+Under this perspective, the properties of the distribution tell you the starting point and the size of the steps, and you choose the number of steps you want to take based on your confidence level - a higher desired confidence level means taking more steps to the left and right to capture more of the distribution.
+
+---
+
+### The normal distribution quantiles
+
+.pull-left[
+So to convert the `\(\pm\)` 1.96 standard deviations into cutoffs appropriate for our distribution we can:
+
+- Shift the interval "sideways" by adding the mean of our distribution - giving it a new center
+- Thus, the `\(\pm\)` 1.96 standard deviations journey begins at the mean of **our** distribution 
+
+`$$(0 + 7.1) \pm 1.96 \cdot 1$$`
+]
+
+.pull-right[
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-22-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Let's bring this back to our quest to find the cutoffs that capture 95% of our sampling distribution. Using our new way of thinking about the standard normal cutoffs, lets see how we can "move" the 95% confidence interval we found under the standard normal into our sampling distribution of the mean.
+
+Since we know our journey to the cutoffs starts at the mean, we know we need to shift this interval upwards, so this interval becomes centered on the mean of OUR sampling distribution,the same way it is centered on the mean of the standard normal. That way, when we go left or right by 1.96 standard deviations, we're going left or right from the mean of **OUR** distribution, not 0.
+
+Since the mean of the standard normal is 0, and our mean is 7.1, we know we have to shift it upward by 7.1
+
+---
+
+### The normal distribution quantiles
+
+.pull-left[
+So to convert the `\(\pm\)` 1.96 standard deviations cutoffs to cutoffs appropriate for our distribution we can:
+
+- Shift the interval "sideways" by adding the mean of our distribution - giving it a new center
+- Re-scale the interval by multiplying by the standard deviation - giving it a new width
+
+`$$(0 + 7.1) \pm 1.96 \cdot (1 \cdot \sqrt{.0022})$$`
+]
+
+.pull-right[
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-23-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+The second thing we need to do is adjust the size of the steps we take when we move away from the mean towards the tails. Under the standard normal distribution, steps of size one were appropriate. But in our distribution, that's too far, because our standard deviation is much smaller.
+
+Our standard deviation is the square root of .0022, because the variance of our sampling distribution was .0222 and standard deviation is the square root of variance.
+
+So, we must multiply the original interval, which used step sizes of one, by the standard deviation of our distribution, so that we take steps away from the mean according to the magnitude of **OUR** standard deviation.
+
+Because the standard deviation of our distribution is so much smaller than one, we end up greatly shrinking the interval to get it to fit.
+
+---
+
+### The normal distribution quantiles
+
+.pull-left[
+By applying our shifting and re-scaling formula, we find that:
+
+`$$\text{lower} = 7.1 - 1.96 \cdot \sqrt{0.0022} \\
+\text{lower} = 7.011$$`
+
+`$$\text{upper} = 7.1 + 1.96 \cdot \sqrt{0.0022} \\
+\text{upper} = 7.198$$`
+
+`$$CI = \hat{\mu}_\bar{x} \pm 1.96 \cdot \sqrt{\hat{\sigma^2}_\bar{x}}$$`
+
+![](standard_error_CI_formula.png)
+
+]
+
+.pull-right[
+&lt;img src="Constructing-CI_files/figure-html/unnamed-chunk-24-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Finally, we're able to locate the endpoints of our 95% confidence interval. We find that the upper boundary is 7.198, and the lower boundary is 7.01 - quite similar to the interval based on our bootstrap, which is a re-assuring consistency.
+
+Let's take a moment to note the general purpose formula we've just developed - our 95% confidence interval boundaries are the mean of the sampling distribution, plus or minus 1.96 times the standard deviation of the sampling distribution.
+
+Note that this is the same formula you see in ModernDive section 8.3.2, just with different symbols.
+
+Of course, if you wanted a different confidence level, say a 90% confidence interval, or a 99% confidence interval, you would be using a different value than 1.96, because you would need to travel a different number of standard deviations to the left and right to capture the correct amount of the distribution.
+
+---
+
+### Confidence Interval Recap
+
+Confidence intervals communicate uncertainty by telling you about the width of the sampling distribution
+
+--
+
+**You** choose your "confidence level", i.e., how much of the distribution you want to capture inside your CI
+
+--
+
+If you estimate the sampling distribution using the bootstrap, find the endpoints by:
+
+- Using the `quantile` function to find the values corresponding to your two percentage thresholds (see slide 15 for how to find your two percentage thresholds)
+
+--
+
+If you estimate the sampling distribution using the CLT, you find the end points by
+
+- Using the `qnorm` function to find the values to find the values, `\(+q\)` and `\(-q\)`, corresponding to your two percentage thresholds (again, see slide 15)
+- Covert the end points to the corresponding values in *your* sampling distribution using `\(\bar{x} \pm q \times \sqrt{s^2}\)`
+
+???
+
+Whew, OK, we've covered A LOT in today's lecture, so let's try to recap the big picture of what confidence intervals do, and how we find them.
+
+The main purpose of a confidence intervals is to communicate uncertainty by telling you about the width of the sampling distribution - in other words, they tell you range of values that other sample means are likely to fall into.
+
+You choose the level of confidence you desire - higher levels of confidence result in wider ranges. So, a 99% confidence interval is always wider than a 90% confidence interval for a given variable, because it has to extend further to the left and right in order to capture that extra 9% of the distribution.
+
+Finally, we learned two different methods of constructing confidence intervals. Which one you use depends on how you constructed the sampling distribution.
+
+If you estimated the sampling distribution using the bootstrap, you find the endpoints of your confidence interval using the `quantile` function to find the real values corresponding to your two percentage thresholds (see slide 15 for how to find your two percentage thresholds)
+
+If you estimated the sampling distribution using the CLT, you beging finding the end points by using the `qnorm` function to find the values `\(+q\)` and `\(-q\)`, which correspond to your percentage based thresholds in the standard normal distribution, Then you convert those end points to the corresponding values in *your* sampling distribution using the mean plus or minus q times the standard deviation of the sampling distribution.
+
+OK statisticians, that's it for this video, I'll see you in the next one!
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

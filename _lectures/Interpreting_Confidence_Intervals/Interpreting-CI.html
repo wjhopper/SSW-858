@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Interpreting Confidence Intervals</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Will Hopper" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+    <link rel="stylesheet" href="sampling_dist_methods.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Interpreting Confidence Intervals
+### Will Hopper
+
+---
+
+
+
+
+
+### What is a Confidence Interval?
+
+A confidence interval is a range of likely values for future sample means.
+
+???
+
+Hello Statisticians! In today's video, we're going to talk about how to interpret confidence intervals. So, the next time someone stops you on the street, and shows you a 95% confidence interval, you'll know which conclusions you can draw, and which you cannot.
+
+The most useful thing about a confidence interval is that tells you what to expect in the future, because it provides a range of likely values that other sample means will fall into.
+
+--
+
+Specifically, an `\(x\)` percent confidence interval constructed around the population mean will capture `\(x\)` percent of all other sample means
+
+???
+
+The degree of a confidence chosen when constructing the interval is directly related to how often the confidence interval captures other sample means. The higher the confidence, the higher the proportion of sample means you should expect to fall in the range.
+
+Specifically, an `\(x\)` percent confidence interval will capture `\(x\)` percent of all other sample means. So, if you have a 95% confidence interval, you should expect 95% of all other sample means to fall between the upper and lower boundaries of the interval.
+
+--
+
+Last time, our bootstrap distribution of birth weights had a mean of 7.1, and a 95% CI from 7.01 to 7.2
+
+- So, we estimated that 95% of all other average birth weights will be between 7.01 and 7.2 (assuming 1,000 babies per sample)
+
+???
+
+In the previous video, we constructed a bootstrap sampling distribution of the average birth weights in north carolina, using our classic sample of 1,000 births in the ncbirths data set. 
+
+Our CI ranged from 7.1 to 7.2, so we estimated that 95% of all other average birth weights will be between 7.1 and 7.2 (assuming 1,000 babies per sample)
+
+--
+
+All of the above is true - without any caveat - but still, there is more
+
+???
+
+If you stopped the video now, and just remembered the first two points on this slide for the rest of your life, I could die a happy man, because my student's would know how to correctly interpret a confidence interval.
+
+But as you can see, the video does not stop here. The reason this video continues on is because confidence intervals have another very interesting property, one that is directly related to Null Hypothesis Significance Testing, which is the topic Chapter 9 of ModernDive is devoted to.
+
+But it is also one of the most misunderstood topics in all of statistics. So, we will continue on to explain another fact about confidence intervals, and what this fact definitely DOES NOT tell us.
+
+To understand, we must first return to the true sampling distribution of the sample mean, and construct a confidence interval there.
+
+---
+
+### A CI for the true sampling distribution
+
+Find `\(\mu\)` and `\(\sigma^2\)` using `ncbirths_population`, apply CLT to obtain sampling distribution
+&lt;img src="Interpreting-CI_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+Here is the true sampling distribution for the average birth weight of babies in north carolina, assuming 1,000 babies per sample. The reason I get to call this distribution the true sampling distribution is because I have access to the entire population of birth weights in the ncbirths_population data set, so I was able to perform a census and learn the precise values of the population parameters mu and sigma.
+
+Then, I applied the central limit theorem, which tells me what the mean, variance and shape of the sampling distribution will be, given than I have values for the population mean, population variance, and assumed sample size.
+
+Recall that the sampling distribution tells you the relative likelihood of observing a particular sample mean. We know that that sampling distribution is centered on the population mean, and has a normal distribution. So, sometimes a sample mean will be a bit higher than the population mean, sometimes a sample mean will be a bit lower than the population mean, and occasional a sample mean will be very very different from the population mean.
+
+---
+
+### A CI for the true sampling distribution
+
+95% CI means 2.5% "left over" in each tail
+&lt;img src="Interpreting-CI_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's construct the 95% confidence interval using this sampling distribution. Recall that the first step is to divide the remaining 5% of the distribution evenly between the upper and lower tails. Since we know 2.5% will fall below the lower cutoff, and that this distribution is a normal distribution, we can use the qnorm function to find the point on the x axis that has 2.5 of the standard normal distribution below it. 
+
+Likewise, since we know 97.5% of the distribution will fall below the upper cutoff, we can use the qnorm function to find the point on the x axis that has 97.5% of the standard normal distribution below it.
+
+---
+
+### A CI for the true sampling distribution
+
+Find standard normal cutoffs `\(\pm q\)`, convert cutoffs to our dist. using `\(\text{mean} + q \times \text{s.d.}\)`
+&lt;img src="Interpreting-CI_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+In the last video, we saw that the upper and lower quantile values, q, that contained 95% of the distribution were 1.96 and negative 1.96.
+
+But since those are for the standard normal distribution, with mean 0 and standard deviation of 1, and ours is much different, we must convert them to values appropriate for our distribution. Remember, we can think of these cutoffs as telling us "go left and right 1.96 standard deviations from the mean", so we just need to adjust the size of the standard deviation "steps" that we take, and the value that we go left and right from.
+
+So, we take our cutoffs of 1.96, multiply by the standard deviation of the sampling distribution, which makes our "step sizes" smaller, and then we add and subtract these steps from the mean of the sampling distribution, so that our steps go left and right from there instead of 0.
+
+After doing the arithmetic, we find that the endpoints of the 95% confidence interval for the true sampling distribution are 7.12 and 7.29
+
+---
+
+### What have we learned?
+
+95% of all sample means will be between 7.29 and 7.12.
+&lt;img src="Interpreting-CI_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+OK, great, so armed with this knowledge, what have we learned? Well, by constructing the confidence interval, we learn that 95% of all sample means will be between 7.29 and 7.12.
+
+Pausing just a moment to congratulate ourselves on our impressive achievement, let's shift our focus from the true sampling distribution, to a hypothetical sample of new data.
+
+---
+
+### A hypothetical sample of data
+The mean of a random sample of 1,000 birth weights is shown in green ( `\(\bar{x}=7.152\)` )
+&lt;img src="Interpreting-CI_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+Imagine that we collected a random sample of 1,000 birth weights, computed the sample mean, and found that this random sample had a mean of 7.152 - which falls within our confidence interval, the blue region of the sampling distribution. Since 95% of all sample means should fall in this range, this sample is nothing unusual, it pretty much exactly the kind of sampling variability we expect to see.
+
+Here's where things start to get interesting. Let's forget about the true confidence interval for a moment, and think about our sample, because in practice, you never have the true confidence interval, or the true sampling distribution. You only have a sample, and you construct your confidence interval around your sample mean. Thus, you can only ever have an **estimate** of the sampling distribution and the confidence interval.
+
+---
+
+### A estimated CI from our sample
+Based on our sample, we *estimate* the CI to range from 7.24 to 7.07
+&lt;img src="Interpreting-CI_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+Following the same procedure I used to construct the sampling distribution around the population mean, I constructed the confidence interval around our sample mean, and found that it ranges from 7.24 to 7.097. So, based on our estimate, 95% of other sample means will be between 7.24 to 7.07. So, not perfect, but not too bad an estimate of the true range.
+
+But as we know, this sample could have come out differently. It could have had a mean or 7.2, or 7.3 as easily as 7.15, just due to random chance. 
+
+So, let's explore those other possibilities, and see what impact having our sample come out a little differently just due to chance would have on the confidence interval around our sample.
+
+---
+
+### Confidence intervals from other hypothetical samples
+
+Some contain `\(\mu\)`, other do not..
+&lt;img src="Interpreting-CI_files/figure-html/unnamed-chunk-7-1.gif" height="530" style="display: block; margin: auto;" /&gt;
+
+???
+
+Lets take our sample's mean, and slide it slowly to left, illustrating what would happen if our observed sample mean happens to be smaller.
+
+We can see that the confidence interval shifts along with with the mean. This makes perfect sense, because confidence intervals are always centered on the mean. 
+
+Watch what happens as the sample mean cross over from the blue shaded area of the sampling distribution to the grey shaded area. As soon as our sample mean cross over the threshold from blue to grey, the confidence interval around it excludes the population mean. 
+
+This is no coincidence 
+
+`$$\bar{x} = \mu - \frac{CI}{2}\\
+\bar{x} + \frac{CI}{2} = \mu\\
+\bar{x} &lt; \mu - \frac{CI}{2}\\
+\bar{x} + \frac{CI}{2} &lt; \mu$$`
+---
+
+### Capturing the population mean
+
+.pull-left[
+The 95% confidence interval constructed around the **sample mean** will not include the population mean when the sample mean falls outside the 95% confidence interval constructed around the **population mean**.
+
+A CI pact: either *both* intervals contain each other's center, or *neither* does.
+
+How often will this happen?
+
+With 5% of all samples - because that's how often a sample mean will fall outside the true 95% CI
+]
+
+.pull-right[
+&lt;img src="Interpreting-CI_files/figure-html/unnamed-chunk-8-1.gif" height="540" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Whenever the sample mean fall in the grey region, it falls outside the true 95% confidence interval. And whenever the sample mean falls outside the true 95% confidence interval, the confidence interval around that sample mean will not include the population mean.
+
+It's almost like the sample mean and population mean have a pact - the population mean says to the sample mean "if you fall in my confidence interval, I'll fall in yours. But if you fall outside mine, I won't fall in yours". So, its either both intervals contain each other's center, or neither one does. 
+
+This exclusion clause will be triggered for exactly 5% of all sample means, because that's how often a sample mean will fall outside the true 95% CI.
+
+---
+
+### So what does this mean?
+
+
+95% of samples means will fall within the true 95% confidence interval (by definition)
+
+5% of samples means will fall outside the true 95% confidence interval (by definition)
+
+???
+
+So, what does this relationship between all these means and confidence intervals mean for us? Let's break it down from first principles.
+
+As know by the definition of a confidence interval, 95% of samples means will fall within the true confidence interval and 5% of samples means will fall outside the true confidence interval.
+
+--
+
+Confidence intervals constructed from samples are centered at the sample mean
+
+???
+
+As we've seen before, confidence intervals constructed from samples are always centered at the sample mean
+
+
+--
+
+95% of all 95% confidence intervals constructed around observed sample means will contain the population mean
+
+5% of all 95% confidence intervals constructed around observed sample means will **not** contain the population mean
+
+???
+
+And as our confidence interval animation showed us, when the sample mean falls outside the true confidence interval, when it falls into those grey tail regions, the confidence interval constructed around that sample mean will NOT contain the population mean.
+
+Thus, 95% of all 95% confidence intervals constructed around observed sample means will contain the population mean, and 5% will not. This is a key take-home message: 5% of all 95% confidence intervals constructed around observed sample means will contain the population mean.
+
+---
+
+### "Proof" by simulation
+
+Let's see for ourselves, by constructing 100 confidence intervals!
+
+
+```r
+random_samples &lt;- select(ncbirths_population, weight) %&gt;%
+  rep_sample_n(size = 1000, reps = 100)
+
+sample_means &lt;- group_by(random_samples, replicate) %&gt;%
+  summarise(weight_avg = mean(weight),
+            weight_var = var(weight)
+            )
+glimpse(sample_means)
+```
+
+```
+## Rows: 100
+## Columns: 3
+## $ replicate  &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,…
+## $ weight_avg &lt;dbl&gt; 7.234800, 7.151847, 7.089167, 7.219317, 7.186841, 7.207489…
+## $ weight_var &lt;dbl&gt; 1.664855, 2.050092, 2.014268, 1.896614, 1.935822, 1.927957…
+```
+
+???
+
+Life has taught me that one of the best ways to check and see if you understand something, is to see if you can write a computer program to do it. So, let's see if we can write a computer program that will test this claim that 95% of all 95% confidence intervals constructed will contain the population mean.
+
+
+---
+
+### "Proof" by simulation
+Apply Central Limit theorem
+
+```r
+## Apply CLT for each sample
+sample_means &lt;- mutate(sample_means,
+                       mu_hat_x_bar = weight_avg,
+                       sigma2_hat_x_bar = weight_var / 1000
+                       )
+head(sample_means, 3)
+```
+
+```
+## # A tibble: 3 x 5
+##   replicate weight_avg weight_var mu_hat_x_bar sigma2_hat_x_bar
+##       &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;            &lt;dbl&gt;
+## 1         1       7.23       1.66         7.23          0.00166
+## 2         2       7.15       2.05         7.15          0.00205
+## 3         3       7.09       2.01         7.09          0.00201
+```
+
+---
+
+### "Proof" by simulation
+Use normal distribution quantiles to find endpoints
+
+```r
+# Find std. normal quantiles
+std_norm_lower &lt;- qnorm(.025) # -1.96
+std_norm_upper &lt;- qnorm(.975) # 1.96
+# Convert to our distribution using mean + (q * s.d.)
+sample_means &lt;-  mutate(sample_means,
+                        upper = mu_hat_x_bar + std_norm_upper*sqrt(sigma2_hat_x_bar),
+                        lower = mu_hat_x_bar + std_norm_lower*sqrt(sigma2_hat_x_bar)
+                        )
+head(sample_means, 3)
+```
+
+```
+## # A tibble: 3 x 7
+##   replicate weight_avg weight_var mu_hat_x_bar sigma2_hat_x_bar upper lower
+##       &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;            &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1         1       7.23       1.66         7.23          0.00166  7.31  7.15
+## 2         2       7.15       2.05         7.15          0.00205  7.24  7.06
+## 3         3       7.09       2.01         7.09          0.00201  7.18  7.00
+```
+
+???
+
+---
+
+### "Proof" by simulation
+Check endpoints against population mean
+
+```r
+mu &lt;- mean(ncbirths_population$weight) # mu = 7.205
+
+sample_means &lt;- mutate(sample_means,
+                       mu_is_in = lower &lt; mu &amp; mu &lt; upper
+                       )
+head(select(sample_means, -replicate), 3)
+```
+
+```
+## # A tibble: 3 x 7
+##   weight_avg weight_var mu_hat_x_bar sigma2_hat_x_bar upper lower mu_is_in
+##        &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;            &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;   
+## 1       7.23       1.66         7.23          0.00166  7.31  7.15 TRUE    
+## 2       7.15       2.05         7.15          0.00205  7.24  7.06 TRUE    
+## 3       7.09       2.01         7.09          0.00201  7.18  7.00 FALSE
+```
+
+???
+
+---
+
+### "Proof" by simulation
+
+.noverticalmargin[
+
+```r
+sum(sample_means$mu_is_in)
+```
+
+```
+## [1] 93
+```
+
+&lt;img src="Interpreting-CI_files/figure-html/unnamed-chunk-14-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Hey, not bad, by adding up all the TRUEs and FALSES, which act like 1's and 0's, we find that 96 of our 100 confidence intervals captured the population mean. Let's visualize our simulation by putting all 100 confidence intervals on the same plot, along with the population mean.
+
+Each vertical line is a confidence interval, and the horizontal black line is the population mean. If a confidence interval is shown with a red line, that means it didn't capture the population mean - which is easy to see in this plot, the black horizontal line for the population mean doesn't intersect with the confidence interval for those 4 samples.
+
+---
+
+### So what can we say about this?
+
+We need to be careful and precise with this information
+
+.flex-list[
+&lt;div id=wrap&gt;
+- 95% of all confidence intervals will contain the population mean
+&lt;/div&gt;
+&lt;img src="bird1.jpeg" width="156px" height="156px" style="display: inline;"&gt;
+]
+
+
+???
+
+Let's take minute to think about what kind of statements we can make about confidence intervals in general based on what we've learned.
+
+We've learned that 95% of all confidence interval we construct will contain the true population mean somewhere within them. So, we can always say this, for sure.
+
+There are few other equivalent statements we can make, but because language is messy and imprecise, we need to be really careful that we don't say something that sounds similar, but isn't actually true.
+
+--
+
+.flex-list[
+&lt;div id=wrap&gt;
+- 95% probability the confidence interval captures the true mean
+&lt;/div&gt;
+&lt;img src="bird3.jpeg" width="156px" height="156px" style="display: inline;"&gt;
+]
+
+???
+
+Instead of saying "95% of all confidence intervals", we could say "there is a 95% probability" or "there is a 95% chance" the confidence interval captures the true mean. That's technically fine, since "95% chance" does mean "95% of all events", and the events we're talking about here are confidence intervals.
+
+--
+
+.flex-list[
+&lt;div id=wrap&gt;
+- 95% probability the true mean lies in this interval
+&lt;/div&gt;
+&lt;img src="bird3_grey.jpeg" width="156px" height="156px" style="display: inline;"&gt;
+]
+
+???
+
+And we could sort of reverse the order of the objects in this sentence, so that instead of talking about the confidence interval *capturing* something, we make it seem like the true mean is the thing that has agency, and we talk about the true mean **falling in* to the interval.
+
+But I don't really think this one is a good idea, because both introducing the word "probability" **and** giving the true mean the agency in the sentence has put us on a slippery slope, because this gives credibility to a very easy to make misinterpretation of what a confidence interval tells you.
+
+---
+
+### You've gone to far
+
+"There's a 95% probability the true mean is between 7.01 and 7.2"
+
+![](2jqmmc.jpg)
+
+
+???
+
+People often remove the word "confidence interval" or "interval" from the statement, and replace that term with the two endpoints from their confidence interval, and say something like "there's a 95% probability the true mean is between 7.01 and 7.2".
+
+This is wrong! Big wrong! This statement reflects a subtle but serious error in interpreting a confidence interval.
+---
+
+### What's wrong with this
+
+"There is a 95% probability the true mean lies in this interval" vs. "There's a 95% probability the true mean is between 7.01 and 7.2"?
+
+What's the big deal?
+
+
+???
+
+So, what's the big deal that instead of saying "There is a 95% probability the true mean lies in this interval" you say "There's a 95% probability the true mean is between 7.01 and 7.2"?
+
+--
+
+The problem is that in the second statement, the confidence interval is gone, and the thing that is random the population mean.
+
+But the population mean isn't random, it is a constant!
+
+???
+
+The problem is that the second statement removes all mention of the confidence interval. It mentions two numbers, and says that there is a probability that the true mean is between them. Thus, it is saying that the population mean suffers from randomness, and that it's value is most likely to be between these two numbers. 
+
+So, this statement is saying you might observe the true population mean to be different things. But you won't - the population mean is a fixed constant.
+
+--
+
+The thing that is *actually* random is the confidence interval - because it's endpoints depends on the sample mean, which fluctuates from sample to sample!
+
+
+???
+
+The thing that is *actually* random is the confidence interval - because it's endpoints depends on the sample mean, which fluctuates from sample to sample!
+
+Having that second statement be "against the rules" feels very bad. The squishy grey logic machines in our skulls do not like this. Deep down, we are uncertain about what the population mean is. Telling you "the population mean is fixed constant" doesn't do anything to alleviate your concern that even after doing your study, you are still uncertain about what the population mean is.
+
+Deep down, you know that your sample *could* have come from a population with a mean of 7.1, or 7.15, or 7.2, or 7.0. But the confidence interval around your sample does not tell you which one of these is more likely. 
+
+---
+
+### What confidence intervals **can't** do
+
+They cannot tell you the probability of the population mean being one value or another.
+
+They cannot tell you if YOUR confidence interval contains the true mean.
+
+???
+
+So unfortunately, your confidence interval cannot tell you the probability of the population mean being one value or another.
+
+You can't even tell if your confidence interval is one of the 95% that contains the true mean, unless you already know the true mean, at which point you have to ask yourself, why are you sampling if you already know everything about the population?
+
+--
+
+Sorry =(
+
+???
+
+Yes, I too wish confidence intervals were more informative about the population mean, but alas, they are not. They can only tell me about other possible sample means, because sample means are the thing that is random, and the population mean is not.
+
+--
+
+On the bright side, you still have your sample mean, which is unbiased estimate of the population mean. So we've still learned something!
+
+???
+
+On the bright side, you still have your sample mean, which is unbiased estimate of the population mean. So we've still learned something!
+
+
+---
+
+### What confidence intervals can *help* you do
+
+If you like, you can think of the confidence interval as a "range of population mean values that are *consistent with your observed data*"
+
+"Consistent with observed data" `\(\approx\)` "data are plausible in a population with this mean"
+
+So we're saying "Our data would be considered plausible under populations with a mean anywhere in this range, and implausible under populations with a mean outside of it"
+
+???
+
+Instead of ending on a downer, I will point out one way we can use our confidence interval to think about the population mean. It's a somewhat weak statement, but we *can* think about the confidence interval around our sample as a range of population mean values that are consistent with your observed data.
+
+What does it mean for a value to be "consist with your observed data"? We should think about this statement as meaning "The data are plausible in a population with this mean"
+
+In terms of the confience interval, by stating "this is a range of population means that are consistent with our data", we're saying "Our data would be considered plausible under populations with a mean anywhere in this range, and implausible under populations with a mean outside of it"
+
+--
+
+Importantly, this interpretation has nothing to do with probabilities of different population means
+
+We're basing this statement on what *data* are likely to be observed under different population means (not what population means are most likely based on your data)
+
+???
+
+Importantly, this interpretation has nothing to do with probabilities of different population means. 
+
+We're basing this statement on what *data* are likely to be observed under different population means (not what population means are most likely based on your data). So, it's still consistent with our original definition of a confidence interval as a range of values that future sample means are expected to fall in.
+
+---
+
+### What confidence intervals **can definitely** do
+
+A confidence interval is a range of likely values for future sample means.
+
+An `\(x\)` percent confidence interval constructed around the **true** population mean will capture `\(x\)` percent of sample means
+
+???
+
+To wrap things up, let's recap what we can definitely learn from constructing a confidence interval, and what we know about confidence intervals in general. Because it is constructed based on the sampling distribution, a confidence interval is a range of likely values for future sample means. Specifically, an `\(x\)` percent confidence interval constructed around the **true** population mean will capture `\(x\)` percent of sample means. 
+
+--
+
+`\(x\)` percent of all `\(x\)` percent confidence intervals constructed around the **sample** mean will capture the true population mean
+
+But you can never tell if the one based on **your** sample captures the true mean or not.
+
+???
+
+By the same token, we know that `\(x\)` percent of all `\(x\)` percent confidence intervals constructed around the **sample** mean will capture the true population mean.
+
+But unforunately, you can never tell if the confidence interval around your sample is one of the 95%, or the unlucky 5%.
+
+OK statisticians, that's it for today's video. Next time, we take on the topic of hypothesis, so I'll see you in the next one.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -460,7 +460,9 @@ head(sample_means, 3)
 ---
 
 ### "Proof" by simulation
+
 Check endpoints against population mean
+
 ```{r, echo=TRUE}
 mu <- mean(ncbirths_population$weight) # mu = 7.205
 
@@ -471,6 +473,14 @@ head(select(sample_means, -replicate), 3)
 ```
 
 ???
+
+So it appears that the first two confidence intervals we constructed contain the population mean, because they have a TRUE result, indicating the test was passed, but the third confidence interval actually has a FALSE for it's result, indicating that it failed the "contains the population mean test". Let's double check manually just to be sure.
+
+We can see that the confidence interval associated with our first sample ranges between 7.31 on the upper side, and 7.15 on the lower side, and 7.2 falls right into this range, which is why it "passed" the test. The confidence interval associated with our second sample ranges between 7.241 on the upper side, and 7.06 on the lower side, and again, 7.2 falls into this range, so our confidence interval clearly contains the true population mean.
+
+However, the confidence interval associated with our third sample ranges between 7.18 on the upper side, and 7.0 on the lower side. The true population mean of 7.2 falls above this interval, which is why the test came back with a FALSE result - the confidence interval doesn't contain the population mean.
+
+But, there's not need to worry - this is not neccesarily a problem. Since we took 100 random samples, and because of sampling variability, those unavoidable differences from sample to sample due to random chance, we already expect the confidence inteval to miss the population mean on some occasions. In the case of a 95% confidence interval, we actually expect it to miss the population mean 5 out of 100 times. So, lets take a look at the results of this test for *all* the confidence intervals we created.
 
 ---
 
@@ -505,9 +515,11 @@ ggplot(sample_means) +
 
 ???
 
-Hey, not bad, by adding up all the TRUEs and FALSES, which act like 1's and 0's, we find that 96 of our 100 confidence intervals captured the population mean. Let's visualize our simulation by putting all 100 confidence intervals on the same plot, along with the population mean.
+We can do this by adding up alls the TRUE's and FALSES with the sum function. Since the TRUEs behave like ones and the FALSES behave like zeros, this summation is a quick way to count up the number of confidence intervals that did capture the population mean.
 
-Each vertical line is a confidence interval, and the horizontal black line is the population mean. If a confidence interval is shown with a red line, that means it didn't capture the population mean - which is easy to see in this plot, the black horizontal line for the population mean doesn't intersect with the confidence interval for those 4 samples.
+Hey, not bad, 93 out of our 100 confidence intervals captured the population mean. It isn't exactly 95%, but it's quite close, and well within the realm of expectations given the inherent sampling variability we're dealing with. If were to repeat this entire simulation again, I'd probably get another number, like 96, or 94 - that's just how life is when you're dealing with sampling variability.
+
+To wrap up our demonstration of how confidence level relates to the probability that a confidence interval captures that true population mean, let's visualize our simulation by putting all 100 confidence intervals on the same plot, along with the population mean. Each vertical line represents one of our confidence intervals, and the horizontal black line represents the population mean. If a confidence interval is shown with a red line, that means it didn't capture the population mean - which is easy to see in this plot, the black horizontal line for the population mean doesn't intersect with the confidence interval for those 6 samples.
 
 ---
 

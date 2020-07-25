@@ -1,0 +1,111 @@
+
+---
+title: 'Problem Set: Hypothesis Testing'
+author: "Will Hopper"
+output:
+  html_document:
+    css: "https://wjhopper.github.io/SSW-858/assets/css/lab.css"
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: false
+    toc_depth: 2
+    df_print: paged
+    self_contained: true
+editor_options: 
+  chunk_output_type: console
+---
+
+In this problem set, we'll practice performing hypothesis tests based on the permutation method. The question of interest will be: Do babies born to pregnant mothers who do not smoke weight more (on average) than babies born to pregnant mothers who *do* smoke during pregnancy? 
+
+To help answer this question, we'll be using the `ncbirths` dataset we've worked with throughout the course. As you know, this data has information from 1,000 birth records collected from the state of North Carolina in 2004, and has measurements of 10 different variables for each birth. Our our analysis will focus on the following two variables:
+
+- `weight`: Birth weight of the baby in pounds
+- `smoker`: Status of the mother as a non-smoker (represented as 0) or a smoker (represented as 1)
+
+As always, begin by loading the necessary packages, and importing the data. Don't forget to explore the data using `glimpse`, `skim`, or just in the R Studio data viewer!
+
+```{r, message=FALSE}
+library(skimr)
+library(ggplot2)
+library(moderndive)
+library(infer)
+library(dplyr)
+```
+
+```{r}
+ncbirths <- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
+                     stringsAsFactors = FALSE
+                     )
+```
+
+
+# Data Wrangling
+
+In order for R to correctly use the `smoker` variable to divide the data into smoker and non-smoker categories, we'll need to re-code the numbers 0 and 1 as the words "non-smoker" and "smoker", respectively (remember, R treats character vectors as categorical variables, but treats numbers as numeric variables). To change the 0 values to "non-smoker" and the 1 values to "smoker", we'll use two functions from the `dplyr` packge: the `mutate` function (which helps change existing variables, or adds new variables, to data frames) along with the `recode` function (which maps the current values of a variable to new values). Here's how we'll do it:
+
+```{r}
+ncbirths <- mutate(ncbirths, smoker = recode(smoker, `0` = "non-smoker", `1` = "smoker"))
+```
+
+
+# Data Exploration
+
+## Exercise
+Visualize the distributions of birth weights for babies born to non-smokers and smokers (e.g., with side-by-side boxplots). What in this visualization makes you think that the population of babies born to non-smokers might have a higher average birth weight than the population of babies born to smokers? What in this visualization makes you think that the population of babies born to non-smokers *might not have* a higher average birth weight than the population of babies born to smokers?
+
+**Note:** If you have `NA` as a category in your boxplot, consider filtering out rows with a missing observation for the `smoker` variable.
+
+### Solution
+
+
+
+## Exercise
+Report the mean birth weight for both the non-smoker and smoker groups, as well as the difference in birth weights. In the language of hypothesis testing, what term would we use to descrive the observed difference in means?
+
+**Hint:** To find the difference in mean birth weights, consider using the `infer` pacakge workflow.
+
+### Solution
+
+
+
+# Hypothesis Testing
+
+## Exercise
+Either in symbols or words, state the null and alternative hypotheses. How will the data help us choose between these two hypothesis?
+
+**Hint:** If you're not sure what the null and alternative should be, make sure to have another look at the research question we started off with.
+
+### Solution
+
+
+
+## Exercise
+Generate the null distribution of differences in mean birth weight between the non-smoker and smoker groups using the permutation method, and visualize it with a histogram. Explain what this distribution represents.
+
+**Hint:** Don't forget to set a RNG seed with `set.seed()` to make your simulations reproducible!
+
+### Solution
+
+
+
+## Exercise
+Compute the *p*-value of your test statistic, and include a representation of the *p*-value onto your visualization of the null distribution. Then, explain what this value means, and what conclusion about the difference in average birth weights based on it.  Assume an $\alpha$ level of .05 for your test.
+
+### Solution
+
+
+
+## Exercise 
+What is the probability we have incorrectly rejected the null hypothesis?
+
+### Solution
+
+
+
+## Exercise
+Explain what you would need to do differently to carry out the hypothesis test if your alternative hypothesis was "The average birth weight of babies born to non-smokers is not equal to the average birth weight of babies born to smokers" and why.
+
+### Solution
+
+

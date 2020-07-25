@@ -42,7 +42,7 @@ ncbirths <- read.csv("https://wjhopper.github.io/SSW-858/data/ncbirths.csv",
 
 # Data Wrangling
 
-In order for R to correctly use the `smoker` variable to divide the data into smoker and non-smoker categories, we'll need to re-code the numbers 0 and 1 as the words "non-smoker" and "smoker", respectively (remember, R treats character vectors as categorical variables, but treats numbers as numeric variables). To change the 0 values to "non-smoker" and the 1 values to "smoker", we'll use two functions from the `dplyr` packge: the `mutate` function (which helps change existing variables, or adds new variables, to data frames) along with the `recode` function (which maps the current values of a variable to new values). Here's how we'll do it:
+In order for R to correctly use the `smoker` variable to divide the data into smoker and non-smoker categories, we'll need to re-code the numbers 0 and 1 as the words "non-smoker" and "smoker", respectively (remember, R treats character vectors as categorical variables, but treats numbers as numeric variables). To change the 0 values to "non-smoker" and the 1 values to "smoker", we'll use two functions from the `dplyr` package: the `mutate` function (which helps change existing variables, or adds new variables, to data frames) along with the `recode` function (which maps the current values of a variable to new values). Here's how we'll do it:
 
 ```{r}
 ncbirths <- mutate(ncbirths, smoker = recode(smoker, `0` = "non-smoker", `1` = "smoker"))
@@ -61,9 +61,9 @@ Visualize the distributions of birth weights for babies born to non-smokers and 
 
 
 ## Exercise
-Report the mean birth weight for both the non-smoker and smoker groups, as well as the difference in birth weights. In the language of hypothesis testing, what term would we use to descrive the observed difference in means?
+Report the mean birth weight for both the non-smoker and smoker groups, as well as the difference in birth weights. In the language of hypothesis testing, what term would we use to describe the observed difference in means?
 
-**Hint:** To find the difference in mean birth weights, consider using the `infer` pacakge workflow.
+**Hint:** To find the difference in mean birth weights, consider using the `infer` package workflow.
 
 ### Solution
 

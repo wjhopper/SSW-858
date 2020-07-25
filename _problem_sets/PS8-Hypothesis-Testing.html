@@ -2875,7 +2875,7 @@ library(dplyr)</code></pre>
                      )</code></pre>
 <div id="data-wrangling" class="section level1">
 <h1>Data Wrangling</h1>
-<p>In order for R to correctly use the <code>smoker</code> variable to divide the data into smoker and non-smoker categories, we’ll need to re-code the numbers 0 and 1 as the words “non-smoker” and “smoker”, respectively (remember, R treats character vectors as categorical variables, but treats numbers as numeric variables). To change the 0 values to “non-smoker” and the 1 values to “smoker”, we’ll use two functions from the <code>dplyr</code> packge: the <code>mutate</code> function (which helps change existing variables, or adds new variables, to data frames) along with the <code>recode</code> function (which maps the current values of a variable to new values). Here’s how we’ll do it:</p>
+<p>In order for R to correctly use the <code>smoker</code> variable to divide the data into smoker and non-smoker categories, we’ll need to re-code the numbers 0 and 1 as the words “non-smoker” and “smoker”, respectively (remember, R treats character vectors as categorical variables, but treats numbers as numeric variables). To change the 0 values to “non-smoker” and the 1 values to “smoker”, we’ll use two functions from the <code>dplyr</code> package: the <code>mutate</code> function (which helps change existing variables, or adds new variables, to data frames) along with the <code>recode</code> function (which maps the current values of a variable to new values). Here’s how we’ll do it:</p>
 <pre class="r"><code>ncbirths &lt;- mutate(ncbirths, smoker = recode(smoker, `0` = &quot;non-smoker&quot;, `1` = &quot;smoker&quot;))</code></pre>
 </div>
 <div id="data-exploration" class="section level1">
@@ -2890,8 +2890,8 @@ library(dplyr)</code></pre>
 </div>
 <div id="exercise-1" class="section level2">
 <h2>Exercise</h2>
-<p>Report the mean birth weight for both the non-smoker and smoker groups, as well as the difference in birth weights. In the language of hypothesis testing, what term would we use to descrive the observed difference in means?</p>
-<p><strong>Hint:</strong> To find the difference in mean birth weights, consider using the <code>infer</code> pacakge workflow.</p>
+<p>Report the mean birth weight for both the non-smoker and smoker groups, as well as the difference in birth weights. In the language of hypothesis testing, what term would we use to describe the observed difference in means?</p>
+<p><strong>Hint:</strong> To find the difference in mean birth weights, consider using the <code>infer</code> package workflow.</p>
 <div id="solution-1" class="section level3">
 <h3>Solution</h3>
 </div>

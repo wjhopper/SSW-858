@@ -70,7 +70,8 @@ We're done! We have the proportion of red balls in the population (a.k.a. the po
 
 ## Demonstration 2: Reproducing your random samples
 Consider the following 3 random samples of balls from the bowl, paying attention to the values of the `ball_ID` variable obtained each time.
-```{r}
+```{r echo=-1}
+set.seed(20)
 rep_sample_n(bowl, size = 3, reps = 1)
 rep_sample_n(bowl, size = 3, reps = 1)
 rep_sample_n(bowl, size = 3, reps = 1)

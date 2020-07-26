@@ -547,7 +547,7 @@ Let's see what happens when we change our code to take samples of size 100, and 
 ---
 
 ### Smaller samples, Wider Sampling Distributions
-```{r, fig.width=12, cache=FALSE}
+```{r, fig.width=12, cache=FALSE, warning=FALSE}
 set.seed(11)
 weights_only <- select(ncbirths_population, weight)
 x <- lapply(list("100" = moderndive::rep_sample_n(weights_only, size = 100, reps=1000),

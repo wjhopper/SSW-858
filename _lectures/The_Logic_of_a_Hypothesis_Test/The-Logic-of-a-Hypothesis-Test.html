@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>The Logic of a Hypothesis Test</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Will Hopper" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# The Logic of a Hypothesis Test
+### Will Hopper
+
+---
+
+
+
+
+
+### Hypothesis Testing
+
+Provides a "Yes" or "No" answer to questions like:
+
+- Does a purported psychic with ESP predict the future with better than chance accuracy?
+- Do pit bulls learn new tricks quicker on average than a poodle?
+- Do males and females have different average life expectancies?
+
+--
+
+Relies on many of the ideas developed in the context of sampling distributions and confidence intervals
+
+???
+
+Many of the ideas developed in the context of sampling distributions and confidence intervals will show up again in this chapter, and this time they will be used to help make a yes or no decision in response to questions like the ones above
+
+---
+
+### Why do we need hypothesis testing
+
+- Imagine a national insurance company is interested in knowing about differences in life expectancies
+- Small study of obituaries shows that 8 males and 7 females died yesterday
+
+
+
+???
+
+Let's stick with that last question for a moment, do males and females have different average life expectancies?
+
+Let's say that you were a national insurance company who wanted to know the answer to this question, so you could price your insurance policies accordingly. So, you study all of yesterday's obituaries from the local newspaper in the town where your head office is, in order to find the ages and genders of the deceased.
+
+Assume that your study of these obituaries revealed that 8 males had died and 7 females died yesterday.
+
+---
+
+### Why do we need hypothesis testing
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+Here's a quick histogram of our 15 observations, with the age of the 7 deceased females represented in red, and the 8 deceased males represented in blue.
+
+It looks like the ages of the deceased females span a wider range, from about 67 to 81, but appear to be clustered a bit higher up than males, suggesting the females lived longer on average.
+
+---
+
+### Why do we need hypothesis testing
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+???
+
+If we calculate the sample mean of each group, we see that our intuition was correct: the average age of the men that died was 73, while the average age of the women that died was 76. So, did indeed females live longer on average than males. Are we done? Should we charge more for life insurance on males because they're expected to die sooner?
+
+
+As you might imagine, this would be a somewhat rash decision. Remember, you're a *national* insurance agency - you want to make a decision that will accurately reflect the entire country! In other words, you want to make sure your decision is sensible for the entire population, and not your sample.
+
+The challenge that we face in using the average life expectancy in our sample to making an inference about the average life expectancy in the population is sampling variability. We know that no two samples from the same population will ever be perfectly alike, and thus no two sample means will ever be perfectly alike, even if they both come from the same population. This means that when we observe a sample mean, it's impossible to know what population it came from.
+
+
+---
+
+### Why do we need hypothesis testing
+
+.pull-left[
+Is there one population distribution, which produces all samples?
+
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+Or, does our sample difference of 3 years indicate there are two distributions?
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+
+In our life expectancy and gender example, it means that our two observed sample means could have come from the same population. Even though the average male life expectancy in our sample was 73, and the average female life expectancy in our sample was 76, both of these sample means could have come from a population with an average life expectancy of 76.5 years.
+
+We could phrase this idea as "there is only one population of life expectancies", or equivalently, we could say "the population of male and female life expectancies is identical".
+
+Obviously, the average male and female life expectancies in our sample were not identical. But what should we make of this difference? What should we infer about the population, based on this sample?
+
+The question we must answer is this: Is the observed difference in means large enough for us to conclude that males and female life expectancies come from different distributions?
+
+
+---
+
+### Why do we need hypothesis testing
+
+.pull-left[
+Hypothesis: **No difference** between group means in the population
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+Hypothesis: Group means **are different** in the population
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+Put another way, we have to decide whether there is no difference in the average life expectancy of males and females in the population, or if the males and females have different average life expectancies in the population?
+
+---
+
+### Why do we need hypothesis testing
+
+.pull-left[
+`$$\mu_F - \mu_M = 0$$`
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+`$$\mu_F - \mu_M \ne 0$$`
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-9-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+???
+
+We can write this out in mathematical notation using symbols for the population mean. We could write the first possibility, that all males and females in the population have the same average life expectancy, by using mu F to represent the average life expectancy for females in the population, using mu M to represent the average life expectancy for males in the population, and intentionally setting the difference to 0, to represent that that there is no difference in the average life expectancy of males and females.
+
+We could write the second possibility, that all males and females in the population have different average life expectancies, by again using using mu and mu M to represent the average life expectancies for both group, but this time, writing that the difference between them is different from zero. Note that I haven't said whether I believe average life expectancy to be greater for males or for females, just that they are different, and that I am agnostic about the direction of the difference.
+
+The first statement on the left is known as a null hypothesis. The null hypothesis is a statement that says there is no difference between the two population means. It's often labelled using the symbol "H sub 0"
+
+The statements on the right is going to be the alternative hypothesis, which is often labelled "H sub A". The alternative hypothesis is a statement that says there *IS* difference between the two population means. There are other alternative hypothesis we could put forward, like "greater than" or "less than". but we'll stick with the most generic one, which just "there is a difference". 
+
+Our hypothesis test is going to pit the these two against one another, head to head, in a very specific way. Specifically, we're going to assume the null hypothesis is a true statement, and evaluate how much evidence our sample provides against it.
+
+
+---
+
+### A Distribution of (No) Differences
+
+Assuming a world with **no difference** in average life expectancies of men and women, how often would a difference of 3 years be observed in a sample *due to chance alone?*.
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+To see how we're going to asses the strength of evidence against the null hypothesis, let's look at our sample in a different way. Instead of looking at two different means, let's look at the difference in means.
+
+In our sample, we observed a difference in means of 3. The mean of the female ages was 76, the mean of the male ages was 73, so the difference in means was 3. In the frame work of hypothesis tests, this value would be called our *test statistic*, because it's the value that were going to use to test the evidence for the alternative hypothesis.
+
+But somewhat counter intuitively, we're going to spend the bulk of the time and effort during our hypothesis test on the null hypothesis, specifically, on constructing the so-called null hypothesis distribution.
+
+---
+
+### A Distribution of (No) Differences
+Assuming a world with **no difference** in average life expectancies of men and women, how often would a difference of 3 years be observed in a sample *due to chance alone?*.
+
+
+
+```
+## Rendering [&gt;-------------------------------------------] at 9.9 fps ~ eta: 10s
+## Rendering [&gt;--------------------------------------------] at 10 fps ~ eta: 9s
+## Rendering [=&gt;-------------------------------------------] at 11 fps ~ eta: 9s
+## Rendering [==&gt;------------------------------------------] at 11 fps ~ eta: 8s
+## Rendering [===&gt;-----------------------------------------] at 11 fps ~ eta: 8s
+## Rendering [====&gt;----------------------------------------] at 11 fps ~ eta: 8s
+## Rendering [=====&gt;---------------------------------------] at 11 fps ~ eta: 8s
+## Rendering [======&gt;--------------------------------------] at 11 fps ~ eta: 8s
+## Rendering [======&gt;--------------------------------------] at 11 fps ~ eta: 7s
+## Rendering [=======&gt;-------------------------------------] at 11 fps ~ eta: 7s
+## Rendering [========&gt;------------------------------------] at 11 fps ~ eta: 7s
+## Rendering [=========&gt;-----------------------------------] at 11 fps ~ eta: 7s
+## Rendering [==========&gt;----------------------------------] at 11 fps ~ eta: 7s
+## Rendering [===========&gt;---------------------------------] at 11 fps ~ eta: 6s
+## Rendering [============&gt;--------------------------------] at 12 fps ~ eta: 6s
+## Rendering [============&gt;--------------------------------] at 11 fps ~ eta: 6s
+## Rendering [=============&gt;-------------------------------] at 12 fps ~ eta: 6s
+## Rendering [=============&gt;-------------------------------] at 11 fps ~ eta: 6s
+## Rendering [=============&gt;-------------------------------] at 12 fps ~ eta: 6s
+## Rendering [==============&gt;------------------------------] at 11 fps ~ eta: 6s
+## Rendering [===============&gt;-----------------------------] at 11 fps ~ eta: 6s
+## Rendering [================&gt;----------------------------] at 11 fps ~ eta: 5s
+## Rendering [=================&gt;---------------------------] at 11 fps ~ eta: 5s
+## Rendering [==================&gt;--------------------------] at 12 fps ~ eta: 5s
+## Rendering [==================&gt;--------------------------] at 11 fps ~ eta: 5s
+## Rendering [===================&gt;-------------------------] at 11 fps ~ eta: 5s
+## Rendering [====================&gt;------------------------] at 11 fps ~ eta: 5s
+## Rendering [=====================&gt;-----------------------] at 11 fps ~ eta: 5s
+## Rendering [=====================&gt;-----------------------] at 11 fps ~ eta: 4s
+## Rendering [======================&gt;----------------------] at 11 fps ~ eta: 4s
+## Rendering [=======================&gt;---------------------] at 11 fps ~ eta: 4s
+## Rendering [========================&gt;--------------------] at 11 fps ~ eta: 4s
+## Rendering [=========================&gt;-------------------] at 11 fps ~ eta: 4s
+## Rendering [==========================&gt;------------------] at 11 fps ~ eta: 4s
+## Rendering [===========================&gt;-----------------] at 11 fps ~ eta: 4s
+## Rendering [===========================&gt;-----------------] at 11 fps ~ eta: 3s
+## Rendering [============================&gt;----------------] at 11 fps ~ eta: 3s
+## Rendering [=============================&gt;---------------] at 11 fps ~ eta: 3s
+## Rendering [==============================&gt;--------------] at 11 fps ~ eta: 3s
+## Rendering [===============================&gt;-------------] at 11 fps ~ eta: 3s
+## Rendering [================================&gt;------------] at 11 fps ~ eta: 3s
+## Rendering [================================&gt;------------] at 11 fps ~ eta: 2s
+## Rendering [=================================&gt;-----------] at 11 fps ~ eta: 2s
+## Rendering [==================================&gt;----------] at 11 fps ~ eta: 2s
+## Rendering [===================================&gt;---------] at 11 fps ~ eta: 2s
+## Rendering [====================================&gt;--------] at 11 fps ~ eta: 2s
+## Rendering [=====================================&gt;-------] at 11 fps ~ eta: 2s
+## Rendering [=====================================&gt;-------] at 11 fps ~ eta: 1s
+## Rendering [======================================&gt;------] at 11 fps ~ eta: 1s
+## Rendering [======================================&gt;------] at 10 fps ~ eta: 1s
+## Rendering [=======================================&gt;-----] at 10 fps ~ eta: 1s
+## Rendering [========================================&gt;----] at 10 fps ~ eta: 1s
+## Rendering [=========================================&gt;---] at 10 fps ~ eta: 1s
+## Rendering [==========================================&gt;--] at 10 fps ~ eta: 0s
+## Rendering [===========================================&gt;-] at 10 fps ~ eta: 0s
+## Rendering [============================================&gt;] at 10 fps ~ eta: 0s
+## Rendering [=============================================] at 10 fps ~ eta: 0s
+```
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-11-1.gif" width="768" height="480" style="display: block; margin: auto;" /&gt;
+
+???
+
+If there were truly no difference in the mean ages of both populations, the most likely difference, or the *expected* difference in sample means means would be 0. {draw line}. This line represents our Null hypothesis.
+
+But we also know that there is random fluctuation from sample to sample, and this random fluctuation will show up in the sample means. This randomness will percolate all the way down to the difference of means, such that sometimes, we'll observe a difference of means that is just a bit bigger than 0 {draw little x's} and sometimes we'll observe a difference of means that is just a bit smaller than 0
+
+---
+
+### A Distribution of (No) Differences
+Assuming a world with **no difference** in average life expectancies of men and women, how often would a difference of 3 years be observed in a sample *due to chance alone?*.
+
+
+```
+## Rendering [&gt;-------------------------------------------] at 9.7 fps ~ eta: 10s
+## Rendering [&gt;-------------------------------------------] at 8.8 fps ~ eta: 11s
+## Rendering [=&gt;------------------------------------------] at 8.4 fps ~ eta: 11s
+## Rendering [==&gt;-----------------------------------------] at 8.4 fps ~ eta: 11s
+## Rendering [==&gt;-----------------------------------------] at 8.3 fps ~ eta: 11s
+## Rendering [===&gt;----------------------------------------] at 8.2 fps ~ eta: 11s
+## Rendering [===&gt;----------------------------------------] at 8.1 fps ~ eta: 11s
+## Rendering [====&gt;---------------------------------------] at 8.2 fps ~ eta: 11s
+## Rendering [=====&gt;----------------------------------------] at 8 fps ~ eta: 11s
+## Rendering [=====&gt;--------------------------------------] at 7.8 fps ~ eta: 11s
+## Rendering [=====&gt;--------------------------------------] at 7.7 fps ~ eta: 11s
+## Rendering [======&gt;-------------------------------------] at 7.7 fps ~ eta: 11s
+## Rendering [=======&gt;------------------------------------] at 7.7 fps ~ eta: 11s
+## Rendering [=======&gt;------------------------------------] at 7.8 fps ~ eta: 10s
+## Rendering [========&gt;-----------------------------------] at 7.8 fps ~ eta: 10s
+## Rendering [=========&gt;----------------------------------] at 7.8 fps ~ eta: 10s
+## Rendering [==========&gt;---------------------------------] at 7.8 fps ~ eta: 10s
+## Rendering [==========&gt;---------------------------------] at 7.8 fps ~ eta: 9s
+## Rendering [===========&gt;--------------------------------] at 7.9 fps ~ eta: 9s
+## Rendering [============&gt;-------------------------------] at 7.9 fps ~ eta: 9s
+## Rendering [=============&gt;--------------------------------] at 8 fps ~ eta: 9s
+## Rendering [==============&gt;-------------------------------] at 8 fps ~ eta: 9s
+## Rendering [==============&gt;-------------------------------] at 8 fps ~ eta: 8s
+## Rendering [===============&gt;------------------------------] at 8 fps ~ eta: 8s
+## Rendering [==============&gt;-----------------------------] at 8.1 fps ~ eta: 8s
+## Rendering [===============&gt;----------------------------] at 8.1 fps ~ eta: 8s
+## Rendering [================&gt;---------------------------] at 8.1 fps ~ eta: 8s
+## Rendering [=================&gt;--------------------------] at 8.1 fps ~ eta: 7s
+## Rendering [==================&gt;-------------------------] at 8.1 fps ~ eta: 7s
+## Rendering [===================&gt;------------------------] at 8.1 fps ~ eta: 7s
+## Rendering [====================&gt;-----------------------] at 8.1 fps ~ eta: 7s
+## Rendering [=====================&gt;------------------------] at 8 fps ~ eta: 6s
+## Rendering [=====================&gt;----------------------] at 8.1 fps ~ eta: 6s
+## Rendering [======================&gt;---------------------] at 8.1 fps ~ eta: 6s
+## Rendering [=======================&gt;--------------------] at 8.1 fps ~ eta: 6s
+## Rendering [========================&gt;-------------------] at 8.1 fps ~ eta: 5s
+## Rendering [=========================&gt;------------------] at 8.1 fps ~ eta: 5s
+## Rendering [==========================&gt;-----------------] at 8.1 fps ~ eta: 5s
+## Rendering [==========================&gt;-----------------] at 8.2 fps ~ eta: 5s
+## Rendering [===========================&gt;----------------] at 8.2 fps ~ eta: 5s
+## Rendering [===========================&gt;----------------] at 8.2 fps ~ eta: 4s
+## Rendering [============================&gt;---------------] at 8.2 fps ~ eta: 4s
+## Rendering [=============================&gt;--------------] at 8.2 fps ~ eta: 4s
+## Rendering [==============================&gt;-------------] at 8.3 fps ~ eta: 4s
+## Rendering [===============================&gt;------------] at 8.3 fps ~ eta: 3s
+## Rendering [================================&gt;-----------] at 8.3 fps ~ eta: 3s
+## Rendering [================================&gt;-----------] at 8.2 fps ~ eta: 3s
+## Rendering [=================================&gt;----------] at 8.2 fps ~ eta: 3s
+## Rendering [=================================&gt;----------] at 8.3 fps ~ eta: 3s
+## Rendering [==================================&gt;---------] at 8.3 fps ~ eta: 3s
+## Rendering [==================================&gt;---------] at 8.3 fps ~ eta: 2s
+## Rendering [===================================&gt;--------] at 8.3 fps ~ eta: 2s
+## Rendering [====================================&gt;-------] at 8.3 fps ~ eta: 2s
+## Rendering [====================================&gt;-------] at 8.4 fps ~ eta: 2s
+## Rendering [=====================================&gt;------] at 8.4 fps ~ eta: 2s
+## Rendering [======================================&gt;-----] at 8.4 fps ~ eta: 1s
+## Rendering [=======================================&gt;----] at 8.4 fps ~ eta: 1s
+## Rendering [========================================&gt;---] at 8.4 fps ~ eta: 1s
+## Rendering [========================================&gt;---] at 8.5 fps ~ eta: 1s
+## Rendering [=========================================&gt;--] at 8.5 fps ~ eta: 1s
+## Rendering [=========================================&gt;--] at 8.5 fps ~ eta: 0s
+## Rendering [==========================================&gt;-] at 8.5 fps ~ eta: 0s
+## Rendering [===========================================&gt;] at 8.5 fps ~ eta: 0s
+## Rendering [============================================] at 8.5 fps ~ eta: 0s
+```
+
+&lt;img src="The-Logic-of-a-Hypothesis-Test_files/figure-html/unnamed-chunk-12-1.gif" width="768" height="480" style="display: block; margin: auto;" /&gt;
+
+???
+
+Together, all these different random fluctuations around the true difference of 0 form the null hypothesis distribution. {draw it here}.
+The null hypothesis distribution is a sampling distribution representing all the possible differences you could observe while the true difference in the population means is 0.
+
+It's going to Could a difference in promotion rates of 29.2% still occur by chance, even in a hypothetical world where no gender-based discrimination existed?
+
+And inside this null hypothesis distribution, we're going to draw a line in the sand and define some cutoffs, just like we did when we did when we created a confidence interval.
+
+These cutoffs, the tails of the distribution, represent relatively extreme differences between the sample means. They're still *possible* to observe, assuming the null hypothesis of no difference is true, but they are extremely rare.
+
+In fact, they're so rare, that we're going say that if we observe a sample with a difference so large that it falls past our cutoffs, that we're going to conclude that that sample must have come from another distribution.
+
+We're going to say that this difference is so large, it's more likely to come from a distribution of differences where the true means are in fact different. To say "this difference is more likely to come from a distribution of differences where the true means are in fact different than a distribution of differences where the true means are in the same" is to 
+
+**reject the null hypothesis**
+
+---
+
+### Hypothesis Tests Outline
+
+1. Two conflicting hypothesis are pit against one another: `\(H_0\)` vs. `\(H_A\)`
+
+--
+
+  - `\(\mu_F - \mu_M = 0\)` vs. `\(\mu_F - \mu_M \ne 0\)`
+
+--
+
+2. Collect a sample, and compute a test statistic
+
+--
+
+  - `\(\bar{x}_F - \bar{x}_M = 3\)`
+
+--
+
+3. Construct a distribution of possible statistics **assuming the null hypothesis were true**
+
+--
+
+  - This process is detailed in the next video
+
+--
+
+4. Compare the observed test statistic (3) to the null hypothesis distribution
+
+--
+
+  - If the test statistic is extreme enough, we **reject the null hypothesis**
+  - If the test statistic falls within the bounds of typical random fluctuations we **fail** to reject the null
+
+
+???
+
+The null hypothesis mu F equals mu M is the same as saying male and female ages come from the same distribution. And if they come from the same distribution, then any one observation is just as likely to be male as female. In other words, under the null hypothesis, these category labels of "male" and "female" are arbitrary and can be assigned as random.
+
+I I obey the rules of the null hypothesis, I can generate a whole bunch of samples that could have come from that distribution.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

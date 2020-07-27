@@ -64,6 +64,7 @@ collections:
          - "The Bootstrap"
          - "Constructing Confidence Intervals"
          - "Interpreting Confidence Intervals"
+         - "The Logic of a Hypothesis Test"
    problem_sets:
       order:
          - "Intro to R and RStudio"

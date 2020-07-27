@@ -1,0 +1,354 @@
+---
+title: "The Logic of a Hypothesis Test"
+author: "Will Hopper"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "default-fonts", "../../assets/css/sds.css"]
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(moderndive)
+library(ggplot2)
+library(gganimate)
+library(grid)
+library(gridExtra)
+library(dplyr)
+
+options(htmltools.dir.version = FALSE, stringsAsFactors = FALSE)
+knitr::opts_chunk$set(echo = FALSE, cache=TRUE, fig.align = 'center', dev='svg', fig.height=6, fig.width=8)
+theme_set(theme_bw(24) +
+            theme(plot.margin = margin(12,1,1,1),
+                  legend.box.margin = margin(0,0,0,-20),
+                  plot.title = element_text(size=16, margin = margin(-10)),
+                  plot.subtitle = element_blank()
+                  )
+          )
+
+ncbirths <- read.csv("../../data/ncbirths.csv", stringsAsFactors = FALSE) %>%
+  dplyr::filter(!is.na(weight), !is.na(weeks), !is.na(smoker))
+
+ncbirths_population <- read.csv("../../data/ncbirths_population.csv", stringsAsFactors = FALSE) %>%
+  filter(!is.na(weight))
+```
+
+
+### Hypothesis Testing
+
+Provides a "Yes" or "No" answer to questions like:
+
+- Does a purported psychic with ESP predict the future with better than chance accuracy?
+- Do pit bulls learn new tricks quicker on average than a poodle?
+- Do males and females have different average life expectancies?
+
+--
+
+Relies on many of the ideas developed in the context of sampling distributions and confidence intervals
+
+???
+
+Many of the ideas developed in the context of sampling distributions and confidence intervals will show up again in this chapter, and this time they will be used to help make a yes or no decision in response to questions like the ones above
+
+---
+
+### Why do we need hypothesis testing
+
+- Imagine a national insurance company is interested in knowing about differences in life expectancies
+- Small study of obituaries shows that 8 males and 7 females died yesterday
+
+```{r}
+set.seed(1)
+males <- data.frame(gender = "Male", age = c(69, 70, 71, 72, 73, 73, 76, 80))
+females <- data.frame(gender = "Female", age = c(67, 74, 75, 77, 77, 81, 81))
+life_exp <- bind_rows(males, females)
+```
+
+???
+
+Let's stick with that last question for a moment, do males and females have different average life expectancies?
+
+Let's say that you were a national insurance company who wanted to know the answer to this question, so you could price your insurance policies accordingly. So, you study all of yesterday's obituaries from the local newspaper in the town where your head office is, in order to find the ages and genders of the deceased.
+
+Assume that your study of these obituaries revealed that 8 males had died and 7 females died yesterday.
+
+---
+
+### Why do we need hypothesis testing
+
+```{r, warning=FALSE}
+sample_hist <- ggplot(life_exp, aes(x=age, fill=gender)) +
+  geom_histogram(binwidth = 1, position = "identity", color="white") +
+  scale_fill_brewer(palette="Set1") +
+  scale_x_continuous(limits=c(66,82), breaks=seq(67,81,2)) +
+  ylim(0,4) +
+  guides(alpha=FALSE) +
+  ggtitle("Sample of obituary ages") +
+  theme(axis.title.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position = c(.9,.8),
+        legend.background = element_blank())
+sample_hist
+```
+
+???
+
+Here's a quick histogram of our 15 observations, with the age of the 7 deceased females represented in red, and the 8 deceased males represented in blue.
+
+It looks like the ages of the deceased females span a wider range, from about 67 to 81, but appear to be clustered a bit higher up than males, suggesting the females lived longer on average.
+
+---
+
+### Why do we need hypothesis testing
+
+```{r, warning=FALSE}
+sample_hist_plus_mean <- sample_hist %+% aes(alpha=.5) +
+  geom_vline(xintercept = 76, color="#E41A1C", alpha=1, size=1.5) +
+  geom_vline(xintercept = 73, color="#377EB8", alpha=1, size=1.5)
+
+sample_hist_plus_mean
+```
+
+???
+
+If we calculate the sample mean of each group, we see that our intuition was correct: the average age of the men that died was 73, while the average age of the women that died was 76. So, did indeed females live longer on average than males. Are we done? Should we charge more for life insurance on males because they're expected to die sooner?
+
+
+As you might imagine, this would be a somewhat rash decision. Remember, you're a *national* insurance agency - you want to make a decision that will accurately reflect the entire country! In other words, you want to make sure your decision is sensible for the entire population, and not your sample.
+
+The challenge that we face in using the average life expectancy in our sample to making an inference about the average life expectancy in the population is sampling variability. We know that no two samples from the same population will ever be perfectly alike, and thus no two sample means will ever be perfectly alike, even if they both come from the same population. This means that when we observe a sample mean, it's impossible to know what population it came from.
+
+
+---
+
+### Why do we need hypothesis testing
+
+.pull-left[
+Is there one population distribution, which produces all samples?
+
+
+```{r, warning=FALSE,fig.width=5, fig.height=4.5}
+sample_hist_plus_one_dist <- sample_hist %+% aes(alpha=.5) +
+  stat_function(fun = function(x) {25*dnorm(x, 74.5, 4)}, color="purple", alpha=1) +
+  geom_segment(x=76, xend=76, y=0, yend=25*dnorm(76, 76, 4), color="#E41A1C", alpha=1, size=1.5) +
+  geom_segment(x=73, xend=73, y=0, yend=25*dnorm(73, 73, 4), color="#377EB8", alpha=1, size=1.5) +
+  guides(fill=FALSE)
+
+sample_hist_plus_one_dist
+```
+]
+
+.pull-right[
+Or, does our sample difference of 3 years indicate there are two distributions?
+
+```{r, warning=FALSE,fig.width=5, fig.height=4.5}
+sample_hist_plus_two_dist <- sample_hist %+% aes(alpha=.5) +
+  geom_segment(x=76, xend=76, y=0, yend=25*dnorm(76, 76, 4), color="#E41A1C", alpha=1, size=1.5) +
+  geom_segment(x=73, xend=73, y=0, yend=25*dnorm(73, 73, 4), color="#377EB8", alpha=1, size=1.5) +
+  stat_function(fun = function(x) {25*dnorm(x, 76, 4)}, color="#E41A1C", alpha=1) +
+  stat_function(fun = function(x) {25*dnorm(x, 73, 4)}, color="#377EB8", alpha=1) +
+  guides(fill=FALSE)
+
+sample_hist_plus_two_dist
+```
+]
+
+???
+
+
+In our life expectancy and gender example, it means that our two observed sample means could have come from the same population. Even though the average male life expectancy in our sample was 73, and the average female life expectancy in our sample was 76, both of these sample means could have come from a population with an average life expectancy of 76.5 years.
+
+We could phrase this idea as "there is only one population of life expectancies", or equivalently, we could say "the population of male and female life expectancies is identical".
+
+Obviously, the average male and female life expectancies in our sample were not identical. But what should we make of this difference? What should we infer about the population, based on this sample?
+
+The question we must answer is this: Is the observed difference in means large enough for us to conclude that males and female life expectancies come from different distributions?
+
+
+---
+
+### Why do we need hypothesis testing
+
+.pull-left[
+Hypothesis: **No difference** between group means in the population
+
+```{r, warning=FALSE,fig.width=5, fig.height=4.5}
+sample_hist_plus_one_dist
+```
+]
+
+.pull-right[
+Hypothesis: Group means **are different** in the population
+
+```{r, warning=FALSE,fig.width=5, fig.height=4.5}
+sample_hist_plus_two_dist
+```
+]
+
+???
+
+Put another way, we have to decide whether there is no difference in the average life expectancy of males and females in the population, or if the males and females have different average life expectancies in the population?
+
+---
+
+### Why do we need hypothesis testing
+
+.pull-left[
+$$\mu_F - \mu_M = 0$$
+
+```{r, warning=FALSE,fig.width=5, fig.height=4.5}
+sample_hist_plus_one_dist
+```
+]
+
+.pull-right[
+$$\mu_F - \mu_M \ne 0$$
+
+```{r, warning=FALSE,fig.width=5, fig.height=4.5}
+sample_hist_plus_two_dist
+```
+]
+
+???
+
+We can write this out in mathematical notation using symbols for the population mean. We could write the first possibility, that all males and females in the population have the same average life expectancy, by using mu F to represent the average life expectancy for females in the population, using mu M to represent the average life expectancy for males in the population, and intentionally setting the difference to 0, to represent that that there is no difference in the average life expectancy of males and females.
+
+We could write the second possibility, that all males and females in the population have different average life expectancies, by again using using mu and mu M to represent the average life expectancies for both group, but this time, writing that the difference between them is different from zero. Note that I haven't said whether I believe average life expectancy to be greater for males or for females, just that they are different, and that I am agnostic about the direction of the difference.
+
+The first statement on the left is known as a null hypothesis. The null hypothesis is a statement that says there is no difference between the two population means. It's often labelled using the symbol "H sub 0"
+
+The statements on the right is going to be the alternative hypothesis, which is often labelled "H sub A". The alternative hypothesis is a statement that says there *IS* difference between the two population means. There are other alternative hypothesis we could put forward, like "greater than" or "less than". but we'll stick with the most generic one, which just "there is a difference". 
+
+Our hypothesis test is going to pit the these two against one another, head to head, in a very specific way. Specifically, we're going to assume the null hypothesis is a true statement, and evaluate how much evidence our sample provides against it.
+
+
+---
+
+### A Distribution of (No) Differences
+
+Assuming a world with **no difference** in average life expectancies of men and women, how often would a difference of 3 years be observed in a sample *due to chance alone?*.
+
+```{r, fig.height=5}
+difference_plot <- ggplot(data=data.frame(x=-5:5), aes(x=x)) +
+  geom_vline(xintercept = 3, size=1) +
+  scale_x_continuous("Mean Female Age - Mean Male Age", limits=c(-5, 5), breaks = -4:4) +
+  ggtitle("Difference in Mean Life Expectancy") +
+  theme(panel.grid.major.x = element_blank())
+
+difference_plot
+```
+
+
+???
+
+To see how we're going to asses the strength of evidence against the null hypothesis, let's look at our sample in a different way. Instead of looking at two different means, let's look at the difference in means.
+
+In our sample, we observed a difference in means of 3. The mean of the female ages was 76, the mean of the male ages was 73, so the difference in means was 3. In the frame work of hypothesis tests, this value would be called our *test statistic*, because it's the value that were going to use to test the evidence for the alternative hypothesis.
+
+But somewhat counter intuitively, we're going to spend the bulk of the time and effort during our hypothesis test on the null hypothesis, specifically, on constructing the so-called null hypothesis distribution.
+
+---
+
+### A Distribution of (No) Differences
+Assuming a world with **no difference** in average life expectancies of men and women, how often would a difference of 3 years be observed in a sample *due to chance alone?*.
+
+
+```{r dev='png', out.width=768, out.height=480, fig.retina=2, gganimate = list(fps=30, renderer=gifski_renderer(loop = FALSE))}
+difference_plot +
+  geom_segment(x=0,xend=0,y=-.1,yend=1.1, color="purple", size = 1) +
+  transition_layers(layer_length = 1, transition_length = .5,
+                    from_blank = FALSE, keep_layers = c(Inf, Inf)) +
+  enter_drift(y_mod=1)
+```
+
+???
+
+If there were truly no difference in the mean ages of both populations, the most likely difference, or the *expected* difference in sample means means would be 0. {draw line}. This line represents our Null hypothesis.
+
+But we also know that there is random fluctuation from sample to sample, and this random fluctuation will show up in the sample means. This randomness will percolate all the way down to the difference of means, such that sometimes, we'll observe a difference of means that is just a bit bigger than 0 {draw little x's} and sometimes we'll observe a difference of means that is just a bit smaller than 0
+
+---
+
+### A Distribution of (No) Differences
+Assuming a world with **no difference** in average life expectancies of men and women, how often would a difference of 3 years be observed in a sample *due to chance alone?*.
+
+```{r dev='png', out.width=768, out.height=480, fig.retina=2, gganimate = list(fps=30, renderer=gifski_renderer(loop = FALSE))}
+se_pooled <- sqrt(weighted.mean(c(var(females$age), var(males$age)), c(6,7)))
+difference_plot +
+  geom_vline(xintercept = 0, color="purple", size = 1) +
+  stat_function(fun = dnorm, args = list(0, se_pooled), color="purple") +
+  transition_reveal(stat(x)) +
+  theme(axis.text.y = element_blank(),
+        axis.title.y=element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank()
+        )
+```
+
+???
+
+Together, all these different random fluctuations around the true difference of 0 form the null hypothesis distribution. {draw it here}.
+The null hypothesis distribution is a sampling distribution representing all the possible differences you could observe while the true difference in the population means is 0.
+
+It's going to Could a difference in promotion rates of 29.2% still occur by chance, even in a hypothetical world where no gender-based discrimination existed?
+
+And inside this null hypothesis distribution, we're going to draw a line in the sand and define some cutoffs, just like we did when we did when we created a confidence interval.
+
+These cutoffs, the tails of the distribution, represent relatively extreme differences between the sample means. They're still *possible* to observe, assuming the null hypothesis of no difference is true, but they are extremely rare.
+
+In fact, they're so rare, that we're going say that if we observe a sample with a difference so large that it falls past our cutoffs, that we're going to conclude that that sample must have come from another distribution.
+
+We're going to say that this difference is so large, it's more likely to come from a distribution of differences where the true means are in fact different. To say "this difference is more likely to come from a distribution of differences where the true means are in fact different than a distribution of differences where the true means are in the same" is to 
+
+**reject the null hypothesis**
+
+---
+
+### Hypothesis Tests Outline
+
+1. Two conflicting hypothesis are pit against one another: $H_0$ vs. $H_A$
+
+--
+
+  - $\mu_F - \mu_M = 0$ vs. $\mu_F - \mu_M \ne 0$
+
+--
+
+2. Collect a sample, and compute a test statistic
+
+--
+
+  - $\bar{x}_F - \bar{x}_M = 3$
+
+--
+
+3. Construct a distribution of possible statistics **assuming the null hypothesis were true**
+
+--
+
+  - This process is detailed in the next video
+
+--
+
+4. Compare the observed test statistic (3) to the null hypothesis distribution
+
+--
+
+  - If the test statistic is extreme enough, we **reject the null hypothesis**
+  - If the test statistic falls within the bounds of typical random fluctuations we **fail** to reject the null
+
+
+???
+
+The null hypothesis mu F equals mu M is the same as saying male and female ages come from the same distribution. And if they come from the same distribution, then any one observation is just as likely to be male as female. In other words, under the null hypothesis, these category labels of "male" and "female" are arbitrary and can be assigned as random.
+
+I I obey the rules of the null hypothesis, I can generate a whole bunch of samples that could have come from that distribution.

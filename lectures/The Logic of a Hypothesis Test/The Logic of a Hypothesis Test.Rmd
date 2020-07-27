@@ -261,7 +261,7 @@ But somewhat counter intuitively, we're going to spend the bulk of the time and 
 Assuming a world with **no difference** in average life expectancies of men and women, how often would a difference of 3 years be observed in a sample *due to chance alone?*.
 
 
-```{r dev='png', out.width=768, out.height=480, fig.retina=2, gganimate = list(fps=30, renderer=gifski_renderer(loop = FALSE))}
+```{r dev='png', message=FALSE, out.width=768, out.height=480, fig.retina=2, gganimate = list(fps=30, renderer=gifski_renderer(loop = FALSE))}
 difference_plot +
   geom_segment(x=0,xend=0,y=-.1,yend=1.1, color="purple", size = 1) +
   transition_layers(layer_length = 1, transition_length = .5,
@@ -280,7 +280,7 @@ But we also know that there is random fluctuation from sample to sample, and thi
 ### A Distribution of (No) Differences
 Assuming a world with **no difference** in average life expectancies of men and women, how often would a difference of 3 years be observed in a sample *due to chance alone?*.
 
-```{r dev='png', out.width=768, out.height=480, fig.retina=2, gganimate = list(fps=30, renderer=gifski_renderer(loop = FALSE))}
+```{r dev='png', message=FALSE, out.width=768, out.height=480, fig.retina=2, gganimate = list(fps=30, renderer=gifski_renderer(loop = FALSE))}
 se_pooled <- sqrt(weighted.mean(c(var(females$age), var(males$age)), c(6,7)))
 difference_plot +
   geom_vline(xintercept = 0, color="purple", size = 1) +

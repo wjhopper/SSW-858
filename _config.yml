@@ -66,6 +66,7 @@ collections:
          - "Interpreting Confidence Intervals"
          - "The Logic of a Hypothesis Test"
          - "The Permutation Distribution"
+         - "Rejecting the Null"
    problem_sets:
       order:
          - "Intro to R and RStudio"

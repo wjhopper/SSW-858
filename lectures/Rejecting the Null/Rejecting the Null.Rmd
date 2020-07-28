@@ -1,0 +1,626 @@
+---
+title: "Rejecting the Null"
+author: "Will Hopper"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "default-fonts", "../../assets/css/sds.css"]
+editor_options:
+  chunk_output_type: console
+---
+
+<style>
+.grey123 li {
+  color: #e8e8e8;
+}
+.grey123 li:nth-child(4), .grey123 li:nth-child(4) li {
+  color: black;
+}
+</style>
+
+```{r setup, include=FALSE}
+library(moderndive)
+library(infer)
+library(tidyr)
+library(ggplot2)
+library(gganimate)
+library(grid)
+library(gridExtra)
+library(dplyr)
+
+options(htmltools.dir.version = FALSE, stringsAsFactors = FALSE)
+knitr::opts_chunk$set(echo = FALSE, cache=TRUE, fig.align = 'center', dev='svg', fig.height=6, fig.width=8)
+theme_set(theme_bw(24) +
+            theme(plot.margin = margin(12,1,1,1),
+                  legend.box.margin = margin(0,0,0,-20),
+                  plot.title = element_text(size=16, margin = margin(-10)),
+                  plot.subtitle = element_blank()
+                  )
+          )
+```
+
+```{r}
+set.seed(1)
+males <- data.frame(gender = "Male", age = c(69, 70, 71, 72, 73, 73, 76, 80))
+females <- data.frame(gender = "Female", age = c(67, 74, 75, 77, 77, 81, 81))
+life_exp <- as_tibble(bind_rows(females, males))
+rm(males, females)
+```
+
+```{r}
+set.seed(123)
+null_dist <- specify(life_exp, age ~ gender) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps=1000, type = "permute") %>%
+  calculate(stat="diff in means", order = c("Female", "Male"))
+
+null_dist_plot <- ggplot(null_dist, aes(x=stat)) +
+  geom_histogram(binwidth = .5, fill="purple", color="black") +
+  scale_x_continuous("Mean Female Age - Mean Male Age", breaks = -6:6) +
+  ggtitle("Null Distribution of Differences")
+```
+
+```{r histogram_accumulation_shading, message=FALSE}
+lt_quantile <- matrix(NA, nrow=nrow(null_dist), ncol=nrow(null_dist))
+
+for (i in 1:nrow(null_dist)) {
+  lt_quantile[, i] <- c(rep(TRUE, i, ), rep(FALSE, nrow(null_dist)-i))
+}
+
+null_dist_checked <- bind_cols(arrange(null_dist, stat),
+                               as_tibble(lt_quantile, .name_repair = 'minimal')
+                               ) %>%
+  gather(key = "frame", value="lt_quantile", -replicate, -stat) %>%
+  mutate(frame = tidyr::extract_numeric(frame))
+
+g_tbl <- ggplot2::ggplot_build(null_dist_plot)[["data"]][[1]]
+breaks <- c(g_tbl[["xmin"]][1], g_tbl[["xmax"]])
+
+fake_quantiles <- mutate(null_dist, bins = cut(null_dist$stat, breaks = breaks)) %>%
+  count(bins) %>%
+  separate(bins, into = c("lower","upper"), sep = ",") %>%
+  mutate(lower = as.numeric(sub("(", "", lower, fixed = TRUE)),
+         upper = as.numeric(sub("]", "", upper, fixed = TRUE))) %>%
+  rowwise() %>%
+  mutate(steps = list(seq(lower, upper, length.out = n))) %>%
+  ungroup() %>%
+  unnest(steps) %>%
+  mutate(frame = 1:nrow(.))
+  
+labels <- data.frame(frame = 1:nrow(null_dist)) %>%
+  mutate(fake_quantile = sprintf("%.1f%%", 100*frame/nrow(.))) %>%
+  bind_cols(select(fake_quantiles, steps))
+
+rm(g_tbl, lt_quantile, breaks, i)
+```
+
+### Previously: Hypothesis Tests & the Null Distribution
+Do males and females have different average life expectancies?
+
+1. Two conflicting hypothesis are pit against one another: $H_0$ vs. $H_A$
+  - $\mu_F - \mu_M = 0$ vs. $\mu_F - \mu_M \ne 0$
+2. Collect a sample, and compute a test statistic
+  - $\bar{x}_F - \bar{x}_M = 3$
+3. Construct a distribution of possible statistics **assuming the null hypothesis were true**
+  - Randomly permute category labels of the observations many times, computing category difference each time
+4. Compare the observed test statistic (3) to the null hypothesis distribution
+  - If the test statistic is extreme enough, we **reject the null hypothesis**
+  - If the test statistic falls within the bounds of typical random fluctuations we **fail** to reject the null
+
+???
+
+Hello Statisticians. Today, we're completing the last step in our journey through hypothesis testing. Our journey has been centered around trying to answer the question of whether males and females have different average life expectancies.
+
+Our approach to answering this question was to set up two conflicting hypothesis, the null and alternative. The Null hypothesis represented the belief that males and females have the same average life expectancy, which we represented symbolically with mu F minus mu M. The alternative represented the idea that males and females have different average life expectancy, by setting mu F minus mu M to something not 0.
+
+Just to preview a little bit, this "not equal to 0" part of our alternative means that we're performing whats called a "two-tailed" hypothesis test. By setting up our alternative hypothesis this way, we're required to assess evidence for a both a postive difference **and** a negative difference in means.
+
+---
+
+### The Null Distribution
+Shuffled the male/female catgories 1000x, computed difference in means each time
+
+```{r dev='png', out.width=768, out.height=480, fig.retina=2,}
+null_dist_plot
+```
+
+???
+
+In the last video, we constructed the null hypothesis distribution by randomly permute category labels of the observations many times, and computing category difference each time. This provided us with a distribution of differences in sample means that would be expected in a world with no differences in life expectancies between males and females.
+
+We can see that even when the "male" and "female" category labels are randomly assigned to ages, differences as large as 6 years between the two categories can occurs just due to randomness!
+
+---
+
+### Today: the last step!
+
+.grey123[
+
+1. Two conflicting hypothesis are pit against one another: $H_0$ vs. $H_A$
+  - $\mu_F - \mu_M = 0$ vs. $\mu_F - \mu_M \ne 0$
+2. Collect a sample, and compute a test statistic
+  - $\bar{x}_F - \bar{x}_M = 3$
+3. Construct a distribution of possible statistics **assuming the null hypothesis were true**
+  - Randomly permute category labels of the observations many times, computing category difference each time
+4. Compare the observed test statistic (3) to the null hypothesis distribution
+  - If the test statistic is extreme enough, we **reject the null hypothesis**
+  - If the test statistic falls within the bounds of typical random fluctuations we **fail** to reject the null
+]
+
+???
+
+This time, we're going to learn how to compare our test statistic to this distribution, and decide if our evidence is strong enough to reject the entire null hypothesis.
+
+---
+
+### Choosing a significance level
+
+- Before we can reach a "reject" or "fail to reject" decision, we have to decide what constitutes an "extreme" value
+
+???
+
+Before we can reach a "reject" or "fail to reject" decision, we have to decide what constitutes an "extreme" value
+
+--
+
+- We choose this cutoff based on how often we're OK with **incorrectly** rejecting null hypothesis
+  - In other words, how often will we reach a "false positive", and conclude a difference exists when it does not
+  
+???
+
+We choose this cutoff based on how often we're OK with **incorrectly** rejecting null hypothesis. In other words, our cutoff controls how often will we reach a "false positive", and conclude a difference exists when it does not.
+
+--
+
+- The "false positive" rate, or "significance level", of a hypothesis test is symbolized as $\alpha$
+  - $\alpha$ is a probability (i.e., between 0 and 1)
+  - Frequently used $\alpha$ values are .05 and .01
+
+???
+
+This false positive rate is symbolized as a greeek letter $\alpha$, and is also referred to as the significant level of a hypothesis test. $\alpha$ is a probability, meaning it's always between 0 and 1. Typically, an alpha level of .05 or .01 is considered acceptable, meaning the null hypothesis would only be incorrectly rejected in only 5% or 1% of all experiments.
+
+---
+
+### Choosing a significance level to control errors
+
+Your friend has two decks of cards, deck A and deck B; the two decks have some of the same cards but not all.
+
+???
+
+The false positive rate of a hypothesis test is a bit of a funny thing to wrap your mind around, but to help you start, consider this example:
+
+Your friend has two decks of cards, deck A and deck B; the two decks have some of the same cards but not all.
+
+--
+
+Your friend will pay you $100 dollars if you can identify which deck a single random card comes from.
+
+???
+
+And they say they will pay you $100 dollars if you can identify which deck a single random card comes from.
+
+--
+
+They draw a 10, and tell you that only 5% of the cards in deck A are 10's.
+
+Deck B also has 10's, but your friend won't tell you anything else about Deck B.
+
+Which deck does the card come from?
+
+???
+
+They card they draw is a 10, and they tell you that only 5% of the cards in deck A are 10's. Now, Deck B also has 10's, but your friend won't tell you anything else about Deck B.
+
+So, with $100 dollars on the line, which deck does the card come from?
+
+---
+
+### Choosing a significance level to control errors
+
+You could decide by saying "Deck A only produces a card like this 5% of the time; that's too unlikley for me to believe this 10 came from Deck A, so I guess deck B"
+
+???
+
+If all the information you have is about how often Deck A produces a 10, one way to decide would be saying "Deck A only produces a card like this 5% of the time; that's too unlikley for me to believe this 10 came from Deck A, so I guess deck B"
+
+--
+
+But, following this rule, you'll always miscategorize 10's when they come from Deck A
+
+In otherwords, you'll miscategorize 5% of cards from Deck A - by your own rule!
+
+???
+
+But, following this rule, you'll always miscategorize 10's when they come from Deck A. In otherwords, you'll miscategorize 5% of cards from Deck A - thanks to your own rule!
+
+--
+
+But on the upside, you'll **only** miscategorize 5% of cards from Deck A
+
+???
+
+But, to be fair to this decision rule, it only means you'll **only** miscategorize 5% of cards from Deck A. In other words, it puts a limit on how often you'll incorrectly say "B" when the true answer is "A". So, a decision rule like this is good for something.
+
+--
+
+The real problem is that a 10 could have come from either deck, so the correct answer is **ALWAYS** ambiguous - the best you can hope for is to be right more often than you're wrong.
+  - This decision rule ensures that when the correct answer is A, you'll only be wrong 5% of the time.
+
+???
+
+The real problem is that a 10 could have come from either deck, so the correct answer is **ALWAYS** ambiguous - the best you can hope for is to be right more often than you're wrong. And, this decision rule ensures that when the correct answer is A, you'll only be wrong 5% of the time.
+
+---
+
+### Choosing a significance level to control errors
+
+The situation with the two decks of cards is exactly like a null hypothesis test on a difference in means.
+
+Your observed difference *could* come from the null distribution (like Deck A) or it *could* some other "alternative" distribution (Deck B) which we know nothing about!
+
+???
+
+The situation with the two decks of cards is exactly like a null hypothesis test on a difference in means. The world is a messy and overlapping place, and your observed difference *could* come from the null distribution (like Deck A) or it *could* some other "alternative" distribution (Deck B) which we know nothing about!
+
+--
+
+So, we set a decision rule: reject the null *only* when the observed test statistic has some low probability $\alpha$ of occuring under the null distribution 
+
+That way, you only **incorrectly** reject the null in $100 \times\alpha$ percent of the experiments you do.
+
+???
+
+So, we set a decision rule: reject the null *only* when the observed test statistic has some low probability $\alpha$ of occuring under the null distribution. That way, you only **incorrectly** reject the null in $100 \times\alpha$ percent of the experiments you do. If alpha is .05, then you'll only **incorrectly** reject the null in 5 percent of the experiments you do.
+
+--
+
+Unfortunately, we don't know how often we'll **correctly** reject the null
+
+???
+
+Unfortunately, we don't know how often we'll **correctly** reject the null, but, that's a problem for another day.
+
+---
+
+### The Null Distribution
+If $\alpha = .05$, a test statistic will be considered extreme if it falls into the most distant 5% of the null distribution
+```{r dev='png', out.width=768, out.height=480, fig.retina=2,}
+null_dist_plot +
+  geom_vline(xintercept = quantile(null_dist$stat, .025), color = "red", size=1) +
+  geom_vline(xintercept = quantile(null_dist$stat, .975), color = "red", size=1)
+```
+
+???
+
+Let's return to our null distribution of differences, and see how the alpha level fits into the picture here.
+
+If we choose to set our alpha level to .05, then a test statistic will be considered extreme if it falls into the most distant 5% of the null distribution
+
+These value's are like the rare 10's from the deck of cards
+
+---
+
+### The Null Distribution
+In other words, an extreme test statistic is one that occurs in no more than 5% of samples, *assuming the null is true*
+```{r dev='png', out.width=768, out.height=480, fig.retina=2,}
+null_dist_plot +
+  geom_vline(xintercept = quantile(null_dist$stat, .025), color = "red", size=1) +
+  geom_vline(xintercept = quantile(null_dist$stat, .975), color = "red", size=1)
+```
+
+???
+
+A test statistic will be considered extreme if it falls into the most distant 5% of the null distribution. 
+
+The **positive** values considered "extreme" in the null distribution occur with probability alpha over 2, and the **negative** values considered extreme in the null distribution occur also with probability alpha over 2
+
+---
+
+### To reject, or not to reject...
+
+Deciding to "reject" or "fail to reject" the null hypothesis is a matter of comparing the probability of the *observed* test statistic to the
+chosen $\alpha$ threshold that separates "extreme" values from "expected" ones
+
+???
+
+We're getting very close to a decision about our life expectancy differences. All that's left is to compare the probability of the *observed* test statistic to the chosen alpha level threshold that separates "extreme" values from "expected" ones.
+
+--
+
+If $\alpha = .05$, our test statistic must have a less than or equal to 5% chance of occuring in the null hypothesis distribution to reach a "reject" decision.
+  - $P(\bar{x}_{diff})<= .05$
+
+???
+
+If alpha equls .05, our test statistic must have a less than or equal to 5% chance of occuring in the null hypothesis distribution to reach a "reject" decision.
+
+--
+
+For the gender and life expectancy example, this would mean the probability of observing a difference in means of 3 years must be less than .05.
+
+???
+
+For the gender and life expectancy example, this would mean the probability of observing a difference in means of 3 years must be less than .05.
+
+--
+
+Almost.
+
+---
+
+### Two-Tailed Hypothesis Tests
+
+Remember how our alternative hypothesis was  $\mu_F - \mu_M \ne 0$?
+
+Remember how there were red cutoff lines drawn on both sides of the null distribution?
+
+--
+
+This means we were willing to accept both positive *or* negative differences as evidence against the null.
+
+So, we have to change our decision rule slightly to accomodate this
+
+--
+
+  - We must check that the probability of a positive *or* negative difference in means is no more than .05
+
+  - In other words, we have to sum the probability of observing such an extreme difference in **both** tails of the distribution, and compare *that* to $\alpha$
+
+---
+
+### Two-Tailed Hypothesis Tests: Don't double your error!
+
+
+.pull-left[
+$\alpha$ is our error rate; assume $\alpha = .05$ 
+
+If we didn't combine probabilities from both tails before comparing to .05, we'd double our error rate!
+
+Rejecting because $\bar{x}_{diff}$ is among the 5% most extreme positive values **OR** the 5% most extreme positive values means you reject 10% of the time *overall*
+
+Not what we wanted!
+]
+
+
+.pull-right[
+```{r, fig.height=8}
+alpha_1 <- null_dist_plot +
+  geom_vline(xintercept = quantile(null_dist$stat, .05), color = "black", size=1) +
+  geom_vline(xintercept = quantile(null_dist$stat, .95), color = "black", size=1) +
+  annotate('label', label = "alpha==\".1 threshold\"", parse=TRUE, x=5.5, y=65,color="black") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()
+        )
+
+alpha_05 <- null_dist_plot +
+  geom_vline(xintercept = quantile(null_dist$stat, .025), color = "red", size=1) +
+  geom_vline(xintercept = quantile(null_dist$stat, .975), color = "red", size=1) +
+  annotate('label', label = "alpha==\".05 threshold\"", parse=TRUE, x=5.5, y=75,color="red")
+
+
+grid.arrange(alpha_1, alpha_05, ncol=1, heights=c(.45, .55))
+```
+]
+
+???
+
+Another way to see the importance of combining the probability from both tails is by considering what would happen if we didn't.
+
+Remember, we said we'd reject the null whenever our test statistic has a less than 5 percent probabiliity of occuring under the null. As we know, this means that we'll actually reject the null incorrectly 5% of the time! But, let's say we're willing to accept this risk.
+
+For us to achieve the desired error rate of 5%, **AND** look for both postive and negative differences, that means we have to divide our rejection region up into both tails; we want a threshold in both the positive and negative direction. Thus, we consider the most distant 2.5% of the distribution in the positive direction {draw .025 on screen}, and the most distant 2.5% of the distribution in the positive direction, to be extreme values which would cause us to reject the null. 
+
+Together, both the upper and lower regions combine to represent 5% of the distribution. If we stick to this rule and only reject when the combined probability from **BOTH** tails is less than .05, we're going to achieve the overall error rate we settled on in the beggining. 
+
+But let's say we did the wrong thing, and we waited until the test statistic was already computed came in to decide which tail to check. If the test statistic was positive, we checked the probability in the upper tail against .05. And if the test statistic was negative, we checked the probability in the lower tails against .05.
+
+There's nothing wrong with just checking just one tail at the .05 level - it's called a directional alternative hypothesis. But there is a problem with checking both tails at the .05 level **after** you see the data from your sample. 
+
+The problem is that you're forgetting about all the othre samples that might have been. We have to think about what would happen in all the other possible samples from the null distribution that we *didn't* get to observe, and how often they would fall into our rejection region. Think about it this way: before we saw the data, our decision rule was: reject the null whenever the test statistic was one of the 5% most extreme positive values **OR** was one of the 5% most extreme negative values. We only decided which one to do after seeing the data. 
+
+But we know that differences in sample means from the  null hypothesis distribution will fall into one these regions 5% of the time. But if we're willing to accept **either one** at the .05 level, then 10% of all samples taken from the null distribution will lead us to reject the null hypothesis - in other words, we'd incorrectly reject the null 10% of the time, not 5% like we wanted to!
+
+---
+
+### Let's do it!
+
+.pull-left[
+Visually, we can see that $\bar{x}_F - \bar{x}_M = 3$ is not in the rejection region.
+
+So, we're not going to reject the null hypothesis.
+
+But let's see how to compute the $p$ value of our test statistic anyway, since we'd need to write this in any report we did.
+
+The $p$ value is the probablility of observing a test statistic as extreme, or more exteme, than the one observed in your sample, under the null hypothesis distribution.
+]
+
+.pull-right[
+```{r, fig.height=8}
+alpha_05 +
+  geom_vline(xintercept =3, color = "black", size=1)
+```
+]
+
+???
+
+Now that we know that to look for differences in both direction **AND** hold our false positive rate at the desired level, we have to add the probability of the observed test statistic in **BOTH** tails, let's actually get down to the business of finishing our hypothesis test we started so long ago!
+
+Visually, we can see that a difference in means of 3 years is not in the rejection region we set up to put 2.5% of the distribution in the two tails, so, we know we're not going to reject the null hypothesis.
+
+But let's see how to compute the $p$ value of our test statistic anyway, since we'd need to write this in any report we did.
+
+The $p$ value is the probablility of observing a test statistic as extreme, or more exteme, than the one observed in your sample, under the null hypothesis distribution.
+
+To compute it, we need to get ours hands on the values in the null distribution in R instead of just looking at it in a plot.
+
+---
+
+### Finding the P value
+
+Here's the code I used to create the permutation distribution (i.e., the null distribution):
+
+```{r, eval=FALSE, echo=TRUE}
+library(infer)
+
+males <- data.frame(gender = "Male", age = c(69, 70, 71, 72, 73, 73, 76, 80))
+females <- data.frame(gender = "Female", age = c(67, 74, 75, 77, 77, 81, 81))
+life_exp <- rbind(females, males)
+
+null_dist <- specify(life_exp, age ~ gender) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps=1000, type = "permute") %>%
+  calculate(stat="diff in means", order = c("Female", "Male"))
+```
+
+---
+
+### Finding the P value
+
+Now, find the proportion of values greater than or equal to 3, less than or equal to -3, and sum them
+
+```{r, echo=TRUE}
+total <- nrow(null_dist) # 1000
+
+above_3 <- sum(null_dist$stat >= 3) # 99 values above 3
+
+below_neg_3 <- sum(null_dist$stat <= -3) # 95 values below -3
+
+above_3/total + below_neg_3/total # 194 out of 1000 total
+```
+
+So, our $p$ value is .194.
+
+In other words, a value as extreme as $\pm 3$ occurs in 19.4% percent of samples under the null hypothesis, and thus we fail to reject it because $.194 > .05$
+
+???
+
+All that's left to do is find the proportion of values greater than or equal to 3, less than or equal to -3, and sum them. Once we're done, we find our $p$ value to be .194.
+
+In other words, a value as extreme as $\pm 3$ occurs in 19.4% percent of samples under the null hypothesis, and thus we fail to reject it because our p value of .194 was greater than our alpha value of .05
+
+---
+
+### Hypothesis Testing Recap
+
+1. Two conflicting hypothesis are pit against one another: $H_0$ vs. $H_A$
+  - $\mu_F - \mu_M = 0$ vs. $\mu_F - \mu_M \ne 0$
+2. Collect a sample, and compute a test statistic
+  - $\bar{x}_F - \bar{x}_M = 3$
+3. Construct a distribution of possible statistics **assuming the null hypothesis were true**
+  - Randomly permute category labels of the observations many times, computing category difference each time
+4. Compare the observed test statistic (3) to the null hypothesis distribution
+  - The probability of observing $\pm 3$ was greater than our chosen $\alpha$ of .05 (looked in *both* tails because our alternative hypothesis was non-directional)
+  - Thus, we failed to reject the null - our study does not support the idea that male and female's have different average life expectancies
+  
+
+
+```{r lower_cutoff, eval = FALSE, dev='png', out.width=768, out.height=480, fig.retina=2, gganimate = list(fps=10, nframes=50)}
+lower_cutoff <- filter(fake_quantiles, frame==25) %>%
+  select(steps) %>%
+  list() %>%
+  rep(25) %>%
+  setNames(as.character(1:25)) %>%
+  bind_rows(.id="frame") %>%
+  mutate(frame = as.integer(frame) + 25)
+
+histogram_data <- filter(null_dist_checked, frame == 25) %>%
+  select(-frame) %>%
+  list() %>%
+  rep(25) %>%
+  setNames(as.character(1:25)) %>%
+  bind_rows(.id="frame") %>%
+  mutate(frame = as.integer(frame) + 25) %>%
+  bind_rows(filter(null_dist_checked, frame <= 25), .)
+
+label_data <- filter(labels, frame == 25) %>%
+  select(-frame) %>%
+  list() %>%
+  rep(25) %>%
+  setNames(as.character(1:25)) %>%
+  bind_rows(.id="frame") %>%
+  mutate(frame = as.integer(frame) + 25) %>%
+  bind_rows(filter(labels, frame <= 25), .)
+  
+null_dist_quantiles_lower_cutoff_anim <-
+  ggplot(histogram_data, aes(x=stat, fill=lt_quantile)) +
+  geom_histogram(binwidth = .5, show.legend = FALSE) +
+  geom_vline(data=filter(fake_quantiles, frame <= 25), aes(xintercept = steps), color="black") +
+  geom_vline(data = lower_cutoff, mapping = aes(xintercept=steps), color="red") +
+  geom_label(data=label_data, mapping=aes(x=steps, label=fake_quantile),
+             y=100, inherit.aes = FALSE, size=10) +
+  scale_fill_manual(values=c("purple", "black")) +
+  scale_x_continuous("Mean Female Age - Mean Male Age", breaks = -6:6) +
+  transition_manual(frames=frame) +
+  ggtitle("Null Distribution of Differences")
+
+null_dist_quantiles_lower_cutoff_anim
+# animate(null_dist_quantiles_lower_cutoff_anim, fps=5, nframes=50)
+```
+
+
+```{r upper_cutoff, eval = FALSE, dev='png', out.width=768, out.height=480, fig.retina=2, gganimate = list(fps=30, nframes=250)}
+upper_cutoff <- filter(fake_quantiles, frame==975) %>%
+  select(steps) %>%
+  list() %>%
+  rep(150) %>%
+  setNames(as.character(1:150)) %>%
+  bind_rows(.id="frame") %>%
+  mutate(frame = as.integer(frame) + 975)
+
+histogram_data <- filter(null_dist_checked, frame == 975) %>%
+  select(-frame) %>%
+  list() %>%
+  rep(150) %>%
+  setNames(as.character(1:150)) %>%
+  bind_rows(.id="frame") %>%
+  mutate(frame = as.integer(frame) + 975) %>%
+  bind_rows(filter(null_dist_checked, frame <= 975, frame >= 25), .)
+
+label_data <- filter(labels, frame == 975) %>%
+  select(-frame) %>%
+  list() %>%
+  rep(150) %>%
+  setNames(as.character(1:150)) %>%
+  bind_rows(.id="frame") %>%
+  mutate(frame = as.integer(frame) + 975) %>%
+  bind_rows(filter(labels, frame <= 975, frame >= 25), .)
+  
+null_dist_quantiles_upper_cutoff_anim <-
+  ggplot(histogram_data, aes(x=stat, fill=lt_quantile)) +
+  geom_histogram(binwidth = .5, show.legend = FALSE) +
+  geom_vline(data = select(filter(fake_quantiles, frame==25),steps), aes(xintercept = steps), color = "red") +
+  geom_vline(data=filter(fake_quantiles, frame <= 975, frame >= 25), aes(xintercept = steps), color="black") +
+  geom_vline(data = upper_cutoff, mapping = aes(xintercept=steps), color="red") +
+  geom_label(data=label_data, mapping=aes(x=steps, label=fake_quantile),
+             y=100, inherit.aes = FALSE, size=10) +
+  scale_fill_manual(values=c("purple", "black")) +
+  scale_x_continuous("Mean Female Age - Mean Male Age", breaks = -6:6) +
+  transition_manual(frames=frame) +
+  ggtitle("Null Distribution of Differences")
+
+null_dist_quantiles_upper_cutoff_anim
+
+# animate(null_dist_quantiles_upper_cutoff_anim, fps=5, nframes=50)
+```
+
+
+```{r, eval=FALSE}
+null_dist_quantiles_full_anim <-
+  ggplot(null_dist_checked, aes(x=stat, fill=lt_quantile)) +
+  geom_histogram(binwidth = .5, show.legend = FALSE) +
+  geom_vline(data = fake_quantiles, aes(xintercept = steps), color="black") +
+  geom_label(data=labels, mapping=aes(label=fake_quantile), x=-5, y=75, inherit.aes = FALSE, size=10) +
+  scale_fill_manual(values=c("purple", "black")) +
+  scale_x_continuous("Mean Female Age - Mean Male Age", breaks = -6:6) +
+  transition_manual(frames=frame)
+
+# animate(null_dist_quantiles_anim, fps=30, nframes=1000)
+```
+

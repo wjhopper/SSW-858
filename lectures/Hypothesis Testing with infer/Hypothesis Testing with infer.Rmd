@@ -1,0 +1,455 @@
+---
+title: "Hypothesis Testing with `infer`: Who watches more TV?"
+author: "Will Hopper"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+    css: ["default", "default-fonts", "../../assets/css/sds.css"]
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(moderndive)
+library(infer)
+library(tidyr)
+library(ggplot2)
+library(gganimate)
+library(grid)
+library(gridExtra)
+library(dplyr)
+
+options(htmltools.dir.version = FALSE, stringsAsFactors = FALSE)
+knitr::opts_chunk$set(echo = FALSE, cache=TRUE, fig.align = 'center', dev='svg', fig.height=6, fig.width=8)
+theme_set(theme_bw(24) +
+            theme(plot.margin = margin(12,1,1,1),
+                  legend.box.margin = margin(0,0,0,-20),
+                  plot.title = element_text(size=16, margin = margin(-10)),
+                  plot.subtitle = element_blank()
+                  )
+          )
+```
+
+```{r}
+tv_hours <- read.csv(file = "tv_hours.csv", stringsAsFactors = FALSE)
+```
+
+### Hypothesis Testing with `infer`
+
+The `infer` package decomposes the process of hypothesis testing in R into a series of actions directly connected to the conceptual logic of underlying the test
+  - A "hypothesis testing pipeline"
+  - Easier for learning concepts, code is easier to write and read
+
+???
+
+Hello Statisticians! In today's video, we're going to explore how to use the infer packages to carry about the kinds of hypothesis tests we learned about in chapter 9.
+
+The nice thing about the `infer` package is that it decomposes the process of hypothesis testing in R into a series of actions directly connected to the conceptual logic of underlying the test. It provides you with a hypothesis testing pipeline, where each step is explicitly laid out. This helps it make hypothesis testing easier to learn, and it makes the code simpler to write and read.
+  
+--
+
+We're going to do a "start to finish" example using `infer`
+  - Do older people and younger people watch different amounts of TV on average?
+
+???
+
+To explore the infer package and learn how to use it, we're going to do a "start to finish" example to address a question about TV watching behavior. Specifically, we're going to try to answer the question: Do older people and younger people watch different amounts of TV on average?
+
+---
+
+### The `tv_hours` data set
+
+```{r echo=TRUE, eval=FALSE}
+tv_hours<- read.csv("https://wjhopper.github.io/SSW-858/data/tv_hours.csv",
+                    stringsAsFactors = FALSE)
+```
+
+Two variables:
+- `age_category`: "young" (< 60 years old) and "old" (>= 60 years old)
+- `tvhours`: self-reported hours of television watched per day
+
+```{r echo=TRUE}
+head(tv_hours, 5)
+```
+
+???
+
+Let's take a look at the data set we're going to be working with.
+
+As you might expect, it looks like we have more young people than old people in this sample.
+
+---
+
+### The `tv_hours` data set
+
+```{r}
+ggplot(tv_hours, aes(x=age_category, y=tvhours, fill=age_category)) +
+  geom_boxplot(show.legend = FALSE) + coord_flip()
+```
+
+---
+
+### Theoretical Hypothesis Test "Workflow"
+
+1. Two conflicting hypothesis are pit against one another: $H_0$ vs. $H_A$
+2. Collect a sample, and compute a test statistic
+3. Construct a distribution of possible statistics **assuming the null hypothesis were true**
+4. Compare the observed test statistic to the null hypothesis distribution
+  - If the test statistic is extreme enough, we **reject the null hypothesis**
+  - If the test statistic falls within the bounds of typical random fluctuations we **fail** to reject the null
+
+---
+
+### `infer` Test "Workflow"
+
+.pull-left[
+<div><p style="text-decoration: underline; display: block; text-align: center;">Theoretical</p></div>
+1. Two conflicting hypothesis are pit against one another: $H_0$ vs. $H_A$
+2. Collect a sample, and compute a test statistic
+3. Construct a distribution of possible statistics **assuming the null hypothesis were true**
+4. Compare the observed test statistic to the null hypothesis distribution
+]
+
+.pull-right[
+<div><p style="text-decoration: underline; display: block; text-align: center;"><code class="remark-inline-code">infer</code></p></div>
+<ol start="0">
+<li><code class="remark-inline-code">specify</code> variables of interest</li>
+<li><code class="remark-inline-code">calculate</code> a test statistic based on your sample</li>
+<li><code class="remark-inline-code">Hypothesize</code> your null distribution \(H_0\)</li>
+<li><code class="remark-inline-code">generate</code> samples from the null distribution and <code class="remark-inline-code">calculate</code> a distribution of statistics</li>
+<li><code class="remark-inline-code">visualize</code> null distribution vs. test statistic and p-value for a <span style="font-weight: bold">specific</b> alternative hypothesis</li>
+</ol>
+]
+
+???
+
+The `infer` package has functions that correspond to many of these steps, but the mapping isn't one to one. Sometimes we'll use multiple functions for one "step", do two steps in a different order, or have to do a few additional steps, since we're working with physically with data in R, not just theoretical steps.
+
+The first thing to notice is that there is a "Step 0" in the infer workflow, where you specify which variables from a data set you're going to be testing the relationship between. This is necessary because there could be lots and lots of variables in data frame, and you downstream tools need to know which ones to use! This step was implied in the theoretical workflow when we specified the null hypothesis, but when we literally perform the test we have to do it explicitly.
+
+The next thing we do is calculate the test statistic, say, the observed difference in means, from your sample of data. This is slightly out of order form our theoretical work flow, and we don't **have** to do this second, but I like bumping it up in the list because in terms of writing R code, I think it makes the most sense to do this before you dive into the null distribution stuff.
+
+Next, we explicitly state what our null hypothesis is going to be, which is always going to be some form of saying "no difference between groups". This is similar to step 1 in the theoretical work flow, when we wrote out mu F minus mu M is equal to 0.
+
+Next, we construct the sampling distribution of differences under the null hypothesis. Just like in the previous example with life expectancies, we're going to be using the permutation method to construct the null distribution of differences. With the `infer` workflow, you create the null distribution in two steps; first by generating many different random permutations of the category labels, and second, computing the difference in category means from each random permutation.
+
+Finally, we compare the observed test statistic to the null hypothesis distribution, to reach a final "reject" or "fail to reject" decision. The `infer` package emphasizes a visual approach to this step, which helps remind us what exactly a p-value means, instead of just blindly going "this number p is smaller than this number alpha, we're done here".
+
+It's important to note that it's at this stage of the process that we specify our alternative hypothesis, whether we want to look for a difference in the positive direction, negative direction, or both directions. It may be tempting to decide which direction to look based on what you see in the observed data, but remember, doing that will literally double our false positive rate. So, even if you have to state your alternative in the code at this point, you should have decided on it well in advance.
+
+Ok, with that outline finished, lets dig into the details of each step.
+
+---
+
+### `specifying` the variables of interest
+
+A `specify` formula works just like an `lm` formula
+
+<p style="padding-left: 300px; margin-bottom: 0;">outcome variable &darr;</p>
+```{r echo=TRUE, eval=FALSE}
+tv_hours <- specify(tv_hours, formula = tvhours ~ age_category)
+```
+<p style="padding-left: 700px; margin-bottom: 0;">&uarr; explanatory variable</p>
+
+???
+
+I think it's useful to begin at the begging in this case, so let's start with the specify function. specifying 
+
+We're going to specify our variables of interest using a formula, just like when we used the lm function for our regression model. Just like with a regression model, the outcome variable goes on the left of the tilde, and the explanatory variables go on the right. Since we want to compare TV watching hours 
+
+--
+The point of this step is to group the dataset according to the values in the `age_category` variable
+
+`specify` is a lot like `group_by` - but be careful, it will remove variables **not** mentioned in your formula!
+
+???
+
+The point of this step is to group the dataset according to the values in the age_category variable, so that all subsequent steps will group `tvhours` observations according to whether the observation is from an "old" person or a "young" person.
+
+The specify function is a lot like the `group_by` function, but don't consider it an exact replacement, because the specify function will remove variables **not** mentioned in your formula from the data set!
+
+But since in this case, there are only two variables, it won't make a difference.
+
+---
+
+### `Calculating` a test statistic
+
+Since we have "grouped" our data using `specify`, we can use `calculate` to find the difference between the average hours spent watching TV for young and old people.
+
+We just need to tell it
+
+1. The data (`tv_hours`)
+2. The test statistic to calculate (`"diff in means"`)
+3. The order of subtraction
+  - We can put `c("old", "young")` if we want to compute $\bar{x}_{old} - \bar{x}_{young}$
+  - We can put `c("young", "old")` if we want to compute $\bar{x}_{young} - \bar{x}_{old}$
+  
+---
+
+
+### `Calculating` a test statistic
+
+Let's do young minus old
+
+```{r echo=TRUE}
+tv_hours <- specify(tv_hours, formula = tvhours ~ age_category)
+young_minus_old <- calculate(tv_hours, stat="diff in means", order=c("young", "old"))
+young_minus_old
+```
+
+???
+
+The order of subtraction is completely arbitrary, so let's just do young minus old.
+
+The specify step is repeated here, just to remind you that you need to do this step before using the calculate function.
+
+Inside the calculate function, we see the three arguments mentioned on the previous slide: the data set, the statistic to calculate, and the order of subtraction to perform.
+
+We find that the observed difference in TV watching hours between old and young was negative 1.4 hours, meaning young people watched about 1.4 fewer hours of television than older people.
+
+Note that it just labels the difference in means with a generic name of `stat`.
+
+--
+
+We're going to hang onto this value, and use it again in the last step (calculating a p-value)
+
+---
+
+### `Hypothesize` your null distribution
+
+We want to set our null to be $\mu_{young} - \mu_{old} = 0$, so we write `null = independence`
+
+```{r echo=TRUE}
+tv_hours <- hypothesize(tv_hours, null="independence")
+```
+
+We're saying our outcome variable and our explanatory variable are completely independent
+
+Think of "independence" as saying "TV watching behavior is completely independent of your age", which is a generic way of saying "there is no difference in means" without specifically referencing things like the sample or population means.
+
+???
+
+We want to specify a null hypothesis of "no difference between young and old", but we're going to write this hypothesis in kind of generic language. We're going to say our null hypothesis is "independence" between our outcome and explanatory variable.
+
+Think of "independence" as saying "TV watching behavior is completely independent of your age", which is a generic way of saying "there is no difference in means" without specifically referencing things like the sample or population means.
+
+---
+
+### `generate` null samples
+We're going to generate 1,000 random permutations of the data. In other words, we randomly assign each "hours of TV watching" observation to an age category 1,000 times
+
+???
+
+Now, we're going to move on to constructing our null hypothesis distribution of differences in means. Remember, the infer package breaks this up into two different operations.
+
+The first things we need to is generate many random permutations of the data.  In other words, we randomly assign each "hours of TV watching" observation to an age category many times over. In this case, we're going to repeat our random shuffling procedure 1,000 times.
+
+--
+
+```{r echo=TRUE}
+set.seed(100) # to make our permutations reproducible
+permutations <- generate(tv_hours, reps=1000, type="permute")
+glimpse(permutations)
+```
+Each replicate represents a potential sample of data taken from a world where there is no systematic relationship between age category and hours of TV watched.
+
+???
+
+We can use the `generate` function to get the job done, making sure to set the `reps` argument to 1,000, to make it perform the random shuffling procedure 1,000 times, and the type argument to "permute". Note that if you do "permute' without "hypothesizing" first, you'll get a warning that it expected you to bootstrap.
+
+And, also note that I made use of the set.seed function here. I didn't necessarily **have** to do this, but I wanted to make sure I got the same results each time I knitted this slide show, so I put it in there for the sake or reproducible.
+
+---
+
+### `calculate` null distribution differences
+Our hypothesis test is about the differences in **means**
+
+So, we need to `calculate` the average hours of TV watched by "old" people and the average hours of TV watched by "young" people in each permutation, and subtract them
+
+???
+
+With our 1,000 random permutations in hand, we're halfway through constructing the null hypothesis distribution. The second half of the work is computing the difference in group means from each random permutation. 
+
+So, we need to find the average hours of TV watched by "old" people and the average hours of TV watched by "young" people in each permutation, and subtract them
+
+--
+
+Like before, we need to specify the data set, statistic to compute (same as before), and direction of subtraction (same as before)
+
+```{r echo=TRUE}
+null_dist <- calculate(permutations, stat="diff in means", order=c("young","old"))
+glimpse(null_dist)
+```
+
+???
+
+We're actually going to use the calculate function again, but apply it to the huge data set of random permutations.
+Like before, we need to specify the data set, statistic to compute, and direction of subtraction. Since we want to compare the test statistic from our sample to this distribution, we want to compute the same statistic, the difference in means, and compute the statistic using the same order of subtraction, young minus old.
+
+In the end, we end up with 1,000 differences in sample means, representing the differences that you would expect to observe in a world where tv watching behavior was completely independent of your age.
+
+---
+
+### `visualize`, `shade` and `get` the p-value
+
+Infer has two ways to see the outcome of your hypothesis test that should be used together
+
+1. Visually
+  - The `visualize` function will plot a histogram of your null distribution of differences
+  - The `shade_p_value` function can be added to show your test statistic in the context of the null distribution along with the proportion of the distribution more extreme than your test statistic
+2. Numerically  
+  - The `get_p_value` function will tell you the exact p-value (i.e., the probability of observing a test statistic as extreme, or more extreme, in the direction of the alternative hypothesis, assuming the null hypothesis is true.)
+
+???
+
+I strongly recommend you use both of these technique in this order, because I think the visualization can reinforce what the number printed out by the `get_p_value` function really means.
+
+---
+
+### `visualize` and `shade_p_value`
+.pull-left[
+
+```{r eval=FALSE, echo=TRUE}
+visualise(null_dist, bins=20) +
+shade_p_value(obs_stat=young_minus_old,
+              direction = "both"
+              )
+```
+To visualize the p-value for your observed statistic (-1.41 in this case), we need to provide it to the `shade_p_value` function
+
+Both tails are shaded because `direction="both"` means you test a non-directional hypothesis, and have to combine probabilities from both tails
+]
+
+.pull-right[
+```{r fig.height=8}
+visualise(null_dist, bins=20) +
+  shade_p_value(obs_stat = young_minus_old, direction = "both")
+```
+]
+
+???
+
+The visualize function needs the 1,000 differences in means from the permutations you performed in order to plot the histogram of the null distribution, and the `shade_p_value` function need the observed test statistic from your original sample. Remember, this is the values -1.41 we computed way back on slide 9.
+
+Even if this doesn't give you an immediate "yes or no" answer to your hypothesis test, I really like doing this step first, because the shaded area helps remind you what your p value represents.
+
+The p value tells us the probability of observing a test statistic as extreme, or more extreme, in the direction of the alternative hypothesis, assuming the null hypothesis is true.
+
+It just so happens that if that probability happens to be less than our acceptable false positive rate alpha, then we *decide* to "reject the null hypothesis" as a description of our world.
+
+---
+
+### `get_p_value`
+
+.pull-left[
+If we want to know what proportion of the distribution is in the shaded regions (i.e., what the exact p value  is ), we can use the `get_p_value` function.
+
+```{r echo=TRUE}
+get_p_value(null_dist,
+            obs_stat = young_minus_old,
+            direction = "both"
+            )
+```
+]
+
+.pull-right[
+```{r fig.height=8}
+visualise(null_dist, bins=20) +
+  shade_p_value(obs_stat = young_minus_old, direction = "both")
+```
+]
+
+???
+
+If we want to know what proportion of the distribution is in the shaded regions (i.e., what is the exact p value), we can use the `get_p_value` function.
+
+This function needs both the null distribution permutation samples, as well as the test statistic from the original data, because it needs to looks up the number of values in the null permutation distribution as extreme or more extreme than your observed test statistic.
+
+From this, we learn that 12% of the samples whereas extreme or more extreme than 1.41. This is much greater than any conventional alpha level, like 5% or 1%. So, we fail to reject the null hypothesis of no difference in average TV watching hours between young and old people.
+
+
+---
+
+### A directional hypothesis test
+
+.pull-left[
+If we had decided before observing the data that we wanted to test a *directional* hypothesis, say, younger people watch *less* TV than older people, we could use the `direction` argument compute a 1-tailed p value
+
+```{r echo=TRUE}
+get_p_value(null_dist,
+            obs_stat = young_minus_old,
+            direction = "less"
+            )
+```
+]
+
+.pull-right[
+```{r fig.height=8}
+visualise(null_dist, bins=20) +
+  shade_p_value(obs_stat = young_minus_old, direction = "less")
+```
+]
+
+???
+
+If we had decided before observing the data that we wanted to test a *directional* hypothesis, say, younger people watch *less* TV than older people, we could use the `direction` argument compute a 1-tailed p value.
+
+Since this means only looking for a difference in one tail, our p value is half of what is was. But, the drawback is that our test can only accept **negative** differences as evidence against the null, instead of being sensitive to differences in either direction.
+
+You could also use a direction of "greater" if you wanted to test a directional hypothesis in the positive direction.
+
+---
+
+### A "pipeline" workflow
+
+```{r}
+tv_hours <- read.csv(file = "tv_hours.csv", stringsAsFactors = FALSE)
+```
+
+```{r, echo=TRUE, eval=FALSE}
+tv_hours <- read.csv("https://wjhopper.github.io/SSW-858/data/tv_hours.csv",
+                     stringsAsFactors = FALSE)
+```
+```{r echo=TRUE, fig.keep='none', results='hide'}
+tv_hours <- specify(tv_hours, formula = tvhours ~ age_category)
+
+young_minus_old <- calculate(tv_hours, stat="diff in means", order=c("young", "old"))
+
+set.seed(100)
+null_dist <- hypothesize(tv_hours, null="independence") %>%
+  generate(reps=1000, type="permute") %>%
+  calculate(stat="diff in means", order=c("young","old"))
+
+visualise(null_dist, bins=20) +
+  shade_p_value(obs_stat=young_minus_old, direction="both")
+
+get_p_value(null_dist, obs_stat=young_minus_old, direction="both")
+```
+
+???
+
+Now that we've explained each individual step, let's take a look at all the work we've done in one place.
+
+---
+
+### `infer` conclusions.
+
+<ol start="0">
+<li><code class="remark-inline-code">specify</code> variables of interest</li>
+<li><code class="remark-inline-code">calculate</code> a test statistic based on your sample</li>
+<li><code class="remark-inline-code">Hypothesize</code> your null distribution \(H_0\)</li>
+<li><code class="remark-inline-code">generate</code> samples from the null distribution and <code class="remark-inline-code">calculate</code> a distribution of statistics</li>
+<li><code class="remark-inline-code">visualize</code> null distribution vs. test statistic and p-value for a <span style="font-weight: bold">specific</b> alternative hypothesis</li>
+</ol>
+
+
+In the end: Our sample provides no evidence that young and old people watch different amounts of television.
+
+???
+
+So, we dilligently followed all the steps to try and answer the question of whether older people and younger people watch different amounts of TV on average? In the end, our sample provides no evidence that young and old people watch different amounts of television.

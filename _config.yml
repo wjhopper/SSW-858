@@ -67,6 +67,7 @@ collections:
          - "The Logic of a Hypothesis Test"
          - "The Permutation Distribution"
          - "Rejecting the Null"
+         - "Hypothesis Testing with infer"
    problem_sets:
       order:
          - "Intro to R and RStudio"

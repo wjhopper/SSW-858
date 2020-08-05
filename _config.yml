@@ -68,6 +68,7 @@ collections:
          - "The Permutation Distribution"
          - "Rejecting the Null"
          - "Hypothesis Testing with infer"
+         - "Towards Hypothesis Testing of Regression Coefficients"
    problem_sets:
       order:
          - "Intro to R and RStudio"

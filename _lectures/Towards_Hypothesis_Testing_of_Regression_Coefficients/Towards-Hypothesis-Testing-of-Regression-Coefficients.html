@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Towards Hypothesis Testing of Regression Coefficients</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Will Hopper" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Towards Hypothesis Testing of Regression Coefficients
+### Will Hopper
+
+---
+
+
+class: noverticalmargin
+
+
+
+### The question we ask
+
+Is there are relationship between two variables? I.e., is the slope of the regression line different from zero?
+
+&lt;img src="slide_2_drawing.png" style="display: block; margin: 50px auto"&gt;
+
+???
+
+Hello Statisticians! In this video, we're going to be gearing up to perform hypothesis tests on regression models. That's right, hypothesis tests aren't just for means and proportions, they're for *any* quantity that you estimate using data, meaning the coefficients of a regression model are ripe for a hypothesis test.
+
+Hypothesis tests are going to be the key for answering applied research questions about multivariable relationships, like "Is there a reliable positive relationship between the number of hours slept and your college GPA", or "Does the relationship between the number of hours slept and your college GPA depend on whether you sleep during the day or the night".
+
+Answering these kinds of research questions, which are about the pattern of observations between two numeric variables, will usually take the form of a hypothesis test concerning the slope of a regression model. Specifically, the statistical question we ask in these situations is: is the slope of the regression line different from zero?
+
+*Drawing coordinate plane with horizontal line and sloped lines*
+
+---
+
+class: noverticalmargin
+### The question we ask
+
+Is there are relationship between two variables? I.e., is the slope of the regression line different from zero?
+
+
+
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/unnamed-chunk-2-1.png" width="528" height="528" style="display: block; margin: auto;" /&gt;
+
+???
+
+Let's begin our exploration of hypothesis testing on the coefficients of regression models by revisiting a regression model we're already plenty familiar with - the weight by weeks model fit to the ncbirths data set. As I'm sure you remember, the ncbirths dataset has 1,000 birth records collected from the state of North Carolina in 2004. Among the variables measured in each birth record are the birth weight of the baby in pounds, and the duration of the pregnancy measured in weeks.
+
+The scatterplot we're looking at shows the relationship between these two variable - each point on the plot is a pair of birth weight and pregnancy duration observations from the same birth record. As a whole, the points on the scatterplot roughly form an ellipse, tilting upwards are you move from left to right, indicating a positive relationship between birth weight and pregnancy duration - meaning that the longer the pregnancy is, the heavier the baby is.
+
+The line overlayed on top of the observations represents the regression model fit to this bivariate relationship. In this regression model, birth weight is the outcome variable, and pregnancy duration is the explanatory variable, meaning that the model considers birth weight as the unknown quantity to be predicted, and pregnancy duration as the known quantity that helps us reduce the uncertainty in what the birth weight might be.
+
+The model's birth weight predictions lie along this red line - if you know that the pregnancy lasted 30 weeks, then your best prediction for the baby's birth weight would be just over 4 pounds. If you know the pregnancy lasted 50 weeks, then your best prediction for the baby's birth weight would be just under 8 pounds.
+
+The slope of this line summarizes the relationship between birth weight and pregnancy duration. Using the lm function, and looking at the resulting regression table, we find the slope to be .343. Thus, for every one week increase in the pregnancy, the birth weight of the baby is estimated to increase by .343 pounds.
+
+With this information in hand, let's revisit our general research question: Is there are relationship between these two variables? Is the slope of the regression line for the weight by weeks model different from zero?
+
+Well from one perspective, that's a trivial question. Yes, there's a relationship - look at the plot! Yes, the slope is different from 0, it's .34, and if you've gotten past about the 5th grade, you know .34 isn't 0.
+
+But as you can see, this video still has a few minutes left, so there's got to be at least one other way of looking it, and maybe you already know what the hold up is that stops us from looking at the slope in the regression table and being done already.
+
+---
+
+class: noverticalmargin
+### The `weight ~ weeks` model
+
+Don't forget, our data is just a random sample from a larger population!&lt;br&gt;&lt;br&gt;
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/unnamed-chunk-3-1.gif" width="528" height="528" style="display: block; margin: auto;" /&gt;
+
+???
+
+The reason we can't be quite so quick to answer the question is that the ncbirths data set is just a single snapshot of the relationship between pregnancy duration and birth weight. These 1000 pairs of observations were just a random sample taken from a much larger population of births.  Maybe if we had collected on Tuesday instead of a Wednesday, or at a hospital on the west side of town instead of the east, maybe our data would suggest a stronger or weaker relationship between pregnancy duration and birth weight. Unless we plan to measure every baby ever born, we're always going to have to worry about sampling variability - since our model of birth weight depends on the data we observe, our model is always going to be impacted by random differences from sample to sample.
+
+If we accept our fate, and agree that sampling variability is always going to be part of what we're modeling, a natural follow up question is: how much variability is there from sample to sample. Can we measure how much the slope changes from sample to sample
+
+To answer these questions, we turn to the sampling distribution of the slope. Since the slope is a numerical summary data, it has a sampling distribution just like the sample mean and sample proportion do. The sampling distribution of the slope tells us which slopes are likely to occur in a sample of 1,000 babies, and which are unlikely but still possible due to sampling variability.
+
+Since the sampling distribution reflects differences in slopes due to differences in samples, the best way to obtain and observe the sampling distribution is by observing many different samples. So, let's do that now. We're going to observe how random sample to sample variation impact the slope of the regression line by sampling 200 random data sets from the ncbirths population, and fitting the weight by weeks regression model to each one.
+
+---
+
+### Many `weight ~ weeks` models
+
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/unnamed-chunk-4-1.gif" style="display: block; margin: auto;" /&gt;
+
+???
+
+This process is just like when we sampled many different data sets and took the mean of each one to obtain the sampling distribution of the mean birth weight. The only important different now is that instead of summarizing one variable using the mean, we're summarizing the relationship between two variables with a regression model. 
+
+We start with the population of births in the state of north Carolina in 2004, shown by the the 120,521 black points, and take a random sample of 1,000 birth records, shown by the 1,000 blue points.Then, we fit a regression model with weight as the outcome variable, and weeks as the single explanatory variable using the sample of data shown in blue. This gives us a regression line, and we add the slope of this regression line to our collection of regression lines. Right now, our slope is pretty lonely, so let's repeat this process again. We take a random sample, fit the regression model, and record the slope in our collection. We'll keep all our "old" slopes in light blue, and draw the most recent one we added in red. Then, we'll repeat again - take a sample, fit the model, record the slope, take a sample, fit the model, record the slope. As you can see, our collection of slopes is coming along nicely, and we're starting to see how the slope varies from sample to sample. Let's speed this up so we can get to the end of our simulation, and see the pattern of all 200 slope.s
+
+And viola, there they are, 200 different samples of birth weight pregnancy duration pairs, 200 different slopes. The slope was positive in all our samples, but varied in steepness - sometimes the quite steep, and sometimes the slope was shallower.
+
+---
+
+### A Sampling Distribution of slopes
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/sampling_dist_hist-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+
+Another way we could visualize our collection of slopes is as as histogram. Instead of plotting each slope as a line, we could put our slope values into bins, and count up how many slopes end up in each bin. Visualizing the slopes this way makes it clearer which slopes are typical, and which slopes are unusually steep or unusually shallow.
+
+As we can see, there wasn't a huge amount of variation in the slope from sample to sample - values ranges from .24 to .34, and the most likely slopes fall between .28 and .3 pounds per week. By computing the standard deviation of these 250 slopes, we find that the average difference from each slope to the average slope was only .017 pounds per week, a pretty small amount of variation from sample to sample.
+
+Visualize all the slopes as a histogram also makes it easy to notice else something important. The slope we got in our original sample, the "classic" ncbirths data set, appear unusually high. In all 250 of our random samples, we never got a slope as high as .343, we maxed out at .34!
+
+This is a good example of why we should never forget about sampling variability - there's always a chance our sample is atypical, and doesn't give an accurate representation of the relationship in the broader population. It doesn't mean our sample is wrong per se, it just means that there's always the danger of over or underestimation
+
+Knowing about this potential for any sample to over or underestimate what's happening in the larger population means you should maintain some skepticism about drawing conclusions. Since we know that random chance always plays some factor in the estimates we get from our model, it's important to ask ourselves "Is it likely that the estimate I obtained from my sample could happen due to *chance* alone"?
+
+Put another way, it's important to consider the likelihood of getting a slope like the one you did if there is no relationship between the variables in the larger population, and the true slope is 0.
+
+---
+
+### The World According to Chance
+
+Is this slope likely to occur just by chance? I.e., if the slope is 0 in the population, how likely is this slope to occur?
+
+&lt;img src="slide_7_drawing.png" style="display: block; margin: 50px auto"&gt;
+
+???
+
+Taking the example of the birth weight and pregnancy duration, we want to know what the likelihood of getting a slope of .343 in a sample of 1,000 babies is if the real truth is that pregnancy duration and birth weight are unrelated.
+
+Anytime we want to judge whether something is likely or unlikely, frequent or unusual, to be expected or surprising, what we really want is a distribution. If we have a distribution of slopes that might occur just due to chance, we can use that distribution to as a ruler or benchmark of sorts. If our slope is relatively likely according to this null distribution, then we should not take our observations to be evidence for a relationship. But, if our slope is unlikely according to this null distribution, then we have grounds to conclude their is a relationship, because such a large slope is inconsistent with the slopes that might occur in a population where no relationship exists.
+
+---
+
+class: noverticalmargin
+### Building the Null Distribution
+
+How to get slopes from a world where `weight` and `weeks` are only related through random chance? Do the permutation shuffle!
+
+
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/unnamed-chunk-6-1.gif" width="528" height="528" style="display: block; margin: auto;" /&gt;
+
+???
+
+So, if we want a distribution of slopes the could occur in a world where pregnancy duration and birth weight observations are only related through random chance, the first thing we need is a world where pregnancy duration and birth weight observations are only related through random chance.
+
+As abstract as that sounds, its actually not too difficult to visit this world and get some observations from it. The reason this isn't too hard is because we already have plenty of birth weight and pregnancy durations in our data set, so all we have to supply is the random chance. What we're going to do is take the pregnancy durations we have, and shuffle their order, so that each pregnancy duration gets paired up with a random birth birth weight.
+
+
+Watch what happens to a few different points to get the hang of what's going on. For example, take this point towards the top right. In the real data set, it's a birth where the baby was born 11.75 pounds after a 43 week pregnancy. But, in the randomly shuffled data set, it's a birth where the baby was born 11.75 pounds after a 38 week pregnancy. And consider this point in the bottom left. In the real data set, it's a birth where the baby was born 11.75 pounds after a 43 week pregnancy. But, in the randomly shuffled data set, it's a birth where the baby was born 11.75 pounds after a 38 week pregnancy.
+
+As you can see, the random shuffling completely changes the relationship between birth weight and pregnancy duration. And judging by the regression line, it looks like it completely removes any systematic positive relationship, in fact, in this randomly shuffled data set, the relationship actually appears to be very slightly negative. *THIS* is the kind of regression slope you would expect to observe if the relationship was driven by chance alone.
+
+---
+
+### Building the Null Distribution
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/unnamed-chunk-7-1.gif" width="576" height="576" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+But remember, we're after a distribution of slopes that are expected to occur just by chance. So, we're not going to do this just once - we're going to do it over and over and over again, accumulating more and more slopes until the distribution starts to take shape.
+
+---
+
+### Building the Null Distribution
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/unnamed-chunk-8-1.gif" width="576" height="576" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Building the Null Distribution
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/unnamed-chunk-9-1.gif" width="576" height="576" style="display: block; margin: auto;" /&gt;
+
+---
+
+### The Null Distribution of Slopes
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/unnamed-chunk-10-1.png" width="576" height="576" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+After shuffling the pregnancy durations in the data set 1,000 separate times, to make 1,000 new, random data sets, and fitting the weight by weeks regression model to each one to find the slope that summarizes the birth weight/pregnancy duration relationship, we have a null distribution of slopes. Since we obtained this distribution through the use of permutations, aka shuffling the order of the pregnancy durations, we could call this distribution the permutations 
+
+
+*THIS* is the distribution we use to judge whether our observed slope is likely or unlikely, assuming a world where the only relationship between birth weight and pregnancy duration is random chance.
+
+---
+
+### The Null vs. The Observed
+
+&lt;img src="Towards-Hypothesis-Testing-of-Regression-Coefficients_files/figure-html/unnamed-chunk-11-1.png" width="576" height="576" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+As you might have expected, our slope is literally off the charts. A slope of .343 didn't occur a single time, and neither did any slope remotely close to .343 - the biggest one observed in our simulation was .055 - not even close.
+
+The way you quantify the strength of evidence against the null hypothesis of "no relationship" is by reporting the probability of observing a test statistic as extreme or more extreme than the one you observed in the direction of the alternative hypothesis.
+
+So in the case of a null hypothesis represented by a permutation distribution, and a "greater than" alternative hypothesis, all we have to is count up the number of times a slope of .343 or greater occurred, and compare that to the number of permutations you performed.
+
+In this case, a slope of .343 or greater occurred 0 times out of 1,000, giving us a probability of 0! But, since the observed data is *technically* one of the possible permutations, it just didn't show up in our 1,000 random permutations, we correct the probability to 1 out of 1001, giving a probability of point 0 0 0 9 to observe a slope as large .343.
+
+The most reasonable conclusion in the face of the this strong evidence against the null hypothesis is to reject it, and conclude there is a relationship between birth weight and pregnancy duration in the population of all births in North Carolina. It's a conclusion I'm sure you reached 15 minutes ago, but it's good to check that statistics and biology can agree on something. And with that, we've completed our first hypothesis test on a slope in a regression model. 
+
+---
+
+### "There is only one test" - Allen Downey
+
+![](slide_14_drawing.png)
+
+???
+
+As you can see, our process and our logic wasn't meaningfully different from the process and logic we employed in the past when performing a hypothesis test about the relationship between two means. The only change was that instead of looking at the relationship between a numeric variable broken down by two categories, we looked at the relationship between two numeric variables, and used a regression model to get our summary statistic instead of the sample mean.
+
+In fact, process and logic underlying hypothesis testing is so formulaic that some have said "There is only one hypothesis test". Sure, some of the variables and statistics of interest might change, and you might have different formulas to get different distributions, but the logic and the process stay the same. So to recap our hypothesis, let's see how our test for the regression slope relating pregnancy duration and birth weight fit into this schema.
+
+We began with the sampled data, the ncbirths data set, and we fit a regression model that summarized the linear relationship between pregnancy duration and birth weight. That regression model produced out test statistic, the slope of .343. In this diagram, they use a generic symbol for the test statistic, the Greek lowercase delta, which is commonly used in mathematics to represent a change or difference. Since the slope represents the change in the outcome variable for each one unit chance in the explanatory variable, I'd say that's a good fit in this case.
+
+Then, we assessed the evidence for a real population-level relationship between birth weight and pregnancy duration by asking ourselves "Is a slope of .343 likely to happen by chance if we were sampling from a population were there was no real difference?". So, a population where the slope relating pregnancy duration and birth weight was actually 0 was our null hypothesis H0, and our model of that hypothesized population was randomly pairing up birth weights and pregnancy durations. In other words, our model of the null hypothesis was permutations of the observed pregnancy durations.
+
+To see what would happen in this hypothetical world of no difference, we repeatedly permuted the pregnancy durations over and over, a total of 1000 times, to create many different data sets from out hypothetical world. To see what kind of relationships between pregnancy duration and birth weight this world would produce, we summarized each random data set with the same regression model we used on the observed data, and combined all these slopes to form a distribution. This distribution represented the null hypothesis; it represented what slopes you could expect to see in samples taken from a population with no relationship between the two variables, a population with a true slope of 0. 
+
+When we compared our observed slope of .343 to this distribution, we saw clear evidence against the null. Our slope was literally off the charts, and would be completely unexpected in a population with a true slope of 0. So, our p value, the probability of observing a test statistic as extreme or more extreme than the one you observed in the direction of the alternative hypothesis, was 0, because a slope of .343 was observed in 0 out of 1000 permutations. Since a p-value of zero is technically impossible, because the observed data has to be among the true set of possible permutations, we corrected the p-value to 1 in 1001, for a final p-value of point 0 0 0 9.
+
+We reject the null that there is no relationship between pregnancy duration and birth weight in favor of the alternative, that there is a positive relationship between them.
+
+All right statisticians, that's it for this video. Next time, we'll compare the results of this hypothesis test with the ones that R automatically performs on your linear models, so we can finally understand all those other columns in the regression table. You won't want to miss it, so I'll see you in the next one!
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

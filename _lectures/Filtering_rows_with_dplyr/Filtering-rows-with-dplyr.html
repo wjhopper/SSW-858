@@ -4,6 +4,7 @@
     <title>Filtering rows with dplyr</title>
     <meta charset="utf-8" />
     <meta name="author" content="Will Hopper" />
+    <script src="libs/header-attrs-2.7/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
     <link rel="stylesheet" href="../../assets/css/sds.css" type="text/css" />
@@ -597,7 +598,7 @@ No shortcut for OR, always have to write it out
 
 ### Special cases of filtering: %in%
 
-One variable, multiple possible "matches" is a job for the `%in%` operator.
+Searching for multiple possible matches in column is a job for the `%in%` operator.
 
 ???
 
@@ -609,7 +610,7 @@ This kind of situation, where you're filtering based on one variable but your va
 
 --
 
-Let's say we wanted to keep rows corresponding to trial 1 or trial 2. Since they're values in the same variable, we don't need to use combine tests with |, we just need to use %in%
+Let's say we wanted to keep rows corresponding to trial 1 or trial 2. We can put both values inside a vector, and use the `%in%` function to ask "Is the value from this row inside the set on the right?" 
 
 .center[
 `filter(Time, trial %in% c(1,2))`
@@ -863,7 +864,7 @@ filter(Time, !is.na(actual))
 
 ---
 
-![](img/subject_test.png)
+![](img/subject1.png)
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
